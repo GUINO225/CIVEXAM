@@ -109,7 +109,12 @@ class _PlayScreenState extends State<PlayScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           child: Row(
                             children: [
-                              _IconBadge(icon: Icons.grid_view_rounded, size: cfg.tileIconSize),
+                              _IconBadge(
+                                icon: Icons.grid_view_rounded,
+                                size: cfg.tileIconSize,
+                                useMono: cfg.useMono,
+                                monoColor: cfg.monoColor,
+                              ),
                               const SizedBox(width: 12),
                               const Expanded(
                                 child: Text(
@@ -148,6 +153,8 @@ class _PlayScreenState extends State<PlayScreen> {
                               borderOpacity: cfg.glassBorderOpacity,
                               iconSize: cfg.tileIconSize,
                               centerContent: cfg.tileCenter,
+                              useMono: cfg.useMono,
+                              monoColor: cfg.monoColor,
                               onTap: () => _navigate(context, i),
                             );
                           },
@@ -168,6 +175,8 @@ class _PlayScreenState extends State<PlayScreen> {
     switch (name) {
       case 'blueAqua':  return const [Color(0xFF3A4CC5), Color(0xFF6C8BF5)];
       case 'midnight':  return const [Color(0xFF0F2027), Color(0xFF2C5364)];
+      case 'sunset':    return const [Color(0xFFFF5E62), Color(0xFFFF9966)];
+      case 'forest':    return const [Color(0xFF2F7336), Color(0xFFAAFFA9)];
       case 'blueRoyal':
       default:          return const [Color(0xFF0D1E42), Color(0xFF37478F)];
     }
@@ -214,6 +223,8 @@ class _GlassTile extends StatefulWidget {
     required this.borderOpacity,
     required this.iconSize,
     required this.centerContent,
+    required this.useMono,
+    required this.monoColor,
   });
   final String title;
   final IconData icon;
@@ -223,6 +234,8 @@ class _GlassTile extends StatefulWidget {
   final double borderOpacity;
   final double iconSize;
   final bool centerContent;
+  final bool useMono;
+  final Color monoColor;
 
   @override
   State<_GlassTile> createState() => _GlassTileState();
@@ -232,6 +245,18 @@ class _GlassTileState extends State<_GlassTile> {
   bool _pressed = false;
   @override
   Widget build(BuildContext context) {
+    final gradientColors = widget.useMono
+        ? [
+            widget.monoColor.withOpacity(0.15),
+            widget.monoColor.withOpacity(0.35)
+          ]
+        : [
+            Colors.orange.shade300.withOpacity(0.85),
+            Colors.orange.shade600.withOpacity(0.90)
+          ];
+
+    final iconColor = widget.useMono ? widget.monoColor : Colors.white;
+
     final iconBadge = Container(
       height: widget.iconSize,
       width: widget.iconSize,
@@ -240,14 +265,11 @@ class _GlassTileState extends State<_GlassTile> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.orange.shade300.withOpacity(0.85),
-            Colors.orange.shade600.withOpacity(0.90)
-          ],
+          colors: gradientColors,
         ),
         border: Border.all(color: Colors.white.withOpacity(0.25)),
       ),
-      child: Icon(widget.icon, size: widget.iconSize * 0.58, color: Colors.white),
+      child: Icon(widget.icon, size: widget.iconSize * 0.58, color: iconColor),
     );
 
     final title = Text(
@@ -342,23 +364,34 @@ class _GlassCard extends StatelessWidget {
 }
 
 class _IconBadge extends StatelessWidget {
-  const _IconBadge({required this.icon, this.size = 52});
+  const _IconBadge({
+    required this.icon,
+    this.size = 52,
+    required this.useMono,
+    required this.monoColor,
+  });
   final IconData icon;
   final double size;
+  final bool useMono;
+  final Color monoColor;
   @override
   Widget build(BuildContext context) {
+    final gradientColors = useMono
+        ? [monoColor.withOpacity(0.15), monoColor.withOpacity(0.35)]
+        : const [Color(0xFFFFB25E), Color(0xFFFF7A00)];
+    final iconColor = useMono ? monoColor : Colors.white;
     return Container(
       height: size,
       width: size,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFFB25E), Color(0xFFFF7A00)],
+          colors: gradientColors,
         ),
       ),
-      child: Icon(icon, size: size * 0.58, color: Colors.white),
+      child: Icon(icon, size: size * 0.58, color: iconColor),
     );
   }
 }
