@@ -13,6 +13,7 @@ import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
+import 'duel_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -207,6 +208,9 @@ class _PlayScreenState extends State<PlayScreen> {
             content: Text('• Entraînement : 5–10 s par question.\n• Concours ENA : difficulté = timing.\n• Par matière : révise par modules.\n• Historique : suis tes progrès.'),
           ),
         );
+        break;
+      case 6:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DuelScreen()));
         break;
     }
   }
@@ -409,4 +413,5 @@ const _items = <_MenuItem>[
   _MenuItem('Historique examens', Icons.fact_check_rounded),
   _MenuItem("Historique entraînement", Icons.history_rounded),
   _MenuItem('Comment ça marche ?', Icons.info_rounded),
+  _MenuItem('Duels', Icons.sports_kabaddi),
 ];
