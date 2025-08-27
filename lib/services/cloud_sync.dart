@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class CloudSync {
   static bool _initTried = false;
   static bool _ready = false;
+
+  static String _currentPlatform() {
+    try {
+      return Platform.operatingSystem;
+    } catch (_) {
+      try {
+        return defaultTargetPlatform.name.toLowerCase();
+      } catch (_) {
+        return 'unknown';
+      }
+    }
+  }
 
   static Future<void> ensureInitialized() async {
     if (_ready || _initTried) return;
@@ -54,7 +67,7 @@ class CloudSync {
         'total': total,
         'durationSeconds': durationSeconds,
         'timestamp': timestamp.toUtc(),
-        'platform': 'android',
+        'platform': _currentPlatform(),
         'version': 1,
       });
       if (kDebugMode) debugPrint('[CloudSync] Attempt uploaded.');
