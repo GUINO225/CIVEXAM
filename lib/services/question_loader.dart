@@ -10,6 +10,7 @@
 // -----------------------------------------------------------------------------
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
 
@@ -44,11 +45,14 @@ class QuestionLoader {
             return out;
           }
         }
-      } catch (_) {
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Failed to load ENA questions from $path: $e');
+        }
         // on passe au fichier suivant
       }
     }
-    throw Exception('Aucune banque de questions valide trouvée (ENA). Vérifiez les assets déclarés dans pubspec.yaml.');
+    throw Exception('Aucune banque de questions ENA n\'a pu être chargée. Veuillez vérifier votre installation.');
   }
 
   /// Convertit `difficulty` (texte/entier) en entier 1..3
