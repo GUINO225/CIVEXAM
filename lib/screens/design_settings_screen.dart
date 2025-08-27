@@ -49,6 +49,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               _paletteChip('blueRoyal', _cfg.bgPaletteName == 'blueRoyal'),
               _paletteChip('blueAqua', _cfg.bgPaletteName == 'blueAqua'),
               _paletteChip('midnight', _cfg.bgPaletteName == 'midnight'),
+              _paletteChip('sunset', _cfg.bgPaletteName == 'sunset'),
+              _paletteChip('forest', _cfg.bgPaletteName == 'forest'),
             ],
           ),
           const SizedBox(height: 16),
@@ -57,6 +59,21 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             value: _cfg.waveEnabled,
             onChanged: (v) => _apply(_cfg.copyWith(waveEnabled: v)),
           ),
+          const SizedBox(height: 16),
+          const Text('Icônes', style: TextStyle(fontWeight: FontWeight.bold)),
+          SwitchListTile(
+            title: const Text('Icônes monochromes'),
+            value: _cfg.useMono,
+            onChanged: (v) => _apply(_cfg.copyWith(useMono: v)),
+          ),
+          if (_cfg.useMono)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _iconColorsForPalette(_cfg.bgPaletteName)
+                  .map((c) => _colorChip(c, _cfg.monoColor == c))
+                  .toList(),
+            ),
           const Divider(height: 32),
 
           const Text('Verre (glassmorphism)', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -111,6 +128,34 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       label: Text(name),
       selected: selected,
       onSelected: (_) => _apply(_cfg.copyWith(bgPaletteName: name)),
+    );
+  }
+
+  List<Color> _iconColorsForPalette(String name) {
+    switch (name) {
+      case 'blueAqua':
+        return const [Colors.white, Color(0xFF6C8BF5), Color(0xFF3A4CC5)];
+      case 'midnight':
+        return const [Colors.white, Color(0xFF2C5364), Color(0xFF0F2027)];
+      case 'sunset':
+        return const [Colors.white, Color(0xFFFF9966), Color(0xFFFF5E62)];
+      case 'forest':
+        return const [Colors.white, Color(0xFF2F7336), Color(0xFFAAFFA9)];
+      case 'blueRoyal':
+      default:
+        return const [Colors.white, Color(0xFF37478F), Color(0xFF0D1E42)];
+    }
+  }
+
+  Widget _colorChip(Color color, bool selected) {
+    final brightness = ThemeData.estimateBrightnessForColor(color);
+    return ChoiceChip(
+      label: const SizedBox(width: 24, height: 24),
+      selected: selected,
+      selectedColor: color,
+      backgroundColor: color,
+      checkmarkColor: brightness == Brightness.dark ? Colors.white : Colors.black,
+      onSelected: (_) => _apply(_cfg.copyWith(monoColor: color)),
     );
   }
 
