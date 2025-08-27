@@ -1,0 +1,14 @@
+// multi_exam_flow.dart — à coller quand l'épreuve concours est terminée et le résultat global calculé
+// Imports :
+import 'package:civexam_app/services/leaderboard_hooks.dart';
+
+// Exemples de valeurs globales : total, correct, wrong, blank, elapsedSeconds, percentScore
+await LeaderboardHooks.saveConcours(
+  context: context,
+  total: total,
+  correct: correct,
+  wrong: wrong,
+  blank: blank,
+  durationSec: elapsedSeconds,
+  // percent: percentScore, // facultatif si déjà calculé
+);

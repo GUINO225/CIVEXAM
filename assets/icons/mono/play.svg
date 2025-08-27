@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  
+  <g id="base" fill="currentColor"><rect x="10" y="10" width="44" height="44" rx="12"/></g>
+  <g id="details">
+    <!-- black halo behind whites for contrast -->
+    <g stroke="#000000" stroke-opacity="0.25" fill="none">
+  <polygon points="28,22 44,32 28,42" stroke-width="2" fill="#FFFFFF"/>
+</g>
+    <!-- white stroke/fill on top -->
+    <g stroke="#FFFFFF" fill="#FFFFFF">
+  <polygon points="28,22 44,32 28,42" stroke-width="2" fill="#FFFFFF"/>
+</g>
+  </g>
+</svg>

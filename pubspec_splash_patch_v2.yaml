@@ -1,0 +1,14 @@
+# PATCH v2 for flutter_native_splash to avoid ANY circular cropping on Android 12+
+# Replace your existing flutter_native_splash section with this (or merge carefully).
+
+flutter_native_splash:
+  color: "#37478F"
+  color_dark: "#37478F"
+  image: assets/images/logo_splash_padded.png
+  android_12:
+    image: assets/images/logo_splash_padded.png
+    icon_background_color: null
+  fullscreen: true
+  android: true
+  ios: false
+  web: false

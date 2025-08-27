@@ -1,0 +1,23 @@
+// Remplacez le contenu de lib/main.dart par ceci si vous voulez démarrer sur le splash animé.
+import 'package:flutter/material.dart';
+import 'app/theme.dart';
+import 'screens/splash_animated.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CivExam - ENA',
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
+      home: const SplashAnimated(),
+    );
+  }
+}

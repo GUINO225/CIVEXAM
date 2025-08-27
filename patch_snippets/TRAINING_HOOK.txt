@@ -1,0 +1,16 @@
+// training_quick_start.dart — à coller au moment où la tentative est terminée
+// Imports:
+import 'package:civexam_app/services/leaderboard_hooks.dart';
+
+// Quand vous avez totalQuestions / correctCount / wrongCount / blankCount / elapsedSeconds / subjectName / chapterName :
+await LeaderboardHooks.saveTraining(
+  context: context,
+  subject: subjectName,
+  chapter: chapterName,
+  total: totalQuestions,
+  correct: correctCount,
+  wrong: wrongCount,
+  blank: blankCount,
+  durationSec: elapsedSeconds,
+  // percent: percentScore, // facultatif si déjà calculé
+);

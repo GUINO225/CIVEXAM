@@ -1,0 +1,52 @@
+name: civexam_app
+description: CivExam ENA - Flutter app with white splash, square logo, and full questions folder
+publish_to: "none"
+version: 1.3.0+7
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.2
+  flutter_svg: ^2.0.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  flutter_native_splash: ^2.4.2
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/questions/           # <-- inclut tout le dossier questions
+    - assets/images/logo_splash_square.png
+    - assets/images/logo_icon_square.png
+    - assets/icons/
+
+    - assets/icons/mono/
+    - assets/icons/sets/amber/
+    - assets/icons/sets/grape/
+    - assets/icons/sets/lime/
+    - assets/icons/sets/teal/
+    - assets/icons/sets/white/
+# Splash (fond blanc + logo carré non rogné)
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#FFFFFF"
+  image: assets/images/logo_splash_square.png
+  fullscreen: true
+  android: true
+  ios: false
+  web: false
+
+# Icône Android (carrée paddée, compatible adaptive icons)
+flutter_icons:
+  android: "launcher_icon"
+  image_path: "assets/images/logo_icon_square.png"
+  adaptive_icon_background: "#37478F"
+  adaptive_icon_foreground: "assets/images/logo_icon_square.png"
+  min_sdk_android: 21

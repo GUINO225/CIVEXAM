@@ -1,0 +1,16 @@
+# pubspec.yaml — Splash carré (sans masque circulaire Android 12)
+# Remplacez votre section flutter_native_splash par ceci.
+
+flutter_native_splash:
+  color: "#37478F"
+  color_dark: "#37478F"
+  image: assets/images/logo_splash_square.png  # image carrée (pas de rognage)
+  fullscreen: true
+  android: true
+  ios: false
+  web: false
+
+# Assurez-vous aussi d'avoir les assets ci-dessous dans la section flutter:
+# flutter:
+#   assets:
+#     - assets/images/logo_splash_square.png
