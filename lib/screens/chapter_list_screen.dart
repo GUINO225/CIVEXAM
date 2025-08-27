@@ -6,6 +6,7 @@ import '../services/scoring.dart';
 import '../models/training_history_entry.dart';
 import '../services/training_history_store.dart';
 import 'exam_full_screen.dart';
+import '../widgets/chip_selector.dart';
 
 class ChapterListScreen extends StatefulWidget {
   final String subjectName;
@@ -130,31 +131,23 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                         children: [
                           const Text('Temps par question', style: TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
-                          Wrap(
+                          ChipSelector<int>(
+                            options: _secondOptions,
+                            selected: _perQuestionSeconds,
+                            onSelected: (s) => setState(() => _perQuestionSeconds = s),
                             spacing: 8,
                             runSpacing: 8,
-                            children: _secondOptions.map((s) {
-                              final selected = _perQuestionSeconds == s;
-                              return ChoiceChip(
-                                label: Text('${s}s'),
-                                selected: selected,
-                                onSelected: (_) => setState(() => _perQuestionSeconds = s),
-                              );
-                            }).toList(),
+                            labelBuilder: (s) => '${s}s',
                           ),
                           const SizedBox(height: 16),
                           const Text('Nombre de questions', style: TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
-                          Wrap(
+                          ChipSelector<int>(
+                            options: _countOptions,
+                            selected: _questionCount,
+                            onSelected: (n) => setState(() => _questionCount = n),
                             spacing: 8,
-                            children: _countOptions.map((n) {
-                              final selected = _questionCount == n;
-                              return ChoiceChip(
-                                label: Text('$n'),
-                                selected: selected,
-                                onSelected: (_) => setState(() => _questionCount = n),
-                              );
-                            }).toList(),
+                            labelBuilder: (n) => '$n',
                           ),
                           const SizedBox(height: 12),
                           Text('Questions dispo pour ce module : ${_pool.length}'),
