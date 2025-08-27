@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  
+  <g id="base" fill="currentColor"><path d="M32 12L6 24l26 12 26-12-26-12z"/></g>
+  <g id="details">
+    <!-- black halo behind whites for contrast -->
+    <g stroke="#000000" stroke-opacity="0.25" fill="none">
+  <path d="M18 34v8l14 7 14-7v-8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+    <!-- white stroke/fill on top -->
+    <g stroke="#FFFFFF" fill="#FFFFFF">
+  <path d="M18 34v8l14 7 14-7v-8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+  </g>
+</svg>

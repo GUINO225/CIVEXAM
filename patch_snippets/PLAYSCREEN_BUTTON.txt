@@ -1,0 +1,12 @@
+// play_screen.dart — ajouter un bouton dans l'AppBar pour ouvrir le classement
+// Imports :
+import 'package:civexam_app/screens/leaderboard_screen.dart';
+
+// Dans AppBar(...)
+actions: [
+  IconButton(
+    icon: const Icon(Icons.emoji_events_outlined),
+    tooltip: 'Classement',
+    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
+  ),
+],

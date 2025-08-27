@@ -1,0 +1,12 @@
+# Alternative: garder le bloc android_12 mais désactiver le masque circulaire
+flutter_native_splash:
+  color: "#37478F"
+  color_dark: "#37478F"
+  image: assets/images/logo_splash_square.png
+  android_12:
+    image: assets/images/logo_splash_square.png
+    icon_background_color: null
+  fullscreen: true
+  android: true
+  ios: false
+  web: false

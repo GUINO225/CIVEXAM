@@ -1,0 +1,12 @@
+// PATCH — PlayScreen : ajouter un bouton Classement dans l'AppBar
+// 1) Imports en haut du fichier:
+// import 'screens/leaderboard_screen.dart';
+//
+// 2) Dans votre AppBar(...), ajoutez :
+// actions: [
+//   IconButton(
+//     icon: const Icon(Icons.emoji_events_outlined),
+//     tooltip: 'Classement',
+//     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
+//   ),
+// ],

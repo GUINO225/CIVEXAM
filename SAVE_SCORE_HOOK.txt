@@ -1,0 +1,18 @@
+// PATCH — Appeler la popup d'enregistrement à la fin d'une tentative
+// 1) Importer :
+// import 'widgets/leaderboard_save_dialog.dart';
+//
+// 2) Quand vous avez calculé : totalQuestions, correctCount, wrongCount, blankCount,
+//    elapsedSeconds et percentScore (0..100), appelez :
+// await showSaveScoreDialog(
+//   context: context,
+//   mode: 'training', // ou 'concours'
+//   subject: subjectName, // '' si non applicable
+//   chapter: chapterName, // '' si non applicable
+//   total: totalQuestions,
+//   correct: correctCount,
+//   wrong: wrongCount,
+//   blank: blankCount,
+//   durationSec: elapsedSeconds,
+//   percent: percentScore,
+// );

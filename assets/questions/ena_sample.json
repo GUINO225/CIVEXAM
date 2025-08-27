@@ -1,0 +1,960 @@
+[
+  {
+    "id": "CG-CI-01",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Capitale politique de la Côte d’Ivoire ?",
+    "choices": [
+      "Riviera",
+      "Yamoussoukro",
+      "Bouaké",
+      "San-Pédro"
+    ],
+    "answerIndex": 1,
+    "explanation": "La capitale politique est Yamoussoukro ; Abidjan est la capitale économique."
+  },
+  {
+    "id": "CG-CI-02",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel fleuve traverse le pays du nord au sud ?",
+    "choices": [
+      "Bandama",
+      "Comoé",
+      "Sassandra",
+      "Cavally"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Bandama est le plus long fleuve de Côte d’Ivoire ; le Comoé est à l’est."
+  },
+  {
+    "id": "CG-CI-03",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel est l’océan qui borde la Côte d’Ivoire ?",
+    "choices": [
+      "Atlantique",
+      "Pacifique",
+      "Indien",
+      "Arctique"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "CG-CI-04",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "La devise nationale est :",
+    "choices": [
+      "Union – Discipline – Travail",
+      "Liberté – Égalité – Fraternité",
+      "Paix – Travail – Patrie",
+      "Unité – Progrès – Justice"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "CG-CI-05",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "La monnaie de l’UEMOA est :",
+    "choices": [
+      "CFA (XOF)",
+      "Naira",
+      "Cedi",
+      "Shilling"
+    ],
+    "answerIndex": 0,
+    "explanation": "La Côte d’Ivoire est membre de l’UEMOA (franc CFA XOF)."
+  },
+  {
+    "id": "CG-CI-06",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "L’Assemblée nationale est située à :",
+    "choices": [
+      "Abidjan-Plateau",
+      "Yamoussoukro",
+      "Bouaké",
+      "Korhogo"
+    ],
+    "answerIndex": 1,
+    "explanation": "Siège des institutions politiques à Yamoussoukro."
+  },
+  {
+    "id": "CG-CI-07",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "Le cacao ivoirien représente :",
+    "choices": [
+      "Une part majeure des exportations",
+      "Une culture marginale",
+      "Uniquement pour l’autoconsommation",
+      "Interdit"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "CG-CI-08",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "La langue officielle :",
+    "choices": [
+      "Français",
+      "Anglais",
+      "Espagnol",
+      "Portugais"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "CG-CI-09",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "Le drapeau ivoirien est :",
+    "choices": [
+      "Orange – Blanc – Vert",
+      "Vert – Blanc – Rouge",
+      "Bleu – Blanc – Rouge",
+      "Noir – Rouge – Or"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "CG-CI-10",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "La principale lagune d’Abidjan :",
+    "choices": [
+      "Ebrié",
+      "Aghien",
+      "Aby",
+      "Buyo"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-01",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "La Côte d’Ivoire est une République :",
+    "choices": [
+      "Présidentielle",
+      "Parlementaire",
+      "Fédérale",
+      "Constitutionnelle sans président"
+    ],
+    "answerIndex": 0,
+    "explanation": "La Constitution de 2016 consacre un régime présidentiel à dominante présidentialiste."
+  },
+  {
+    "id": "DC-02",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le pouvoir législatif est exercé par :",
+    "choices": [
+      "Le Parlement",
+      "Le Président",
+      "La Cour suprême",
+      "Le Conseil constitutionnel"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-03",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le Conseil constitutionnel contrôle :",
+    "choices": [
+      "La constitutionnalité des lois",
+      "La gestion budgétaire",
+      "Les concours administratifs",
+      "Les mariages civils"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-04",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "La décentralisation crée :",
+    "choices": [
+      "Des collectivités territoriales",
+      "Des provinces fédérées",
+      "Des régions autonomes fédérales",
+      "Des protectorats"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-05",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "L’initiative des lois appartient :",
+    "choices": [
+      "Au gouvernement et aux députés",
+      "Uniquement au Président",
+      "Aux préfets",
+      "Aux chefs coutumiers"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-06",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "La séparation des pouvoirs vise à :",
+    "choices": [
+      "Éviter l’arbitraire",
+      "Accélérer toutes les décisions",
+      "Remplacer le Parlement",
+      "Supprimer le juge"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-07",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le suffrage universel signifie :",
+    "choices": [
+      "Vote de tous les citoyens majeurs",
+      "Vote des élus seulement",
+      "Vote des hommes seulement",
+      "Vote des contribuables"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-08",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le mandat présidentiel en CI est :",
+    "choices": [
+      "5 ans",
+      "6 ans",
+      "7 ans",
+      "4 ans"
+    ],
+    "answerIndex": 0,
+    "explanation": "Depuis la Constitution de 2016 (et révisions), le mandat est de 5 ans."
+  },
+  {
+    "id": "DC-09",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le pouvoir réglementaire appartient :",
+    "choices": [
+      "Au Premier ministre/au gouvernement",
+      "À l’Assemblée",
+      "Aux maires",
+      "Au Conseil constitutionnel"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "DC-10",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le contrôle de constitutionnalité a pour but :",
+    "choices": [
+      "Assurer la conformité des lois à la Constitution",
+      "Voter les lois",
+      "Exécuter le budget",
+      "Rendre la justice pénale"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-01",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "L’inflation mesure :",
+    "choices": [
+      "La hausse générale des prix",
+      "La hausse des salaires uniquement",
+      "La croissance du PIB",
+      "Le déficit commercial"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-02",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le PIB représente :",
+    "choices": [
+      "La valeur des richesses produites",
+      "Le stock d’or",
+      "La masse monétaire",
+      "Le budget de l’État"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-03",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "La politique budgétaire agit via :",
+    "choices": [
+      "Dépenses & recettes publiques",
+      "Le taux directeur de la BCEAO",
+      "Le change fixe",
+      "La météo"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-04",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "La balance commerciale est :",
+    "choices": [
+      "Exportations – Importations",
+      "Recettes – Dépenses",
+      "PIB – Inflation",
+      "Investissement – Épargne"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-05",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Un programme social vise :",
+    "choices": [
+      "À réduire la pauvreté/exclusion",
+      "À augmenter l’inflation",
+      "À diminuer la scolarisation",
+      "À accroître les importations"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-06",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "La diversification économique permet :",
+    "choices": [
+      "De réduire la dépendance à une matière première",
+      "D’augmenter le chômage",
+      "D’annuler les exportations",
+      "D’interdire les PME"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-07",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le capital humain se développe via :",
+    "choices": [
+      "Éducation & santé",
+      "Unique construction d’infrastructures",
+      "Baisse des salaires",
+      "Spéculation"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-08",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le secteur informel se caractérise par :",
+    "choices": [
+      "Activités non/peu enregistrées",
+      "Entreprises cotées",
+      "Exportations minières",
+      "Banques commerciales"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-09",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "La fiscalité progressive :",
+    "choices": [
+      "Fait croître le taux avec le revenu",
+      "Est la même pour tous",
+      "Diminue avec le revenu",
+      "Est uniquement indirecte"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "PES-10",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "L’inclusion financière favorise :",
+    "choices": [
+      "Accès au crédit & aux paiements",
+      "La corruption",
+      "La fermeture des banques",
+      "La dollarisation"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "NUM-01",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Une quantité augmente de 20% puis diminue de 20%. Variation totale ?",
+    "choices": [
+      "+0%",
+      "+4%",
+      "-4%",
+      "0%"
+    ],
+    "answerIndex": 2,
+    "explanation": "1,2 × 0,8 = 0,96 → -4%."
+  },
+  {
+    "id": "NUM-02",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Si 5 ouvriers font un travail en 12 jours, 10 ouvriers le feront en :",
+    "choices": [
+      "6 j",
+      "12 j",
+      "24 j",
+      "3 j"
+    ],
+    "answerIndex": 0,
+    "explanation": "Doubler les ouvriers divise le temps par 2 → 6 jours."
+  },
+  {
+    "id": "NUM-03",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "10% de 250 vaut :",
+    "choices": [
+      "20",
+      "25",
+      "30",
+      "35"
+    ],
+    "answerIndex": 1,
+    "explanation": ""
+  },
+  {
+    "id": "NUM-04",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "La moyenne de 6, 12 et 18 est :",
+    "choices": [
+      "10",
+      "12",
+      "14",
+      "16"
+    ],
+    "answerIndex": 1,
+    "explanation": "Somme 36, /3 = 12."
+  },
+  {
+    "id": "NUM-05",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "Le ratio 2:5 équivaut à :",
+    "choices": [
+      "4:10",
+      "3:8",
+      "6:10",
+      "8:22"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "NUM-06",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "Suite: 2, 6, 18, 54, … Prochain ?",
+    "choices": [
+      "108",
+      "162",
+      "216",
+      "324"
+    ],
+    "answerIndex": 1,
+    "explanation": "×3 à chaque étape : 54×3=162."
+  },
+  {
+    "id": "NUM-07",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "Une machine remplit un réservoir en 4 h, une autre en 6 h. Ensemble :",
+    "choices": [
+      "2 h",
+      "2 h 24",
+      "3 h",
+      "5 h"
+    ],
+    "answerIndex": 1,
+    "explanation": "1/4+1/6=5/12 → temps = 12/5 h = 2 h 24."
+  },
+  {
+    "id": "NUM-08",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "De 80 à 92, la hausse est de :",
+    "choices": [
+      "12%",
+      "15%",
+      "14%",
+      "16%"
+    ],
+    "answerIndex": 1,
+    "explanation": "Différence 12 ; 12/80=0,15 → 15%."
+  },
+  {
+    "id": "NUM-09",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "1/3 de 90 est :",
+    "choices": [
+      "20",
+      "25",
+      "30",
+      "35"
+    ],
+    "answerIndex": 2,
+    "explanation": ""
+  },
+  {
+    "id": "NUM-10",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "Une voiture parcourt 150 km en 3 h. Vitesse moyenne :",
+    "choices": [
+      "40 km/h",
+      "45 km/h",
+      "50 km/h",
+      "60 km/h"
+    ],
+    "answerIndex": 2,
+    "explanation": "150/3=50 → 50 km/h."
+  },
+  {
+    "id": "VERB-01",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Synonyme de « probité » :",
+    "choices": [
+      "Honnêteté",
+      "Lâcheté",
+      "Fierté",
+      "Timidité"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-02",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Antonyme de « parcimonieux » :",
+    "choices": [
+      "Dépensier",
+      "Économe",
+      "Sobre",
+      "Prudent"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-03",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Quel mot complète : « Il s’est ___ de sa faute » ?",
+    "choices": [
+      "repenti",
+      "repentit",
+      "repentit-e",
+      "repens"
+    ],
+    "answerIndex": 0,
+    "explanation": "Participe passé : « repenti »."
+  },
+  {
+    "id": "VERB-04",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Accord correct :",
+    "choices": [
+      "Des travaux furent menés",
+      "Des travaux fût mené",
+      "Des travail furent menés",
+      "Des travaux furent menée"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-05",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Quel est l’intrus ?",
+    "choices": [
+      "Rapide",
+      "Véloce",
+      "Lent",
+      "Prompt"
+    ],
+    "answerIndex": 2,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-06",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Sens de « dilatoire » :",
+    "choices": [
+      "Qui retarde",
+      "Qui accélère",
+      "Qui simplifie",
+      "Qui contredit"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-07",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Orthographe :",
+    "choices": [
+      "Immuable",
+      "Imuable"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-08",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "« … quoique … » exprime :",
+    "choices": [
+      "La concession",
+      "La cause",
+      "Le but",
+      "La conséquence"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-09",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Le féminin de « auteur » admis par l’usage :",
+    "choices": [
+      "Autrice / auteure",
+      "Auteuse",
+      "Autore",
+      "Autri"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "VERB-10",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Analogie : Pomme est à arbre comme cacao est à …",
+    "choices": [
+      "Cacaoyèr",
+      "Cacaoyer",
+      "Cacaotier",
+      "Cacaotière"
+    ],
+    "answerIndex": 1,
+    "explanation": "Arbre du cacao : cacaoyer."
+  },
+  {
+    "id": "ORG-01",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Classement : Si A avant B, B avant C, et D après C, l’ordre croissant est :",
+    "choices": [
+      "A-B-C-D",
+      "B-A-C-D",
+      "A-C-B-D",
+      "A-B-D-C"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-02",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Calendrier : Si le 1er mars est un lundi, le 1er avril est :",
+    "choices": [
+      "Mercredi",
+      "Jeudi",
+      "Vendredi",
+      "Samedi"
+    ],
+    "answerIndex": 1,
+    "explanation": "Mars a 31 jours ⇒ +3 jours : lundi → jeudi."
+  },
+  {
+    "id": "ORG-03",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Itinéraire : Pour aller de X à Z via Y uniquement, on dit :",
+    "choices": [
+      "X → Y → Z",
+      "Z → Y → X",
+      "X → Z → Y",
+      "Y → X → Z"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-04",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Planification : Tâche T2 après T1 ; T3 peut commencer seulement après T2. Ordre minimal :",
+    "choices": [
+      "T1, T2, T3",
+      "T2, T1, T3",
+      "T3, T2, T1",
+      "T1, T3, T2"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-05",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Tableau logique : Si seuls P et R portent des chapeaux, qui n’en porte pas ?",
+    "choices": [
+      "Q",
+      "P",
+      "R",
+      "P et R"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-06",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Série lettres : A, C, F, J, … La suivante :",
+    "choices": [
+      "O",
+      "N",
+      "M",
+      "P"
+    ],
+    "answerIndex": 0,
+    "explanation": "Incréments +2, +3, +4 ; ensuite +5 → O."
+  },
+  {
+    "id": "ORG-07",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Venn : Tous les A sont B. Certains B sont C. En déduire :",
+    "choices": [
+      "Certains A peuvent être C",
+      "Tous les B sont A",
+      "Tous les C sont A",
+      "Aucun A n’est C"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-08",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Déduction : Si aucune mangue n’est bleue et que ce fruit est bleu, alors :",
+    "choices": [
+      "Ce n’est pas une mangue",
+      "C’est une mangue",
+      "C’est sûrement une mangue",
+      "On ne peut conclure"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-09",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Ordonnancement : 3 réunions doivent se suivre sans chevauchement. Le minimum de salles :",
+    "choices": [
+      "1",
+      "2",
+      "3",
+      "0"
+    ],
+    "answerIndex": 0,
+    "explanation": ""
+  },
+  {
+    "id": "ORG-10",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Horaires : Une réunion 9h–11h et une autre 10h–12h. Salles minimales :",
+    "choices": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answerIndex": 1,
+    "explanation": "Chevauchement 10–11 → 2 salles requises."
+  }
+]

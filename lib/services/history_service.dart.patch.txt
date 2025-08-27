@@ -1,0 +1,12 @@
+// Add at top of lib/services/history_service.dart
+import 'cloud_sync.dart';
+
+// After local save inside addAttempt(...), add:
+await CloudSync.uploadAttempt(
+  subject: subject,
+  chapter: chapter,
+  score: score,
+  total: total,
+  durationSeconds: durationSeconds,
+  timestamp: timestamp,
+);
