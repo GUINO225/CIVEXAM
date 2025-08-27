@@ -1,6 +1,7 @@
 // lib/screens/play_screen.dart — Live design via DesignBus + centrage tuiles + taille icône
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
 import '../services/design_prefs.dart';
@@ -40,6 +41,13 @@ class _PlayScreenState extends State<PlayScreen> {
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final List<Color> bg = _paletteFromName(cfg.bgPaletteName);
+
+        final user = FirebaseAuth.instance.currentUser;
+        final name = user?.displayName ?? user?.email;
+        final welcomeText =
+            name != null && name.isNotEmpty
+                ? 'Bienvenue $name 👋  •  Choisis un mode'
+                : 'Bienvenue 👋  •  Choisis un mode';
 
         return Scaffold(
           extendBody: true,
@@ -117,12 +125,12 @@ class _PlayScreenState extends State<PlayScreen> {
                                 monoColor: cfg.monoColor,
                               ),
                               const SizedBox(width: 12),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'Bienvenue 👋  •  Choisis un mode',
+                                  welcomeText,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
