@@ -43,16 +43,9 @@ class _PlayScreenState extends State<PlayScreen> {
         final List<Color> bg = _paletteFromName(cfg.bgPaletteName);
         final user = FirebaseAuth.instance.currentUser;
         final name = user?.displayName ?? user?.email;
-        final welcomeText = name != null
+        final welcomeText = name != null && name.isNotEmpty
             ? 'Bienvenue $name 👋  •  Choisis un mode'
             : 'Bienvenue 👋  •  Choisis un mode';
-
-        final user = FirebaseAuth.instance.currentUser;
-        final name = user?.displayName ?? user?.email;
-        final welcomeText =
-            name != null && name.isNotEmpty
-                ? 'Bienvenue $name 👋  •  Choisis un mode'
-                : 'Bienvenue 👋  •  Choisis un mode';
 
         return Scaffold(
           extendBody: true,
