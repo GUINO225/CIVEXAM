@@ -143,12 +143,13 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     Color complement(Color c) =>
         Color.fromARGB(255, 255 - c.red, 255 - c.green, 255 - c.blue);
     final c1 = complement(palette[0]);
-    final c2 = complement(palette.length > 1 ? palette[1] : palette[0]);
+    final second = palette.length > 1 ? palette[1] : palette[0];
+    final c2 = complement(second);
     final avg = Color.fromARGB(
       255,
-      ((palette[0].red + palette[1].red) / 2).round(),
-      ((palette[0].green + palette[1].green) / 2).round(),
-      ((palette[0].blue + palette[1].blue) / 2).round(),
+      ((palette[0].red + second.red) / 2).round(),
+      ((palette[0].green + second.green) / 2).round(),
+      ((palette[0].blue + second.blue) / 2).round(),
     );
     final c3 = complement(avg);
     return [Colors.black, Colors.white, c1, c2, c3];
