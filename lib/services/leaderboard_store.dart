@@ -23,10 +23,15 @@ class LeaderboardStore {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_kKey) ?? <String>[];
     list.add(json.encode(e.toJson()));
-    final entries = list
-        .map((s) =>
-            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>))
-        .toList();
+    final entries = <LeaderboardEntry>[];
+    for (final s in list) {
+      try {
+        entries.add(
+            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>));
+      } catch (_) {
+        // ignore invalid stored entries
+      }
+    }
     final sorted = _sortEntries(entries);
     final encoded = sorted.map((e) => json.encode(e.toJson())).toList();
     await prefs.setStringList(_kKey, encoded);
@@ -35,10 +40,15 @@ class LeaderboardStore {
   static Future<List<LeaderboardEntry>> all() async {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_kKey) ?? <String>[];
-    final entries = list
-        .map((s) =>
-            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>))
-        .toList();
+    final entries = <LeaderboardEntry>[];
+    for (final s in list) {
+      try {
+        entries.add(
+            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>));
+      } catch (_) {
+        // ignore invalid stored entries
+      }
+    }
     return _sortEntries(entries);
   }
 
