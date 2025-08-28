@@ -56,7 +56,22 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               _paletteChip('steel', _cfg.bgPaletteName == 'steel'),
               _paletteChip('coffee', _cfg.bgPaletteName == 'coffee'),
               _paletteChip('blueRoyal', _cfg.bgPaletteName == 'blueRoyal'),
+              _paletteChip('fireOcean', _cfg.bgPaletteName == 'fireOcean'),
+              _paletteChip('refreshingSummer', _cfg.bgPaletteName == 'refreshingSummer'),
+              _paletteChip('oliveGardenFeast', _cfg.bgPaletteName == 'oliveGardenFeast'),
+              _paletteChip('oceanBleuSerenity', _cfg.bgPaletteName == 'oceanBleuSerenity'),
+              _paletteChip('softPink', _cfg.bgPaletteName == 'softPink'),
+              _paletteChip('oceanBreeze', _cfg.bgPaletteName == 'oceanBreeze'),
+              _paletteChip('softSand', _cfg.bgPaletteName == 'softSand'),
+              _paletteChip('beachSunset', _cfg.bgPaletteName == 'beachSunset'),
+              _paletteChip('slateGrayContrast', _cfg.bgPaletteName == 'slateGrayContrast'),
             ],
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile(
+            title: const Text('Fond dégradé'),
+            value: _cfg.bgGradient,
+            onChanged: (v) => _apply(_cfg.copyWith(bgGradient: v)),
           ),
           const SizedBox(height: 16),
           SwitchListTile(
@@ -137,19 +152,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   List<Color> _iconColorsForPalette(String name) {
-    final palette = paletteFromName(name);
-    Color complement(Color c) =>
-        Color.fromARGB(255, 255 - c.red, 255 - c.green, 255 - c.blue);
-    final c1 = complement(palette[0]);
-    final c2 = complement(palette.length > 1 ? palette[1] : palette[0]);
-    final avg = Color.fromARGB(
-      255,
-      ((palette[0].red + palette[1].red) / 2).round(),
-      ((palette[0].green + palette[1].green) / 2).round(),
-      ((palette[0].blue + palette[1].blue) / 2).round(),
-    );
-    final c3 = complement(avg);
-    return [Colors.black, Colors.white, c1, c2, c3];
+    return paletteFromName(name);
   }
 
   Widget _colorChip(Color color, bool selected) {
