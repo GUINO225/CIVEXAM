@@ -50,9 +50,9 @@ class CompetitionScreen extends StatefulWidget {
     this.correctCount = 0,
     this.wrongCount = 0,
     this.blankCount = 0,
-    required this.startTime,
+    DateTime? startTime,
     this.theme = kDefaultCompetitionTheme,
-  });
+  }) : startTime = startTime ?? DateTime.now();
 
   @override
   State<CompetitionScreen> createState() => _CompetitionScreenState();
