@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
+import '../services/competition_service.dart';
 
 Future<void> showSaveScoreDialog({
   required BuildContext context,
-  required String mode, // 'training' ou 'concours'
+  required String mode, // 'training', 'concours' ou 'competition'
   String subject = '', String chapter = '',
   required int total, required int correct, required int wrong, required int blank,
   required int durationSec, required double percent,
@@ -41,6 +42,10 @@ Future<void> showSaveScoreDialog({
       durationSec: durationSec, percent: percent, dateIso: DateTime.now().toIso8601String(),
     );
     await LeaderboardStore.add(entry);
+    if (mode == 'competition') {
+      // Sauvegarde aussi dans Firestore pour le classement en ligne
+      await CompetitionService().saveEntry(entry);
+    }
     // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
   }
