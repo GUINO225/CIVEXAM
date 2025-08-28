@@ -2,25 +2,32 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../models/question.dart';
+
 /// A minimalist competition screen showing a question with a
-/// countdown timer and three possible answers.
+/// countdown timer and multiple possible answers.
 class CompetitionScreen extends StatefulWidget {
-  const CompetitionScreen({super.key});
+  final List<Question> questions;
+  final int currentIndex;
+  final int correctCount;
+
+  const CompetitionScreen({
+    super.key,
+    required this.questions,
+    this.currentIndex = 0,
+    this.correctCount = 0,
+  });
 
   @override
   State<CompetitionScreen> createState() => _CompetitionScreenState();
 }
 
 class _CompetitionScreenState extends State<CompetitionScreen> {
-  final List<String> _options = const [
-    'Sadio Mane',
-    'Harry Kane',
-    'Christian Benteke',
-  ];
-
   int _selected = -1;
   int _seconds = 30;
   Timer? _timer;
+
+  Question get _currentQuestion => widget.questions[widget.currentIndex];
 
   @override
   void initState() {
@@ -63,21 +70,21 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'QUESTION 3 OF 10',
-                    style: TextStyle(
+                    'QUESTION ${widget.currentIndex + 1} OF ${widget.questions.length}',
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                const LinearProgressIndicator(
-                  value: 0.3,
+                LinearProgressIndicator(
+                  value: (widget.currentIndex + 1) / widget.questions.length,
                   backgroundColor: Colors.white24,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                  valueColor: const AlwaysStoppedAnimation(Colors.white),
                 ),
                 const SizedBox(height: 32),
                 Container(
@@ -98,10 +105,10 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'Which player is from Senegal?',
+                Text(
+                  _currentQuestion.question,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -117,7 +124,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      _options[_selected],
+                      _currentQuestion.choices[_selected],
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -125,12 +132,12 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                ...List.generate(_options.length, (i) {
+                ...List.generate(_currentQuestion.choices.length, (i) {
                   final bool isSelected = _selected == i;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: GestureDetector(
-                      onTap: () => setState(() => _selected = i),
+                      onTap: () => _onOptionTap(i),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -152,7 +159,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                               : null,
                         ),
                         child: Text(
-                          _options[i],
+                          _currentQuestion.choices[i],
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 16,
@@ -168,6 +175,71 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _onOptionTap(int i) {
+    if (_selected >= 0) return;
+    setState(() => _selected = i);
+    final bool isCorrect = i == _currentQuestion.answerIndex;
+    final int totalCorrect =
+        widget.correctCount + (isCorrect ? 1 : 0);
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      if (widget.currentIndex + 1 < widget.questions.length) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CompetitionScreen(
+              questions: widget.questions,
+              currentIndex: widget.currentIndex + 1,
+              correctCount: totalCorrect,
+            ),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CompetitionResultScreen(
+              total: widget.questions.length,
+              correct: totalCorrect,
+            ),
+          ),
+        );
+      }
+    });
+  }
+}
+
+class CompetitionResultScreen extends StatelessWidget {
+  final int total;
+  final int correct;
+
+  const CompetitionResultScreen({super.key, required this.total, required this.correct});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Résultat',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text('Score: $correct / $total'),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Retour'),
+            ),
+          ],
         ),
       ),
     );
