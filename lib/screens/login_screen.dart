@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../widgets/primary_button.dart';
 import 'play_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -81,14 +82,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (_error != null)
                     Text(_error!, style: errorStyle),
                   const SizedBox(height: 12),
-                  ElevatedButton(
+                  PrimaryButton(
                     onPressed: _isLoading ? null : _submit,
                     child: _isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(_isLogin ? 'Connexion' : 'Inscription'),
                   ),
