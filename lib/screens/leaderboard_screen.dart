@@ -21,7 +21,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final all = await LeaderboardStore.all();
     final comp = await CompetitionService().topEntries();
     if (!mounted) return;
-    setState(() { _entries = [...all, ...comp]; });
+    final merged = [...all, ...comp];
+    merged.sort((a, b) {
+      final p = b.percent.compareTo(a.percent);
+      if (p != 0) return p;
+      return a.durationSec.compareTo(b.durationSec);
+    });
+    setState(() { _entries = merged; });
   }
 
   List<LeaderboardEntry> get _filtered {
