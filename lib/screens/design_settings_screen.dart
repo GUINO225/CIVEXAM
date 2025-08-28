@@ -139,8 +139,9 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   Widget _paletteChip(String name, bool selected) {
-    final colors = pastelColors(name, darkMode: _cfg.darkMode);
-    final textColor = textColorForPalette(name, darkMode: _cfg.darkMode);
+    final dark = paletteIsDark(name);
+    final colors = pastelColors(name, darkMode: dark);
+    final textColor = textColorForPalette(name, darkMode: dark);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -150,8 +151,9 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               ? _cfg.copyWith(
                   bgPaletteName: name,
                   monoColor: complementaryColor(name),
+                  darkMode: dark,
                 )
-              : _cfg.copyWith(bgPaletteName: name);
+              : _cfg.copyWith(bgPaletteName: name, darkMode: dark);
           _apply(updated);
         },
         child: Container(

@@ -7,6 +7,9 @@ ThemeData buildAppTheme(DesignConfig cfg) {
   final accent = accentColor(cfg.bgPaletteName);
   final complement = complementaryColor(cfg.bgPaletteName);
   final brightness = cfg.darkMode ? Brightness.dark : Brightness.light;
+  final iconClr = cfg.useMono ? cfg.monoColor : accent;
+  final foreground =
+      textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
 
   final base = ThemeData(
     colorScheme: ColorScheme.fromSeed(
@@ -28,10 +31,11 @@ ThemeData buildAppTheme(DesignConfig cfg) {
 
   return base.copyWith(
     textTheme: textTheme,
-    iconTheme: IconThemeData(color: accent),
+    iconTheme: IconThemeData(color: iconClr),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      foregroundColor: accent,
+      foregroundColor: foreground,
+      iconTheme: IconThemeData(color: iconClr),
       elevation: 0,
       centerTitle: true,
     ),

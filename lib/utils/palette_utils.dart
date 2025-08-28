@@ -95,6 +95,12 @@ Color textColorForPalette(String name, {bool darkMode = false}) {
   return brightness == Brightness.dark ? Colors.white : Colors.black;
 }
 
+/// Returns true if the palette's averaged color is dark enough to require
+/// light foreground content.
+bool paletteIsDark(String name) {
+  return textColorForPalette(name) == Colors.white;
+}
+
 /// Helper to get readable text color on top of any solid [color].
 Color onColor(Color color) =>
     ThemeData.estimateBrightnessForColor(color) == Brightness.dark
