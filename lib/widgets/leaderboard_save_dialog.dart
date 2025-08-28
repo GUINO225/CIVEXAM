@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:confetti/confetti.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
@@ -32,10 +33,43 @@ Future<void> showSaveScoreDialog({
       percent: percent,
       dateIso: DateTime.now().toIso8601String(),
     );
-    await CompetitionService().saveEntry(entry);
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
+    final service = CompetitionService();
+    await service.saveEntry(entry);
+    final top = await service.topEntries(limit: 1);
+    if (top.isNotEmpty && top.first.userId == uid) {
+      final controller =
+          ConfettiController(duration: const Duration(seconds: 2))..play();
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => Stack(
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                controller: controller,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+              ),
+            ),
+            AlertDialog(
+              title: const Text('Félicitations !'),
+              content: const Text('Vous êtes en tête du classement.'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK')),
+              ],
+            ),
+          ],
+        ),
+      );
+      controller.dispose();
+    } else {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
+    }
     return;
   }
 
