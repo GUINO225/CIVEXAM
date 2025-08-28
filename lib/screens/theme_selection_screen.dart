@@ -71,6 +71,10 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
                 'violetRose',
                 'mintTurquoise',
                 'deepBlack',
+                'sereneBlue',
+                'forestGreen',
+                'deepIndigo',
+                'royalViolet',
               ])
                 _paletteChip(name, _cfg.bgPaletteName == name),
             ],
