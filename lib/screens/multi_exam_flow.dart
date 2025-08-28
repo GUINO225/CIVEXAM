@@ -271,7 +271,23 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       runSpacing: 8,
       children: items.map((d) {
         final selected = _difficulty == d;
+        IconData icon;
+        switch (d) {
+          case ExamDifficulty.facile:
+            icon = Icons.sentiment_satisfied_alt;
+            break;
+          case ExamDifficulty.normal:
+            icon = Icons.sentiment_neutral;
+            break;
+          case ExamDifficulty.difficile:
+            icon = Icons.sentiment_dissatisfied;
+            break;
+          case ExamDifficulty.expert:
+            icon = Icons.bolt;
+            break;
+        }
         return ChoiceChip(
+          avatar: Icon(icon, size: 18),
           label: Text(difficultyLabel(d)),
           selected: selected,
           tooltip: difficultyHint(d),
@@ -281,11 +297,36 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     );
   }
 
+  IconData _iconForSection(String title) {
+    switch (title) {
+      case 'Culture Générale':
+        return Icons.public;
+      case 'Aptitude Verbale':
+        return Icons.menu_book_outlined;
+      case 'Organisation & Logique':
+        return Icons.extension;
+      case 'Aptitude Numérique':
+        return Icons.calculate;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final perQ = secondsPerQuestion(_difficulty);
     return Scaffold(
-      appBar: AppBar(title: const Text('Parcours multi-épreuves ENA')),
+      appBar: AppBar(
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.flag),
+            SizedBox(width: 8),
+            Text('Parcours multi-épreuves ENA'),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -307,8 +348,10 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
                       children: [
                         for (final s in sections)
                           ListTile(
+                            leading: Icon(_iconForSection(s.title)),
                             title: Text(s.title),
                             subtitle: Text('Barème: ${s.scoring} • Questions visées: ${s.targetCount}'),
+                            trailing: const Icon(Icons.chevron_right),
                           ),
                       ],
                     ),
