@@ -134,8 +134,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   Widget _paletteChip(String name, bool selected) {
-    final colors = paletteFromName(name);
-    final textColor = textColorForPalette(name);
+    final colors = pastelColors(name, darkMode: _cfg.darkMode);
+    final textColor = textColorForPalette(name, darkMode: _cfg.darkMode);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -162,7 +162,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   List<Color> _iconColorsForPalette(String name) {
-    return paletteFromName(name);
+    return [accentColor(name), complementaryColor(name)];
   }
 
   Widget _colorChip(Color color, bool selected) {
