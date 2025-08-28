@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/design_config.dart';
 import '../services/design_prefs.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 
 class DesignSettingsScreen extends StatefulWidget {
   const DesignSettingsScreen({super.key});
@@ -52,6 +53,11 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               _paletteChip('ghana', _cfg.bgPaletteName == 'ghana'),
               _paletteChip('nigeria', _cfg.bgPaletteName == 'nigeria'),
               _paletteChip('kenya', _cfg.bgPaletteName == 'kenya'),
+              _paletteChip('midnight', _cfg.bgPaletteName == 'midnight'),
+              _paletteChip('sunset', _cfg.bgPaletteName == 'sunset'),
+              _paletteChip('forest', _cfg.bgPaletteName == 'forest'),
+              _paletteChip('ocean', _cfg.bgPaletteName == 'ocean'),
+              _paletteChip('purple', _cfg.bgPaletteName == 'purple'),
             ],
           ),
           const SizedBox(height: 16),
@@ -133,49 +139,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   List<Color> _iconColorsForPalette(String name) {
-    switch (name) {
-      case 'coteIvoire':
-        return const [Colors.white, Color(0xFFFF8C00), Color(0xFF00C851)];
-      case 'senegal':
-        return const [Colors.white, Color(0xFF00853F), Color(0xFFEF2B2D)];
-      case 'ghana':
-        return const [Colors.white, Color(0xFFE21B1B), Color(0xFF006B3F)];
-      case 'nigeria':
-        return const [Colors.white, Color(0xFF008751), Color(0xFFA7FF83)];
-      case 'kenya':
-        return const [Colors.white, Color(0xFFBB1919), Color(0xFF006600)];
-      case 'blueAqua':
-        return const [Colors.white, Color(0xFF6C8BF5), Color(0xFF3A4CC5)];
-      case 'midnight':
-        return const [Colors.white, Color(0xFF2C5364), Color(0xFF0F2027)];
-      case 'sunset':
-        return const [Colors.white, Color(0xFFFF9966), Color(0xFFFF5E62)];
-      case 'forest':
-        return const [Colors.white, Color(0xFF2F7336), Color(0xFFAAFFA9)];
-      case 'ocean':
-        return const [Colors.white, Color(0xFF1A2980), Color(0xFF26D0CE)];
-      case 'fire':
-        return const [Colors.white, Color(0xFFFF512F), Color(0xFFF09819)];
-      case 'purple':
-        return const [Colors.white, Color(0xFF2A0845), Color(0xFF6441A5)];
-      case 'pink':
-        return const [Colors.white, Color(0xFFFF9A9E), Color(0xFFFAD0C4)];
-      case 'emerald':
-        return const [Colors.white, Color(0xFF00B09B), Color(0xFF96C93D)];
-      case 'candy':
-        return const [Colors.white, Color(0xFFF857A6), Color(0xFFFF5858)];
-      case 'steel':
-        return const [Colors.white, Color(0xFF232526), Color(0xFF414345)];
-      case 'coffee':
-        return const [Colors.white, Color(0xFF603813), Color(0xFFB29F94)];
-      case 'gold':
-        return const [Colors.white, Color(0xFFF6D365), Color(0xFFFDA085)];
-      case 'lavender':
-        return const [Colors.white, Color(0xFFB993D6), Color(0xFF8CA6DB)];
-      case 'blueRoyal':
-      default:
-        return const [Colors.white, Color(0xFF37478F), Color(0xFF0D1E42)];
-    }
+    final palette = paletteFromName(name);
+    Color complement(Color c) =>
+        Color.fromARGB(255, 255 - c.red, 255 - c.green, 255 - c.blue);
+    final c1 = complement(palette[0]);
+    final c2 = complement(palette.length > 1 ? palette[1] : palette[0]);
+    final avg = Color.fromARGB(
+      255,
+      ((palette[0].red + palette[1].red) / 2).round(),
+      ((palette[0].green + palette[1].green) / 2).round(),
+      ((palette[0].blue + palette[1].blue) / 2).round(),
+    );
+    final c3 = complement(avg);
+    return [Colors.black, Colors.white, c1, c2, c3];
   }
 
   Widget _colorChip(Color color, bool selected) {
