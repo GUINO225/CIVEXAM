@@ -29,7 +29,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'midnight',
+    this.bgPaletteName = 'beachSunset',
     this.waveEnabled = true,
     this.bgGradient = true,
     // Verre

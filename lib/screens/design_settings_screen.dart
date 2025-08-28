@@ -48,23 +48,18 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _paletteChip('midnight', _cfg.bgPaletteName == 'midnight'),
-              _paletteChip('forest', _cfg.bgPaletteName == 'forest'),
-              _paletteChip('ocean', _cfg.bgPaletteName == 'ocean'),
-              _paletteChip('purple', _cfg.bgPaletteName == 'purple'),
-              _paletteChip('lavender', _cfg.bgPaletteName == 'lavender'),
-              _paletteChip('steel', _cfg.bgPaletteName == 'steel'),
-              _paletteChip('coffee', _cfg.bgPaletteName == 'coffee'),
-              _paletteChip('blueRoyal', _cfg.bgPaletteName == 'blueRoyal'),
               _paletteChip('fireOcean', _cfg.bgPaletteName == 'fireOcean'),
-              _paletteChip('refreshingSummer', _cfg.bgPaletteName == 'refreshingSummer'),
-              _paletteChip('oliveGardenFeast', _cfg.bgPaletteName == 'oliveGardenFeast'),
-              _paletteChip('oceanBleuSerenity', _cfg.bgPaletteName == 'oceanBleuSerenity'),
-              _paletteChip('softPink', _cfg.bgPaletteName == 'softPink'),
+              _paletteChip('refreshingSummer',
+                  _cfg.bgPaletteName == 'refreshingSummer'),
+              _paletteChip(
+                  'oliveGardenFeast', _cfg.bgPaletteName == 'oliveGardenFeast'),
+              _paletteChip('oceanBleuSerenity',
+                  _cfg.bgPaletteName == 'oceanBleuSerenity'),
               _paletteChip('oceanBreeze', _cfg.bgPaletteName == 'oceanBreeze'),
               _paletteChip('softSand', _cfg.bgPaletteName == 'softSand'),
               _paletteChip('beachSunset', _cfg.bgPaletteName == 'beachSunset'),
-              _paletteChip('slateGrayContrast', _cfg.bgPaletteName == 'slateGrayContrast'),
+              _paletteChip('slateGrayContrast',
+                  _cfg.bgPaletteName == 'slateGrayContrast'),
             ],
           ),
           const SizedBox(height: 16),
@@ -144,10 +139,30 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   Widget _paletteChip(String name, bool selected) {
-    return ChoiceChip(
-      label: Text(name),
-      selected: selected,
-      onSelected: (_) => _apply(_cfg.copyWith(bgPaletteName: name)),
+    final colors = paletteFromName(name);
+    final textColor = textColorForPalette(name);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _apply(_cfg.copyWith(bgPaletteName: name)),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: colors,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? Colors.white : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          child: Text(name, style: TextStyle(color: textColor)),
+        ),
+      ),
     );
   }
 
