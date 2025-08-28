@@ -16,17 +16,16 @@ class DesignBackground extends StatelessWidget {
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final baseColors = paletteFromName(cfg.bgPaletteName);
-        final gradientColors = [
-          Color.lerp(baseColors.first, Colors.white, 0.35)!,
-          baseColors.last,
-        ];
         return DecoratedBox(
           decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 1.0,
-              colors: gradientColors,
-            ),
+            gradient: cfg.bgGradient
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: baseColors,
+                  )
+                : null,
+            color: cfg.bgGradient ? null : baseColors.first,
           ),
           child: Stack(
             children: [
