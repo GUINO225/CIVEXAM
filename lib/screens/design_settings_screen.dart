@@ -51,6 +51,16 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               _paletteChip('midnight', _cfg.bgPaletteName == 'midnight'),
               _paletteChip('sunset', _cfg.bgPaletteName == 'sunset'),
               _paletteChip('forest', _cfg.bgPaletteName == 'forest'),
+              _paletteChip('ocean', _cfg.bgPaletteName == 'ocean'),
+              _paletteChip('fire', _cfg.bgPaletteName == 'fire'),
+              _paletteChip('purple', _cfg.bgPaletteName == 'purple'),
+              _paletteChip('pink', _cfg.bgPaletteName == 'pink'),
+              _paletteChip('emerald', _cfg.bgPaletteName == 'emerald'),
+              _paletteChip('candy', _cfg.bgPaletteName == 'candy'),
+              _paletteChip('steel', _cfg.bgPaletteName == 'steel'),
+              _paletteChip('coffee', _cfg.bgPaletteName == 'coffee'),
+              _paletteChip('gold', _cfg.bgPaletteName == 'gold'),
+              _paletteChip('lavender', _cfg.bgPaletteName == 'lavender'),
             ],
           ),
           const SizedBox(height: 16),
@@ -141,6 +151,26 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
         return const [Colors.white, Color(0xFFFF9966), Color(0xFFFF5E62)];
       case 'forest':
         return const [Colors.white, Color(0xFF2F7336), Color(0xFFAAFFA9)];
+      case 'ocean':
+        return const [Colors.white, Color(0xFF1A2980), Color(0xFF26D0CE)];
+      case 'fire':
+        return const [Colors.white, Color(0xFFFF512F), Color(0xFFF09819)];
+      case 'purple':
+        return const [Colors.white, Color(0xFF2A0845), Color(0xFF6441A5)];
+      case 'pink':
+        return const [Colors.white, Color(0xFFFF9A9E), Color(0xFFFAD0C4)];
+      case 'emerald':
+        return const [Colors.white, Color(0xFF00B09B), Color(0xFF96C93D)];
+      case 'candy':
+        return const [Colors.white, Color(0xFFF857A6), Color(0xFFFF5858)];
+      case 'steel':
+        return const [Colors.white, Color(0xFF232526), Color(0xFF414345)];
+      case 'coffee':
+        return const [Colors.white, Color(0xFF603813), Color(0xFFB29F94)];
+      case 'gold':
+        return const [Colors.white, Color(0xFFF6D365), Color(0xFFFDA085)];
+      case 'lavender':
+        return const [Colors.white, Color(0xFFB993D6), Color(0xFF8CA6DB)];
       case 'blueRoyal':
       default:
         return const [Colors.white, Color(0xFF37478F), Color(0xFF0D1E42)];
