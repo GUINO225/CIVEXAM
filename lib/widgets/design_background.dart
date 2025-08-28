@@ -20,8 +20,8 @@ class DesignBackground extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: cfg.bgGradient
                 ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                     colors: baseColors,
                   )
                 : null,
