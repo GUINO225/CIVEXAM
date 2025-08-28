@@ -21,19 +21,25 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
-    'pastelBlue',
-    'sereneBlue',
-    'blueIndigo',
-    'midnightBlue',
-    'deepIndigo',
+    'navyCyanAmber',
+    'indigoPurpleSky',
+    'emeraldTealMint',
+    'royalBlueGold',
+    'charcoalElectric',
+    'forestSandTerracotta',
+    'cobaltLimeSlate',
+    'calmPastels',
   ];
 
   static const Map<String, String> _paletteLabels = {
-    'pastelBlue': 'Bleu pastel',
-    'sereneBlue': 'Bleu sérieux',
-    'blueIndigo': 'Indigo',
-    'midnightBlue': 'Bleu nuit',
-    'deepIndigo': 'Indigo profond',
+    'navyCyanAmber': 'Navy/Cyan/Ambre',
+    'indigoPurpleSky': 'Indigo/Violet/Ciel',
+    'emeraldTealMint': 'Émeraude/Teal/Menthe',
+    'royalBlueGold': 'Bleu royal/Or doux',
+    'charcoalElectric': 'Charbon/Bleu élect.',
+    'forestSandTerracotta': 'Forêt/Sable/Terre cuite',
+    'cobaltLimeSlate': 'Cobalt/Lime/Ardoise',
+    'calmPastels': 'Pastels calmes',
   };
 
   @override

@@ -38,7 +38,6 @@ ThemeData buildAppTheme(DesignConfig cfg) {
     textTheme: textTheme,
     iconTheme: IconThemeData(
       color: darkerAccentColor(cfg.bgPaletteName),
-      size: cfg.tileIconSize,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
