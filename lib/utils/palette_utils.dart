@@ -97,6 +97,24 @@ Color complementaryColor(String name) {
   return hsl.withHue((hsl.hue + 180.0) % 360).toColor();
 }
 
+/// Returns a darker shade of the palette color for icons so that they remain
+/// visible while staying in the same blue-toned family.
+Color iconColorForPalette(String name) {
+  final accent = accentColor(name);
+  final hsl = HSLColor.fromColor(accent);
+  // Reduce lightness to create a darker variant.
+  final dark = hsl.withLightness((hsl.lightness * 0.7).clamp(0.0, 1.0));
+  return dark.toColor();
+}
+
+/// Gradient used for icon badges based on the palette. The gradient goes from a
+/// darker shade to the base accent color for a subtle blue effect.
+List<Color> iconGradientForPalette(String name) {
+  final accent = accentColor(name);
+  final dark = iconColorForPalette(name);
+  return [dark, accent];
+}
+
 /// Returns [Colors.white] or [Colors.black] depending on the background brightness.
 Color textColorForPalette(String name, {bool darkMode = false}) {
   final colors = pastelColors(name, darkMode: darkMode);

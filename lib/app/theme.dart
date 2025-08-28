@@ -36,7 +36,8 @@ ThemeData buildAppTheme(DesignConfig cfg) {
 
   return base.copyWith(
     textTheme: textTheme,
-    iconTheme: IconThemeData(color: textColor, size: cfg.tileIconSize),
+    iconTheme:
+        IconThemeData(color: iconColorForPalette(cfg.bgPaletteName), size: cfg.tileIconSize),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: textColor,
