@@ -15,6 +15,41 @@ class DesignSettingsScreen extends StatefulWidget {
 class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   DesignConfig _cfg = const DesignConfig();
 
+  static const _solidPalettes = [
+    'offWhite',
+    'lightGrey',
+    'darkGrey',
+    'pastelBlue',
+    'powderPink',
+    'lightGreen',
+    'softYellow',
+    'midnightBlue',
+  ];
+
+  static const _gradientPalettes = [
+    'anthracite',
+    'blueIndigo',
+    'violetRose',
+    'mintTurquoise',
+    'deepBlack',
+  ];
+
+  static const Map<String, String> _paletteLabels = {
+    'offWhite': 'Blanc cassé',
+    'lightGrey': 'Gris clair',
+    'darkGrey': 'Gris foncé',
+    'pastelBlue': 'Bleu pastel',
+    'powderPink': 'Rose poudré',
+    'lightGreen': 'Vert clair',
+    'softYellow': 'Jaune doux',
+    'midnightBlue': 'Bleu nuit',
+    'anthracite': 'Anthracite',
+    'blueIndigo': 'Bleu indigo',
+    'violetRose': 'Violet rosé',
+    'mintTurquoise': 'Menthe turquoise',
+    'deepBlack': 'Noir profond',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -42,38 +77,25 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Palette de fond', style: TextStyle(fontWeight: FontWeight.bold)),
+          Container(
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: pastelColors(_cfg.bgPaletteName, darkMode: _cfg.darkMode),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _sectionTitle('Palette de fond'),
           const SizedBox(height: 8),
           const Text('Couleurs unies'),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _paletteChip('offWhite', _cfg.bgPaletteName == 'offWhite'),
-              _paletteChip('lightGrey', _cfg.bgPaletteName == 'lightGrey'),
-              _paletteChip('darkGrey', _cfg.bgPaletteName == 'darkGrey'),
-              _paletteChip('pastelBlue', _cfg.bgPaletteName == 'pastelBlue'),
-              _paletteChip('powderPink', _cfg.bgPaletteName == 'powderPink'),
-              _paletteChip('lightGreen', _cfg.bgPaletteName == 'lightGreen'),
-              _paletteChip('softYellow', _cfg.bgPaletteName == 'softYellow'),
-              _paletteChip('midnightBlue', _cfg.bgPaletteName == 'midnightBlue'),
-            ],
-          ),
+          _paletteWrap(_solidPalettes),
           const SizedBox(height: 16),
           const Text('Dégradés doux'),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _paletteChip('anthracite', _cfg.bgPaletteName == 'anthracite'),
-              _paletteChip('blueIndigo', _cfg.bgPaletteName == 'blueIndigo'),
-              _paletteChip('violetRose', _cfg.bgPaletteName == 'violetRose'),
-              _paletteChip('mintTurquoise', _cfg.bgPaletteName == 'mintTurquoise'),
-              _paletteChip('deepBlack', _cfg.bgPaletteName == 'deepBlack'),
-            ],
-          ),
+          _paletteWrap(_gradientPalettes),
           const SizedBox(height: 16),
           SwitchListTile(
             title: const Text('Fond dégradé'),
@@ -153,6 +175,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     final colors = pastelColors(name, darkMode: _cfg.darkMode);
     final textColor = textColorForPalette(name, darkMode: _cfg.darkMode);
     final borderColor = selected ? textColor : Colors.transparent;
+    final label = _paletteLabels[name] ?? name;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -180,11 +203,22 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               width: 2,
             ),
           ),
-          child: Text(name, style: TextStyle(color: textColor)),
+          child: Text(label, style: TextStyle(color: textColor)),
         ),
       ),
     );
   }
+
+  Widget _sectionTitle(String text) =>
+      Text(text, style: const TextStyle(fontWeight: FontWeight.bold));
+
+  Widget _paletteWrap(List<String> palettes) => Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final p in palettes) _paletteChip(p, _cfg.bgPaletteName == p),
+        ],
+      );
 
   Widget _sliderTile({
     required String label,
