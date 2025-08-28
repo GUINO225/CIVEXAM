@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 List<Color> paletteFromName(String name) {
   switch (name) {
     case 'coteIvoire':
-      // Inspired by the Ivorian flag (orange/green) with lighter shades
-      return const [Color(0xFFFF8C00), Color(0xFF00C851)];
+      // Muted beige echoing Côte d'Ivoire's tones (no gradient)
+      return const [Color(0xFFD2B48C)];
     case 'senegal':
-      // Green to red gradient reflecting Senegal's flag
-      return const [Color(0xFF00853F), Color(0xFFEF2B2D)];
+      // Subdued olive inspired by Senegal's flag (no gradient)
+      return const [Color(0xFF556B2F)];
     case 'ghana':
-      // Red to dark green taken from Ghana's flag colours
-      return const [Color(0xFFE21B1B), Color(0xFF006B3F)];
+      // Earthy brown referencing Ghana's colours (no gradient)
+      return const [Color(0xFF8B4513)];
     case 'nigeria':
-      // Dual greens reminiscent of Nigeria's flag
-      return const [Color(0xFF008751), Color(0xFFA7FF83)];
+      // Calm sea green reflecting Nigeria's flag (no gradient)
+      return const [Color(0xFF2E8B57)];
     case 'kenya':
-      // Kenyan flag tones with warm red and deep green
-      return const [Color(0xFFBB1919), Color(0xFF006600)];
+      // Warm brown hinting at Kenya's palette (no gradient)
+      return const [Color(0xFF6B4423)];
     case 'blueAqua':
       return const [Color(0xFF3A4CC5), Color(0xFF6C8BF5)];
     case 'midnight':
