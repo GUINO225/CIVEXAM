@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safe_device/safe_device.dart';
 import '../models/question.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
@@ -37,6 +38,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
   }
 
   Future<void> _start() async {
+    if (!await _checkDevice()) return;
     final questions = pickAndShuffle(_pool, 20);
     final start = DateTime.now();
     final res = await Navigator.push<ExamResult?>(
@@ -47,6 +49,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
           duration: const Duration(minutes: 5),
           scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0),
           title: 'Mode Compétition',
+          competitionMode: true,
         ),
       ),
     );
@@ -62,6 +65,29 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
         durationSec: elapsed,
       );
     }
+  }
+
+  Future<bool> _checkDevice() async {
+    final rooted = await SafeDevice.isJailBroken || await SafeDevice.isRooted;
+    final emulator = !await SafeDevice.isRealDevice;
+    if (rooted || emulator) {
+      if (!mounted) return false;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Appareil non sécurisé'),
+          content: const Text('Mode compétition indisponible sur cet appareil.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    return true;
   }
 
   @override
