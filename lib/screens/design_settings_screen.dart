@@ -21,41 +21,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
-    'offWhite',
-    'lightGrey',
     'pastelBlue',
-    'powderPink',
-    'lightGreen',
-    'softYellow',
     'midnightBlue',
-    'anthracite',
     'blueIndigo',
-    'violetRose',
-    'mintTurquoise',
-    'deepBlack',
     'sereneBlue',
-    'forestGreen',
     'deepIndigo',
-    'royalViolet',
   ];
 
   static const Map<String, String> _paletteLabels = {
-    'offWhite': 'Blanc cassé',
-    'lightGrey': 'Gris clair',
     'pastelBlue': 'Bleu pastel',
-    'powderPink': 'Rose poudré',
-    'lightGreen': 'Vert doux',
-    'softYellow': 'Jaune pâle',
     'midnightBlue': 'Bleu nuit',
-    'anthracite': 'Anthracite',
     'blueIndigo': 'Indigo',
-    'violetRose': 'Violet',
-    'mintTurquoise': 'Turquoise',
-    'deepBlack': 'Noir profond',
     'sereneBlue': 'Bleu sérieux',
-    'forestGreen': 'Vert forêt',
     'deepIndigo': 'Indigo profond',
-    'royalViolet': 'Violet royal',
   };
 
   @override
@@ -148,9 +126,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             onChanged: (v) => _apply(
               _cfg.copyWith(
                 useMono: v,
-                monoColor: v
-                    ? complementaryColor(_cfg.bgPaletteName)
-                    : _cfg.monoColor,
+                monoColor:
+                    v ? iconColorForPalette(_cfg.bgPaletteName) : _cfg.monoColor,
               ),
             ),
           ),
@@ -231,7 +208,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
         final updated = _cfg.useMono
             ? _cfg.copyWith(
                 bgPaletteName: name,
-                monoColor: complementaryColor(name),
+                monoColor: iconColorForPalette(name),
               )
             : _cfg.copyWith(bgPaletteName: name);
         _apply(updated);

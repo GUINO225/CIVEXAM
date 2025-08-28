@@ -47,7 +47,7 @@ class SubjectListScreen extends StatelessWidget {
                   return _GlassTile(
                     title: subject.name,
                     icon: item.icon,
-                    gradientColors: item.gradientColors,
+                    paletteName: cfg.bgPaletteName,
                     blur: cfg.glassBlur,
                     bgOpacity: cfg.glassBgOpacity,
                     borderOpacity: cfg.glassBorderOpacity,
@@ -82,24 +82,23 @@ class SubjectListScreen extends StatelessWidget {
 
 class _SubjectItem {
   final IconData icon;
-  final List<Color> gradientColors;
-  const _SubjectItem(this.icon, this.gradientColors);
+  const _SubjectItem(this.icon);
 }
 
 const _subjectItems = <_SubjectItem>[
-  _SubjectItem(Icons.public, [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
-  _SubjectItem(Icons.gavel, [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
-  _SubjectItem(Icons.bar_chart, [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
-  _SubjectItem(Icons.functions, [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
-  _SubjectItem(Icons.menu_book, [Color(0xFFFF7043), Color(0xFFD84315)]),
-  _SubjectItem(Icons.extension, [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
+  _SubjectItem(Icons.public),
+  _SubjectItem(Icons.gavel),
+  _SubjectItem(Icons.bar_chart),
+  _SubjectItem(Icons.functions),
+  _SubjectItem(Icons.menu_book),
+  _SubjectItem(Icons.extension),
 ];
 
 class _GlassTile extends StatefulWidget {
   const _GlassTile({
     required this.title,
     required this.icon,
-    required this.gradientColors,
+    required this.paletteName,
     required this.onTap,
     required this.blur,
     required this.bgOpacity,
@@ -112,7 +111,7 @@ class _GlassTile extends StatefulWidget {
   });
   final String title;
   final IconData icon;
-  final List<Color> gradientColors;
+  final String paletteName;
   final VoidCallback onTap;
   final double blur;
   final double bgOpacity;
@@ -136,9 +135,10 @@ class _GlassTileState extends State<_GlassTile> {
             widget.monoColor.withOpacity(0.15),
             widget.monoColor.withOpacity(0.35)
           ]
-        : widget.gradientColors;
+        : iconGradientForPalette(widget.paletteName);
 
-    final iconColor = widget.useMono ? widget.monoColor : Colors.white;
+    final iconColor =
+        widget.useMono ? widget.monoColor : iconColorForPalette(widget.paletteName);
 
     final iconBadge = Container(
       height: widget.iconSize,

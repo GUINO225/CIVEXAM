@@ -30,7 +30,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'offWhite',
+    this.bgPaletteName = 'sereneBlue',
     this.waveEnabled = true,
     this.bgGradient = true,
     this.darkMode = false,
@@ -103,7 +103,7 @@ class DesignConfig {
     final double tileSize = (map['tileIconSize'] ?? svgSize).toDouble();
 
     return DesignConfig(
-      bgPaletteName: map['bgPaletteName'] ?? 'offWhite',
+      bgPaletteName: map['bgPaletteName'] ?? 'sereneBlue',
       waveEnabled: (map['waveEnabled'] ?? true) as bool,
       bgGradient: (map['bgGradient'] ?? true) as bool,
       glassBlur: (map['glassBlur'] ?? 18.0).toDouble(),
