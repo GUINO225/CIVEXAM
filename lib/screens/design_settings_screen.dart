@@ -19,7 +19,7 @@ class DesignSettingsScreen extends StatefulWidget {
 class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   DesignConfig _cfg = const DesignConfig();
 
-  // Palettes proposées à l'utilisateur (couleurs sobres et lisibles)
+  // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
     'offWhite',
     'lightGrey',
@@ -34,6 +34,21 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     'mintTurquoise',
     'deepBlack',
   ];
+
+  static const Map<String, String> _paletteLabels = {
+    'offWhite': 'Blanc cassé',
+    'lightGrey': 'Gris clair',
+    'pastelBlue': 'Bleu pastel',
+    'powderPink': 'Rose poudré',
+    'lightGreen': 'Vert doux',
+    'softYellow': 'Jaune pâle',
+    'midnightBlue': 'Bleu nuit',
+    'anthracite': 'Anthracite',
+    'blueIndigo': 'Indigo',
+    'violetRose': 'Violet',
+    'mintTurquoise': 'Turquoise',
+    'deepBlack': 'Noir profond',
+  };
 
   @override
   void initState() {
@@ -99,12 +114,17 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           const Divider(height: 32),
 
           _sectionTitle('Palette de couleurs'),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              for (final p in _palettes) _colorChoice(p),
-            ],
+          SizedBox(
+            height: 200,
+            child: GridView.count(
+              crossAxisCount: 4,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                for (final p in _palettes) _colorChoice(p),
+              ],
+            ),
           ),
           const Divider(height: 32),
 
@@ -195,7 +215,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   Widget _colorChoice(String name) {
     final color = accentColor(name);
     final selected = _cfg.bgPaletteName == name;
-    final border = selected ? onColor(color) : Colors.transparent;
+    final label = _paletteLabels[name] ?? name;
     final labelStyle = TextStyle(fontSize: 12, color: onColor(color));
 
     return GestureDetector(
@@ -211,17 +231,26 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: border, width: 3),
-            ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? onColor(color) : Colors.transparent,
+                    width: 3,
+                  ),
+                ),
+              ),
+              if (selected) Icon(Icons.check, color: onColor(color)),
+            ],
           ),
           const SizedBox(height: 4),
-          Text(name, style: labelStyle),
+          Text(label, style: labelStyle, textAlign: TextAlign.center),
         ],
       ),
     );
