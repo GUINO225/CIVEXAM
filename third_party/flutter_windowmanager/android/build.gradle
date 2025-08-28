@@ -1,0 +1,39 @@
+group 'io.adaptant.labs.flutter_windowmanager'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.2'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    // Compatible with new Android Gradle Plugin which requires a namespace.
+    if (project.android.hasProperty("namespace")) {
+        namespace 'io.adaptant.labs.flutter_windowmanager'
+    }
+
+    compileSdk 34
+
+    defaultConfig {
+        minSdkVersion 16
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
