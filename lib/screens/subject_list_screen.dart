@@ -18,7 +18,8 @@ class SubjectListScreen extends StatelessWidget {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final textColor = textColorForPalette(cfg.bgPaletteName);
+        final textColor =
+            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,

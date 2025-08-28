@@ -15,9 +15,8 @@ class DesignBackground extends StatelessWidget {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final baseColors = paletteFromName(cfg.bgPaletteName);
-        final textColor = textColorForPalette(cfg.bgPaletteName);
-        final buttonFg = textColor == Colors.white ? Colors.black : Colors.white;
+        final baseColors =
+            pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode);
 
         return DecoratedBox(
           decoration: BoxDecoration(
@@ -30,37 +29,27 @@ class DesignBackground extends StatelessWidget {
                 : null,
             color: cfg.bgGradient ? null : baseColors.first,
           ),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: textColor,
-                  foregroundColor: buttonFg,
-                ),
-              ),
-            ),
-            child: Stack(
-              children: [
-                if (cfg.waveEnabled)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: const Alignment(0.0, -0.6),
-                            radius: 1.0,
-                            colors: [
-                              Colors.white.withOpacity(0.08),
-                              Colors.transparent,
-                            ],
-                          ),
+          child: Stack(
+            children: [
+              if (cfg.waveEnabled)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: const Alignment(0.0, -0.6),
+                          radius: 1.0,
+                          colors: [
+                            Colors.white.withOpacity(0.08),
+                            Colors.transparent,
+                          ],
                         ),
                       ),
                     ),
                   ),
-                child,
-              ],
-            ),
+                ),
+              child,
+            ],
           ),
         );
       },

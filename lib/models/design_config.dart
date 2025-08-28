@@ -11,6 +11,7 @@ class DesignConfig {
   final String bgPaletteName;
   final bool waveEnabled;
   final bool bgGradient;
+  final bool darkMode; // mode sombre activé ?
 
   // Verre
   final double glassBlur;
@@ -32,6 +33,7 @@ class DesignConfig {
     this.bgPaletteName = 'blue',
     this.waveEnabled = true,
     this.bgGradient = true,
+    this.darkMode = false,
     // Verre
     this.glassBlur = 18.0,
     this.glassBgOpacity = 0.16,
@@ -50,6 +52,7 @@ class DesignConfig {
     String? bgPaletteName,
     bool? waveEnabled,
     bool? bgGradient,
+    bool? darkMode,
     double? glassBlur,
     double? glassBgOpacity,
     double? glassBorderOpacity,
@@ -64,6 +67,7 @@ class DesignConfig {
       bgPaletteName: bgPaletteName ?? this.bgPaletteName,
       waveEnabled: waveEnabled ?? this.waveEnabled,
       bgGradient: bgGradient ?? this.bgGradient,
+      darkMode: darkMode ?? this.darkMode,
       glassBlur: glassBlur ?? this.glassBlur,
       glassBgOpacity: glassBgOpacity ?? this.glassBgOpacity,
       glassBorderOpacity: glassBorderOpacity ?? this.glassBorderOpacity,
@@ -85,6 +89,7 @@ class DesignConfig {
     'glassBorderOpacity': glassBorderOpacity,
     'tileIconSize': tileIconSize,
     'tileCenter': tileCenter,
+    'darkMode': darkMode,
     // Legacy
     'useMono': useMono,
     'iconSetName': iconSetName,
@@ -106,6 +111,7 @@ class DesignConfig {
       glassBorderOpacity: (map['glassBorderOpacity'] ?? 0.22).toDouble(),
       tileIconSize: tileSize,
       tileCenter: (map['tileCenter'] ?? true) as bool,
+      darkMode: (map['darkMode'] ?? false) as bool,
       useMono: (map['useMono'] ?? false) as bool,
       iconSetName: map['iconSetName'] ?? 'default',
       svgIconSize: svgSize,
