@@ -3,6 +3,21 @@ import 'package:flutter/material.dart';
 /// Utilities for design palettes and text contrast
 List<Color> paletteFromName(String name) {
   switch (name) {
+    case 'coteIvoire':
+      // Inspired by the Ivorian flag (orange/green) with lighter shades
+      return const [Color(0xFFFF8C00), Color(0xFF00C851)];
+    case 'senegal':
+      // Green to red gradient reflecting Senegal's flag
+      return const [Color(0xFF00853F), Color(0xFFEF2B2D)];
+    case 'ghana':
+      // Red to dark green taken from Ghana's flag colours
+      return const [Color(0xFFE21B1B), Color(0xFF006B3F)];
+    case 'nigeria':
+      // Dual greens reminiscent of Nigeria's flag
+      return const [Color(0xFF008751), Color(0xFFA7FF83)];
+    case 'kenya':
+      // Kenyan flag tones with warm red and deep green
+      return const [Color(0xFFBB1919), Color(0xFF006600)];
     case 'blueAqua':
       return const [Color(0xFF3A4CC5), Color(0xFF6C8BF5)];
     case 'midnight':
