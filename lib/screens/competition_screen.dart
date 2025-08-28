@@ -1,15 +1,8 @@
-import 'package:flutter/material.dart';
-import '../models/question.dart';
-import '../services/question_loader.dart';
-import '../services/question_randomizer.dart';
-import '../services/scoring.dart';
-import 'exam_full_screen.dart';
-import '../services/leaderboard_hooks.dart';
+import 'dart:async';
 
-/// Écran principal du mode Compétition.
-///
-/// Tire un ensemble de questions ENA et lance une épreuve chronométrée
-/// de 5 minutes. À la fin, le score est sauvegardé pour le classement.
+import 'package:flutter/material.dart';
+
+/// Redesigned competition screen with a minimalist iOS‑style layout.
 class CompetitionScreen extends StatefulWidget {
   const CompetitionScreen({super.key});
 
@@ -18,66 +11,148 @@ class CompetitionScreen extends StatefulWidget {
 }
 
 class _CompetitionScreenState extends State<CompetitionScreen> {
-  bool _loading = true;
-  List<Question> _pool = const [];
+  // Simple 30‑second countdown timer.
+  int _remaining = 30;
+  Timer? _timer;
+
+  String? _selected;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final qs = await QuestionLoader.loadENA();
-    if (!mounted) return;
-    setState(() {
-      _pool = qs;
-      _loading = false;
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_remaining <= 0) {
+        t.cancel();
+      } else {
+        setState(() => _remaining--);
+      }
     });
   }
 
-  Future<void> _start() async {
-    final questions = pickAndShuffle(_pool, 20);
-    final start = DateTime.now();
-    final res = await Navigator.push<ExamResult?>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ExamFullScreen(
-          questions: questions,
-          duration: const Duration(minutes: 5),
-          scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0),
-          title: 'Mode Compétition',
-          competitionMode: true,
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Widget _answerButton(String text) {
+    final isSelected = _selected == text;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ElevatedButton(
+        onPressed: () => setState(() => _selected = text),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: isSelected
+                ? const BorderSide(color: Colors.pinkAccent, width: 2)
+                : BorderSide.none,
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
+        child: Text(text, style: const TextStyle(fontSize: 16)),
       ),
     );
-    if (res != null) {
-      final elapsed = DateTime.now().difference(start).inSeconds;
-      if (!mounted) return;
-      await LeaderboardHooks.saveCompetition(
-        context: context,
-        total: res.total,
-        correct: res.correctCount,
-        wrong: res.wrongCount,
-        blank: res.blankCount,
-        durationSec: elapsed,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Compétition')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Center(
-              child: ElevatedButton.icon(
-                onPressed: _start,
-                icon: const Icon(Icons.sports_kabaddi),
-                label: const Text('Lancer la compétition (5 min)'),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFEDE7F6), Color(0xFFD1C4E9)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Icon(Icons.signal_cellular_alt, color: Colors.white),
+                    Icon(Icons.wifi, color: Colors.white),
+                    Icon(Icons.battery_full, color: Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'QUESTION 3 OF 10',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: const LinearProgressIndicator(
+                    value: 0.3,
+                    backgroundColor: Colors.white24,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: const BoxDecoration(
+                      color: Colors.pinkAccent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$_remaining',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'Who is a Senegalese forward?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_selected != null)
+                  Text(
+                    _selected!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pinkAccent,
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                _answerButton('Sadio Mane'),
+                _answerButton('Harry Kane'),
+                _answerButton('Christian Benteke'),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }
+
