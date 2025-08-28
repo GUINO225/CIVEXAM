@@ -59,7 +59,28 @@ class _PlayScreenState extends State<PlayScreen> {
             centerTitle: true,
             actions: [
               IconButton(
-                icon: const Icon(Icons.logout),
+                icon: const Icon(Icons.emoji_events_outlined),
+                tooltip: 'Classement',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.palette_outlined),
+                tooltip: 'Réglages design',
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DesignSettingsScreen()),
+                  );
+                  // pas besoin de reload : le bus pousse en live pendant l’édition
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
                 tooltip: 'Déconnexion',
                 onPressed: () async {
                   await FirebaseAuth.instance.signOut();
@@ -68,28 +89,6 @@ class _PlayScreenState extends State<PlayScreen> {
                     context,
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.emoji_events_outlined),
-                tooltip: 'Classement',
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.palette_outlined),
-                tooltip: 'Réglages design',
-                onPressed: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const DesignSettingsScreen()));
-                  // pas besoin de reload : le bus pousse en live pendant l’édition
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: 'Déconnexion',
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
                 },
               ),
             ],
