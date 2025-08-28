@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 
 import 'training_quick_start.dart';
 import 'multi_exam_flow.dart';
@@ -33,6 +34,7 @@ class _PlayScreenState extends State<PlayScreen> {
         final welcomeText = name != null && name.isNotEmpty
             ? 'Bienvenue $name 👋  •  Choisis un mode'
             : 'Bienvenue 👋  •  Choisis un mode';
+        final textColor = textColorForPalette(cfg.bgPaletteName);
 
         return Scaffold(
           extendBody: true,
@@ -41,6 +43,7 @@ class _PlayScreenState extends State<PlayScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            foregroundColor: textColor,
             title: const Text('CivExam'),
             centerTitle: true,
             actions: [
@@ -106,10 +109,10 @@ class _PlayScreenState extends State<PlayScreen> {
                                   welcomeText,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                    color: textColor,
                                   ),
                                 ),
                               ),
@@ -133,6 +136,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         return _GlassTile(
                           title: item.title,
                           icon: item.icon,
+                          gradientColors: item.gradientColors,
                           blur: cfg.glassBlur,
                           bgOpacity: cfg.glassBgOpacity,
                           borderOpacity: cfg.glassBorderOpacity,
@@ -140,6 +144,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           centerContent: cfg.tileCenter,
                           useMono: cfg.useMono,
                           monoColor: cfg.monoColor,
+                          textColor: textColor,
                           onTap: () => _navigate(context, i),
                         );
                       },
@@ -195,6 +200,7 @@ class _GlassTile extends StatefulWidget {
   const _GlassTile({
     required this.title,
     required this.icon,
+    required this.gradientColors,
     required this.onTap,
     required this.blur,
     required this.bgOpacity,
@@ -203,9 +209,11 @@ class _GlassTile extends StatefulWidget {
     required this.centerContent,
     required this.useMono,
     required this.monoColor,
+    required this.textColor,
   });
   final String title;
   final IconData icon;
+  final List<Color> gradientColors;
   final VoidCallback onTap;
   final double blur;
   final double bgOpacity;
@@ -214,6 +222,7 @@ class _GlassTile extends StatefulWidget {
   final bool centerContent;
   final bool useMono;
   final Color monoColor;
+  final Color textColor;
 
   @override
   State<_GlassTile> createState() => _GlassTileState();
@@ -228,10 +237,7 @@ class _GlassTileState extends State<_GlassTile> {
             widget.monoColor.withOpacity(0.15),
             widget.monoColor.withOpacity(0.35)
           ]
-        : [
-            Colors.orange.shade300.withOpacity(0.85),
-            Colors.orange.shade600.withOpacity(0.90)
-          ];
+        : widget.gradientColors;
 
     final iconColor = widget.useMono ? widget.monoColor : Colors.white;
 
@@ -253,11 +259,11 @@ class _GlassTileState extends State<_GlassTile> {
     final title = Text(
       widget.title,
       textAlign: widget.centerContent ? TextAlign.center : TextAlign.left,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 20,
         height: 1.15,
         fontWeight: FontWeight.w800,
-        color: Colors.white,
+        color: widget.textColor,
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -377,16 +383,25 @@ class _IconBadge extends StatelessWidget {
 class _MenuItem {
   final String title;
   final IconData icon;
-  const _MenuItem(this.title, this.icon);
+  final List<Color> gradientColors;
+  const _MenuItem(this.title, this.icon, this.gradientColors);
 }
 
 const _items = <_MenuItem>[
-  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded),
-  _MenuItem('Concours ENA', Icons.school_rounded),
-  _MenuItem('Par matière', Icons.menu_book_rounded),
-  _MenuItem('Historique examens', Icons.fact_check_rounded),
-  _MenuItem("Historique entraînement", Icons.history_rounded),
-  _MenuItem('Comment ça marche ?', Icons.info_rounded),
-  _MenuItem('Compétition', Icons.sports_kabaddi),
-  _MenuItem('Classement', Icons.emoji_events_outlined),
+  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded,
+      [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
+  _MenuItem('Concours ENA', Icons.school_rounded,
+      [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
+  _MenuItem('Par matière', Icons.menu_book_rounded,
+      [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
+  _MenuItem('Historique examens', Icons.fact_check_rounded,
+      [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
+  _MenuItem("Historique entraînement", Icons.history_rounded,
+      [Color(0xFFFF7043), Color(0xFFD84315)]),
+  _MenuItem('Comment ça marche ?', Icons.info_rounded,
+      [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
+  _MenuItem('Compétition', Icons.sports_kabaddi,
+      [Color(0xFFFFEE58), Color(0xFFFDD835)]),
+  _MenuItem('Classement', Icons.emoji_events_outlined,
+      [Color(0xFFEC407A), Color(0xFFD81B60)]),
 ];
