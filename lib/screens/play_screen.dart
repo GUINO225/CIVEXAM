@@ -16,6 +16,7 @@ import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
+import '../services/question_loader.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -156,7 +157,7 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  void _navigate(BuildContext context, int index) {
+  Future<void> _navigate(BuildContext context, int index) async {
     switch (index) {
       case 0:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()));
@@ -183,7 +184,14 @@ class _PlayScreenState extends State<PlayScreen> {
         );
         break;
       case 6:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const CompetitionScreen()));
+        final qs = await QuestionLoader.loadENA();
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CompetitionScreen(questions: qs),
+          ),
+        );
         break;
       case 7:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
