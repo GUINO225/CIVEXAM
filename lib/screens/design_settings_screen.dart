@@ -44,23 +44,14 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           const Text('Palette de fond', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _paletteChip('blueRoyal', _cfg.bgPaletteName == 'blueRoyal'),
-              _paletteChip('blueAqua', _cfg.bgPaletteName == 'blueAqua'),
-              _paletteChip('midnight', _cfg.bgPaletteName == 'midnight'),
-              _paletteChip('sunset', _cfg.bgPaletteName == 'sunset'),
-              _paletteChip('forest', _cfg.bgPaletteName == 'forest'),
-              _paletteChip('ocean', _cfg.bgPaletteName == 'ocean'),
-              _paletteChip('fire', _cfg.bgPaletteName == 'fire'),
-              _paletteChip('purple', _cfg.bgPaletteName == 'purple'),
-              _paletteChip('pink', _cfg.bgPaletteName == 'pink'),
-              _paletteChip('emerald', _cfg.bgPaletteName == 'emerald'),
-              _paletteChip('candy', _cfg.bgPaletteName == 'candy'),
-              _paletteChip('steel', _cfg.bgPaletteName == 'steel'),
-              _paletteChip('coffee', _cfg.bgPaletteName == 'coffee'),
-              _paletteChip('gold', _cfg.bgPaletteName == 'gold'),
-              _paletteChip('lavender', _cfg.bgPaletteName == 'lavender'),
+              _paletteChip('coteIvoire', _cfg.bgPaletteName == 'coteIvoire'),
+              _paletteChip('senegal', _cfg.bgPaletteName == 'senegal'),
+              _paletteChip('ghana', _cfg.bgPaletteName == 'ghana'),
+              _paletteChip('nigeria', _cfg.bgPaletteName == 'nigeria'),
+              _paletteChip('kenya', _cfg.bgPaletteName == 'kenya'),
             ],
           ),
           const SizedBox(height: 16),
@@ -143,6 +134,16 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   List<Color> _iconColorsForPalette(String name) {
     switch (name) {
+      case 'coteIvoire':
+        return const [Colors.white, Color(0xFFFF8C00), Color(0xFF00C851)];
+      case 'senegal':
+        return const [Colors.white, Color(0xFF00853F), Color(0xFFEF2B2D)];
+      case 'ghana':
+        return const [Colors.white, Color(0xFFE21B1B), Color(0xFF006B3F)];
+      case 'nigeria':
+        return const [Colors.white, Color(0xFF008751), Color(0xFFA7FF83)];
+      case 'kenya':
+        return const [Colors.white, Color(0xFFBB1919), Color(0xFF006600)];
       case 'blueAqua':
         return const [Colors.white, Color(0xFF6C8BF5), Color(0xFF3A4CC5)];
       case 'midnight':
