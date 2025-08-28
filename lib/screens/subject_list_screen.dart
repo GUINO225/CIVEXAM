@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter;
+import 'dart:ui' show ImageFilter, HSLColor;
 import 'package:flutter/material.dart';
 import '../data/ena_taxonomy.dart';
 import '../models/design_config.dart';
@@ -20,6 +20,9 @@ class SubjectListScreen extends StatelessWidget {
       builder: (context, cfg, _) {
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+        final accent = accentColor(cfg.bgPaletteName);
+        final badgeGradient =
+            pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode);
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,
@@ -47,7 +50,8 @@ class SubjectListScreen extends StatelessWidget {
                   return _GlassTile(
                     title: subject.name,
                     icon: item.icon,
-                    gradientColors: item.gradientColors,
+                    gradientColors: badgeGradient,
+                    accentColor: accent,
                     blur: cfg.glassBlur,
                     bgOpacity: cfg.glassBgOpacity,
                     borderOpacity: cfg.glassBorderOpacity,
@@ -82,17 +86,16 @@ class SubjectListScreen extends StatelessWidget {
 
 class _SubjectItem {
   final IconData icon;
-  final List<Color> gradientColors;
-  const _SubjectItem(this.icon, this.gradientColors);
+  const _SubjectItem(this.icon);
 }
 
 const _subjectItems = <_SubjectItem>[
-  _SubjectItem(Icons.public, [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
-  _SubjectItem(Icons.gavel, [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
-  _SubjectItem(Icons.bar_chart, [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
-  _SubjectItem(Icons.functions, [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
-  _SubjectItem(Icons.menu_book, [Color(0xFFFF7043), Color(0xFFD84315)]),
-  _SubjectItem(Icons.extension, [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
+  _SubjectItem(Icons.public),
+  _SubjectItem(Icons.gavel),
+  _SubjectItem(Icons.bar_chart),
+  _SubjectItem(Icons.functions),
+  _SubjectItem(Icons.menu_book),
+  _SubjectItem(Icons.extension),
 ];
 
 class _GlassTile extends StatefulWidget {
@@ -100,6 +103,7 @@ class _GlassTile extends StatefulWidget {
     required this.title,
     required this.icon,
     required this.gradientColors,
+    required this.accentColor,
     required this.onTap,
     required this.blur,
     required this.bgOpacity,
@@ -113,6 +117,7 @@ class _GlassTile extends StatefulWidget {
   final String title;
   final IconData icon;
   final List<Color> gradientColors;
+  final Color accentColor;
   final VoidCallback onTap;
   final double blur;
   final double bgOpacity;
@@ -138,7 +143,12 @@ class _GlassTileState extends State<_GlassTile> {
           ]
         : widget.gradientColors;
 
-    final iconColor = widget.useMono ? widget.monoColor : Colors.white;
+    final accentHsl = HSLColor.fromColor(widget.accentColor);
+    final iconColor = widget.useMono
+        ? widget.monoColor
+        : accentHsl
+            .withLightness((accentHsl.lightness * 0.6).clamp(0.0, 1.0))
+            .toColor();
 
     final iconBadge = Container(
       height: widget.iconSize,

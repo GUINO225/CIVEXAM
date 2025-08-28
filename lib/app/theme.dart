@@ -6,6 +6,9 @@ import '../utils/palette_utils.dart';
 ThemeData buildAppTheme(DesignConfig cfg) {
   final accent = accentColor(cfg.bgPaletteName);
   final complement = complementaryColor(cfg.bgPaletteName);
+  final accentHsl = HSLColor.fromColor(accent);
+  final iconColor =
+      accentHsl.withLightness((accentHsl.lightness * 0.7).clamp(0.0, 1.0)).toColor();
   final brightness = cfg.darkMode ? Brightness.dark : Brightness.light;
   final textColor =
       textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
@@ -36,7 +39,7 @@ ThemeData buildAppTheme(DesignConfig cfg) {
 
   return base.copyWith(
     textTheme: textTheme,
-    iconTheme: IconThemeData(color: textColor, size: cfg.tileIconSize),
+    iconTheme: IconThemeData(color: iconColor, size: cfg.tileIconSize),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: textColor,

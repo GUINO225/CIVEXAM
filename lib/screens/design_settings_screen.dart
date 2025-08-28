@@ -21,41 +21,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
-    'offWhite',
-    'lightGrey',
     'pastelBlue',
-    'powderPink',
-    'lightGreen',
-    'softYellow',
     'midnightBlue',
-    'anthracite',
     'blueIndigo',
-    'violetRose',
-    'mintTurquoise',
-    'deepBlack',
     'sereneBlue',
-    'forestGreen',
     'deepIndigo',
-    'royalViolet',
   ];
 
   static const Map<String, String> _paletteLabels = {
-    'offWhite': 'Blanc cassé',
-    'lightGrey': 'Gris clair',
     'pastelBlue': 'Bleu pastel',
-    'powderPink': 'Rose poudré',
-    'lightGreen': 'Vert doux',
-    'softYellow': 'Jaune pâle',
     'midnightBlue': 'Bleu nuit',
-    'anthracite': 'Anthracite',
     'blueIndigo': 'Indigo',
-    'violetRose': 'Violet',
-    'mintTurquoise': 'Turquoise',
-    'deepBlack': 'Noir profond',
     'sereneBlue': 'Bleu sérieux',
-    'forestGreen': 'Vert forêt',
     'deepIndigo': 'Indigo profond',
-    'royalViolet': 'Violet royal',
   };
 
   @override
@@ -65,7 +43,11 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   Future<void> _load() async {
-    final c = await DesignPrefs.load();
+    var c = await DesignPrefs.load();
+    if (!_palettes.contains(c.bgPaletteName)) {
+      c = c.copyWith(bgPaletteName: _palettes.first);
+      await DesignPrefs.save(c);
+    }
     if (!mounted) return;
     setState(() => _cfg = c);
     // Propager l'état actuel pour les autres widgets.
@@ -113,11 +95,6 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             title: const Text('Mode sombre'),
             value: _cfg.darkMode,
             onChanged: (v) => _apply(_cfg.copyWith(darkMode: v)),
-          ),
-          SwitchListTile(
-            title: const Text('Fond dégradé'),
-            value: _cfg.bgGradient,
-            onChanged: (v) => _apply(_cfg.copyWith(bgGradient: v)),
           ),
           const Divider(height: 32),
 
@@ -195,8 +172,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                 label: 'Taille icône (px)',
                 value: _cfg.tileIconSize,
                 min: 36,
-                max: 76,
-                divisions: 40,
+                max: 100,
+                divisions: 64,
                 onChanged: (v) =>
                     _apply(_cfg.copyWith(tileIconSize: v)),
               ),
