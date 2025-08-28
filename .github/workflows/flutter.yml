@@ -1,0 +1,47 @@
+name: Flutter CI (tests + APK)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Java (pour Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'   # remplace par ta version
+          channel: 'stable'
+          cache: true                # accélère les runs suivants
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      # Build debug APK (rapide). Pour release signé, voir section 9.
+      - name: Build APK (debug)
+        run: flutter build apk --debug
+
+      - name: Upload APK artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
