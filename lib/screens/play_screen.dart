@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
-import '../services/design_prefs.dart';
 import '../services/design_bus.dart';
 
 import 'training_quick_start.dart';
@@ -25,23 +24,10 @@ class PlayScreen extends StatefulWidget {
 
 class _PlayScreenState extends State<PlayScreen> {
   @override
-  void initState() {
-    super.initState();
-    // Seed initial depuis les prefs (ensuite le bus prend le relais en live)
-    _seedFromPrefs();
-  }
-
-  Future<void> _seedFromPrefs() async {
-    final cfg = await DesignPrefs.load();
-    DesignBus.push(cfg);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final List<Color> bg = _paletteFromName(cfg.bgPaletteName);
         final user = FirebaseAuth.instance.currentUser;
         final name = user?.displayName ?? user?.email;
         final welcomeText = name != null && name.isNotEmpty
@@ -94,40 +80,12 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ],
           ),
-          body: Stack(
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: bg,
-                    ),
-                  ),
-                ),
-              ),
-              if (cfg.waveEnabled)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: const Alignment(0.0, -0.6),
-                          radius: 1.0,
-                          colors: [Colors.white.withOpacity(0.08), Colors.transparent],
-                          stops: const [0.0, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                       _GlassCard(
                         blur: cfg.glassBlur,
                         backgroundOpacity: cfg.glassBgOpacity,
@@ -160,53 +118,40 @@ class _PlayScreenState extends State<PlayScreen> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Expanded(
-                        child: GridView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 14,
-                            mainAxisSpacing: 14,
-                            childAspectRatio: 1.05,
-                          ),
-                          itemCount: _items.length,
-                          itemBuilder: (context, i) {
-                            final item = _items[i];
-                            return _GlassTile(
-                              title: item.title,
-                              icon: item.icon,
-                              blur: cfg.glassBlur,
-                              bgOpacity: cfg.glassBgOpacity,
-                              borderOpacity: cfg.glassBorderOpacity,
-                              iconSize: cfg.tileIconSize,
-                              centerContent: cfg.tileCenter,
-                              useMono: cfg.useMono,
-                              monoColor: cfg.monoColor,
-                              onTap: () => _navigate(context, i),
-                            );
-                          },
-                        ),
+                  Expanded(
+                    child: GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: 1.05,
                       ),
-                    ],
+                      itemCount: _items.length,
+                      itemBuilder: (context, i) {
+                        final item = _items[i];
+                        return _GlassTile(
+                          title: item.title,
+                          icon: item.icon,
+                          blur: cfg.glassBlur,
+                          bgOpacity: cfg.glassBgOpacity,
+                          borderOpacity: cfg.glassBorderOpacity,
+                          iconSize: cfg.tileIconSize,
+                          centerContent: cfg.tileCenter,
+                          useMono: cfg.useMono,
+                          monoColor: cfg.monoColor,
+                          onTap: () => _navigate(context, i),
+                        );
+                      },
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
     );
-  }
-
-  List<Color> _paletteFromName(String name) {
-    switch (name) {
-      case 'blueAqua':  return const [Color(0xFF3A4CC5), Color(0xFF6C8BF5)];
-      case 'midnight':  return const [Color(0xFF0F2027), Color(0xFF2C5364)];
-      case 'sunset':    return const [Color(0xFFFF5E62), Color(0xFFFF9966)];
-      case 'forest':    return const [Color(0xFF2F7336), Color(0xFFAAFFA9)];
-      case 'blueRoyal':
-      default:          return const [Color(0xFF0D1E42), Color(0xFF37478F)];
-    }
   }
 
   void _navigate(BuildContext context, int index) {

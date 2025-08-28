@@ -5,10 +5,15 @@ import 'app/theme.dart';
 import 'firebase_options.dart';
 import 'screens/play_screen.dart';
 import 'screens/login_screen.dart';
+import 'services/design_prefs.dart';
+import 'services/design_bus.dart';
+import 'widgets/design_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final cfg = await DesignPrefs.load();
+  DesignBus.push(cfg);
   runApp(const CivExamApp());
 }
 
@@ -21,6 +26,7 @@ class CivExamApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'CivExam',
       theme: buildAppTheme(),
+      builder: (context, child) => DesignBackground(child: child ?? const SizedBox()),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
