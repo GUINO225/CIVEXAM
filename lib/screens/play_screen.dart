@@ -85,6 +85,13 @@ class _PlayScreenState extends State<PlayScreen> {
                   // pas besoin de reload : le bus pousse en live pendant l’édition
                 },
               ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Déconnexion',
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                },
+              ),
             ],
           ),
           body: Stack(
@@ -230,6 +237,9 @@ class _PlayScreenState extends State<PlayScreen> {
         break;
       case 6:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const DuelScreen()));
+        break;
+      case 7:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
         break;
     }
   }
@@ -433,4 +443,5 @@ const _items = <_MenuItem>[
   _MenuItem("Historique entraînement", Icons.history_rounded),
   _MenuItem('Comment ça marche ?', Icons.info_rounded),
   _MenuItem('Duels', Icons.sports_kabaddi),
+  _MenuItem('Classement', Icons.emoji_events_outlined),
 ];
