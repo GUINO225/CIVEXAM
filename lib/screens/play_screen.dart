@@ -74,13 +74,6 @@ class _PlayScreenState extends State<PlayScreen> {
                   // pas besoin de reload : le bus pousse en live pendant l’édition
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: 'Déconnexion',
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                },
-              ),
             ],
           ),
           body: SafeArea(
