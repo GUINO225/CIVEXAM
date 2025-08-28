@@ -42,6 +42,17 @@ Color accentColor(String name) {
   }
 }
 
+/// Darkens a [Color] by decreasing its lightness in HSL space.
+Color darken(Color color, [double amount = 0.1]) {
+  final hsl = HSLColor.fromColor(color);
+  final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
+  return hsl.withLightness(lightness).toColor();
+}
+
+/// Returns a darker variant of the palette's accent color.
+Color darkerAccentColor(String name, [double amount = 0.2]) =>
+    darken(accentColor(name), amount);
+
 /// Returns two pastel variants of the accent color for gradient backgrounds.
 List<Color> pastelColors(String name, {bool darkMode = false}) {
   switch (name) {
