@@ -39,6 +39,7 @@ class Attempt {
 
 class HistoryService {
   static const _key = 'attempts_v1';
+  static const int _maxAttempts = 100;
 
   static Future<void> addAttempt({
     required String subject,
@@ -59,6 +60,7 @@ class HistoryService {
       timestamp: timestamp,
     );
     list.add(jsonEncode(a.toMap()));
+    if (list.length > _maxAttempts) list.removeAt(0);
     await prefs.setStringList(_key, list);
   }
 
