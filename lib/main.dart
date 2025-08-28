@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'app/theme.dart';
 import 'firebase_options.dart';
-import 'screens/play_screen.dart';
-import 'screens/login_screen.dart';
 import 'services/design_prefs.dart';
 import 'services/design_bus.dart';
 import 'widgets/design_background.dart';
 import 'models/design_config.dart';
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,18 +30,7 @@ class CivExamApp extends StatelessWidget {
           theme: buildAppTheme(cfg),
           builder: (context, child) =>
               DesignBackground(child: child ?? const SizedBox()),
-          home: StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasData) {
-                return const PlayScreen();
-              }
-              return const LoginScreen();
-            },
-          ),
+          home: const SplashScreen(),
         );
       },
     );
