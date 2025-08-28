@@ -3,6 +3,8 @@
 // Propose un aperçu dynamique, un choix de couleurs épuré et des options
 // avancées masquées dans des sections extensibles.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
@@ -56,10 +58,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     DesignBus.push(c);
   }
 
-  Future<void> _apply(DesignConfig c) async {
+  void _apply(DesignConfig c) {
     setState(() => _cfg = c);
     DesignBus.push(c); // mise à jour en direct
-    await DesignPrefs.save(c); // persistance
+    unawaited(() async {
+      try {
+        await DesignPrefs.save(c); // persistance
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de sauvegarder')),
+        );
+      }
+    }());
   }
 
   @override
