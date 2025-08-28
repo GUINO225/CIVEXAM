@@ -13,7 +13,7 @@ import 'subject_list_screen.dart';
 import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
-import 'design_settings_screen.dart';
+import 'theme_selection_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
 
@@ -34,7 +34,8 @@ class _PlayScreenState extends State<PlayScreen> {
         final welcomeText = name != null && name.isNotEmpty
             ? 'Bienvenue $name 👋  •  Choisis un mode'
             : 'Bienvenue 👋  •  Choisis un mode';
-        final textColor = textColorForPalette(cfg.bgPaletteName);
+        final textColor =
+            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
 
         return Scaffold(
           extendBody: true,
@@ -68,10 +69,13 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.palette_outlined),
-                tooltip: 'Réglages design',
+                tooltip: 'Choisir un thème',
                 onPressed: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const DesignSettingsScreen()));
-                  // pas besoin de reload : le bus pousse en live pendant l’édition
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ThemeSelectionScreen()),
+                  );
                 },
               ),
             ],

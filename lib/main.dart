@@ -8,6 +8,7 @@ import 'screens/login_screen.dart';
 import 'services/design_prefs.dart';
 import 'services/design_bus.dart';
 import 'widgets/design_background.dart';
+import 'models/design_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,23 +23,29 @@ class CivExamApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'CivExam',
-      theme: buildAppTheme(),
-      builder: (context, child) => DesignBackground(child: child ?? const SizedBox()),
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasData) {
-            return const PlayScreen();
-          }
-          return const LoginScreen();
-        },
-      ),
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'CivExam',
+          theme: buildAppTheme(cfg),
+          builder: (context, child) =>
+              DesignBackground(child: child ?? const SizedBox()),
+          home: StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasData) {
+                return const PlayScreen();
+              }
+              return const LoginScreen();
+            },
+          ),
+        );
+      },
     );
   }
 }

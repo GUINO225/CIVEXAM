@@ -14,6 +14,7 @@ class DesignPrefs {
   static const _kWave    = 'design_waveEnabled';
   static const _kBgPal   = 'design_bgPaletteName'; // NEW
   static const _kBgGrad  = 'design_bgGradient';
+  static const _kDark    = 'design_darkMode';
 
   static Future<DesignConfig> load() async {
     final p = await SharedPreferences.getInstance();
@@ -28,6 +29,7 @@ class DesignPrefs {
       waveEnabled: p.getBool(_kWave) ?? const DesignConfig().waveEnabled,
       bgPaletteName: p.getString(_kBgPal) ?? const DesignConfig().bgPaletteName,
       bgGradient: p.getBool(_kBgGrad) ?? const DesignConfig().bgGradient,
+      darkMode: p.getBool(_kDark) ?? const DesignConfig().darkMode,
     );
   }
 
@@ -43,5 +45,6 @@ class DesignPrefs {
     await p.setBool(_kWave, cfg.waveEnabled);
     await p.setString(_kBgPal, cfg.bgPaletteName);
     await p.setBool(_kBgGrad, cfg.bgGradient);
+    await p.setBool(_kDark, cfg.darkMode);
   }
 }
