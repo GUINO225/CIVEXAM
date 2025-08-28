@@ -29,7 +29,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'beachSunset',
+    this.bgPaletteName = 'blue',
     this.waveEnabled = true,
     this.bgGradient = true,
     // Verre
@@ -98,7 +98,7 @@ class DesignConfig {
     final double tileSize = (map['tileIconSize'] ?? svgSize).toDouble();
 
     return DesignConfig(
-      bgPaletteName: map['bgPaletteName'] ?? 'midnight',
+      bgPaletteName: map['bgPaletteName'] ?? 'blue',
       waveEnabled: (map['waveEnabled'] ?? true) as bool,
       bgGradient: (map['bgGradient'] ?? true) as bool,
       glassBlur: (map['glassBlur'] ?? 18.0).toDouble(),
