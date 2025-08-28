@@ -1,5 +1,12 @@
 import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../app/theme.dart';
@@ -31,6 +38,7 @@ class ExamFullScreen extends StatefulWidget {
   /// If set (>0), total time = per-question seconds * number of questions.
   /// We hard-limit it to 5..10s now.
   final int? overridePerQuestionSeconds;
+  final bool competitionMode;
 
   const ExamFullScreen({
     super.key,
@@ -40,13 +48,14 @@ class ExamFullScreen extends StatefulWidget {
     this.title,
     this.showLocalSummary = true,
     this.overridePerQuestionSeconds,
+    this.competitionMode = false,
   });
 
   @override
   State<ExamFullScreen> createState() => _ExamFullScreenState();
 }
 
-class _ExamFullScreenState extends State<ExamFullScreen> {
+class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObserver {
   late List<int?> answers;
   late int remaining;
   Timer? timer;
@@ -54,9 +63,20 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
   bool _submitted = false;
   ExamResult? _lastResult;
 
+  int _exitCount = 0;
+  bool _wasPaused = false;
+
   @override
   void initState() {
     super.initState();
+    if (widget.competitionMode) {
+      WidgetsBinding.instance.addObserver(this);
+      WakelockPlus.enable();
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      _checkEmulator();
+    }
     answers = List<int?>.filled(widget.questions.length, null);
 
     // Base: provided duration
@@ -85,6 +105,13 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
   @override
   void dispose() {
     timer?.cancel();
+    if (widget.competitionMode) {
+      WidgetsBinding.instance.removeObserver(this);
+      WakelockPlus.disable();
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    }
     super.dispose();
   }
 
@@ -92,6 +119,65 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
     final m = (s ~/ 60).toString().padLeft(2, '0');
     final ss = (s % 60).toString().padLeft(2, '0');
     return '$m:$ss';
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.competitionMode) return;
+    if (state == AppLifecycleState.paused) {
+      _wasPaused = true;
+    } else if (state == AppLifecycleState.resumed && _wasPaused) {
+      _wasPaused = false;
+      Future.microtask(_handleResume);
+    }
+  }
+
+  Future<void> _handleResume() async {
+    _exitCount++;
+    if (_exitCount == 1) {
+      await _showAlert('Attention', 'Sortie détectée. Une nouvelle sortie sera pénalisée.');
+    } else if (_exitCount == 2) {
+      setState(() {
+        remaining -= 30;
+        if (remaining < 0) remaining = 0;
+      });
+      await _showAlert('Pénalité', '30 secondes retirées du temps restant.');
+    } else if (_exitCount >= 3) {
+      await _showAlert('Exclusion', 'Vous avez quitté l’application trop souvent.');
+      if (mounted) {
+        Navigator.of(context).pop(null);
+      }
+    }
+  }
+
+  Future<void> _showAlert(String title, String msg) async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(msg),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _checkEmulator() async {
+    final info = DeviceInfoPlugin();
+    bool emulator = false;
+    if (Platform.isAndroid) {
+      final android = await info.androidInfo;
+      emulator = !android.isPhysicalDevice;
+    } else if (Platform.isIOS) {
+      final ios = await info.iosInfo;
+      emulator = !ios.isPhysicalDevice;
+    }
+    if (emulator) {
+      Future.microtask(() => _showAlert('Attention', 'Appareil non officiel détecté.'));
+    }
   }
 
   Future<void> _confirmSubmitIfBlanks() async {
@@ -192,26 +278,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
   Widget build(BuildContext context) {
     final q = widget.questions;
     final title = widget.title ?? 'Examen officiel';
-    return WillPopScope(
-      onWillPop: () async {
-        if (_submitted) {
-          Navigator.of(context).pop(_lastResult);
-          return false;
-        }
-        final ok = await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Quitter ?'),
-            content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
-            ],
-          ),
-        );
-        return ok == true;
-      },
-      child: Scaffold(
+    Widget content = Scaffold(
         appBar: AppBar(
           title: Text(title),
           actions: [
@@ -336,7 +403,31 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
             ),
           ],
         ),
-      ),
+      );
+    if (widget.competitionMode) {
+      content = SelectionContainer.disabled(child: content);
+    }
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.competitionMode) return false;
+        if (_submitted) {
+          Navigator.of(context).pop(_lastResult);
+          return false;
+        }
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Quitter ?'),
+            content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+            ],
+          ),
+        );
+        return ok == true;
+      },
+      child: content,
     );
   }
 }
