@@ -33,6 +33,10 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     'violetRose',
     'mintTurquoise',
     'deepBlack',
+    'sereneBlue',
+    'forestGreen',
+    'deepIndigo',
+    'royalViolet',
   ];
 
   static const Map<String, String> _paletteLabels = {
@@ -48,6 +52,10 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     'violetRose': 'Violet',
     'mintTurquoise': 'Turquoise',
     'deepBlack': 'Noir profond',
+    'sereneBlue': 'Bleu sérieux',
+    'forestGreen': 'Vert forêt',
+    'deepIndigo': 'Indigo profond',
+    'royalViolet': 'Violet royal',
   };
 
   @override
