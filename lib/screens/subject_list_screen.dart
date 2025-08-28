@@ -86,12 +86,12 @@ class _SubjectItem {
 }
 
 const _subjectItems = <_SubjectItem>[
-  _SubjectItem(Icons.public, [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
-  _SubjectItem(Icons.gavel, [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
-  _SubjectItem(Icons.bar_chart, [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
-  _SubjectItem(Icons.functions, [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
-  _SubjectItem(Icons.menu_book, [Color(0xFFFF7043), Color(0xFFD84315)]),
-  _SubjectItem(Icons.extension, [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
+  _SubjectItem(Icons.public, [Color(0xFFA3C8FF), Color(0xFF7BA8E8)]),
+  _SubjectItem(Icons.gavel, [Color(0xFF8EC5FC), Color(0xFF65A3E1)]),
+  _SubjectItem(Icons.bar_chart, [Color(0xFF8ED1A6), Color(0xFF6BBF8A)]),
+  _SubjectItem(Icons.functions, [Color(0xFFBFAAE6), Color(0xFF9C89C9)]),
+  _SubjectItem(Icons.menu_book, [Color(0xFF88D8E7), Color(0xFF5BB8C9)]),
+  _SubjectItem(Icons.extension, [Color(0xFF7FD4E8), Color(0xFF56B5CE)]),
 ];
 
 class _GlassTile extends StatefulWidget {
