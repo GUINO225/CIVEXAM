@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/question.dart';
+import 'leaderboard_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   final List<Question> questions;
@@ -30,6 +31,17 @@ class ResultScreen extends StatelessWidget {
           for (int i = 0; i < questions.length; i++)
             _ResultTile(q: questions[i], selected: selectedAnswers[i], index: i + 1),
           const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+              );
+            },
+            icon: const Icon(Icons.emoji_events),
+            label: const Text('Voir le classement'),
+          ),
+          const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.home),
