@@ -37,6 +37,22 @@ Color accentColor(String name) {
       return const Color(0xFF283593);
     case 'royalViolet':
       return const Color(0xFF6A1B9A);
+    case 'navyCyanAmber':
+      return const Color(0xFF1E3A8A); // Primary
+    case 'indigoPurpleSky':
+      return const Color(0xFF4F46E5); // Primary
+    case 'emeraldTealMint':
+      return const Color(0xFF059669); // Primary
+    case 'royalBlueGold':
+      return const Color(0xFF37478F); // Primary
+    case 'charcoalElectric':
+      return const Color(0xFF3B82F6); // Primary
+    case 'forestSandTerracotta':
+      return const Color(0xFF1B5E20); // Primary
+    case 'cobaltLimeSlate':
+      return const Color(0xFF2563EB); // Primary
+    case 'calmPastels':
+      return const Color(0xFF8FA6FF); // Primary
     default:
       return const Color(0xFFF5F5F5);
   }
@@ -90,6 +106,22 @@ List<Color> pastelColors(String name, {bool darkMode = false}) {
       return const [Color(0xFF283593), Color(0xFF5C6BC0)];
     case 'royalViolet':
       return const [Color(0xFF6A1B9A), Color(0xFFBA68C8)];
+    case 'navyCyanAmber':
+      return const [Color(0xFFF8FAFC), Color(0xFFFFFFFF)];
+    case 'indigoPurpleSky':
+      return const [Color(0xFFF5F3FF), Color(0xFFFFFFFF)];
+    case 'emeraldTealMint':
+      return const [Color(0xFFF0FDF4), Color(0xFFFFFFFF)];
+    case 'royalBlueGold':
+      return const [Color(0xFFFFFFFF), Color(0xFFF6F8FF)];
+    case 'charcoalElectric':
+      return const [Color(0xFF0B1220), Color(0xFF0F172A)];
+    case 'forestSandTerracotta':
+      return const [Color(0xFFFFF8F1), Color(0xFFFFFFFF)];
+    case 'cobaltLimeSlate':
+      return const [Color(0xFFF8FAFC), Color(0xFFFFFFFF)];
+    case 'calmPastels':
+      return const [Color(0xFFF7F7FB), Color(0xFFFFFFFF)];
     default:
       final accent = accentColor(name);
       final hsl = HSLColor.fromColor(accent);
@@ -103,23 +135,61 @@ List<Color> pastelColors(String name, {bool darkMode = false}) {
 
 /// Complementary color used for buttons to stand out from the background.
 Color complementaryColor(String name) {
-  final accent = accentColor(name);
-  final hsl = HSLColor.fromColor(accent);
-  return hsl.withHue((hsl.hue + 180.0) % 360).toColor();
+  switch (name) {
+    case 'navyCyanAmber':
+      return const Color(0xFFF59E0B); // Accent
+    case 'indigoPurpleSky':
+      return const Color(0xFF38BDF8); // Accent
+    case 'emeraldTealMint':
+      return const Color(0xFF2DD4BF); // Accent
+    case 'royalBlueGold':
+      return const Color(0xFF00B3C6); // Accent
+    case 'charcoalElectric':
+      return const Color(0xFFF472B6); // Accent
+    case 'forestSandTerracotta':
+      return const Color(0xFFD4A373); // Accent
+    case 'cobaltLimeSlate':
+      return const Color(0xFF64748B); // Accent
+    case 'calmPastels':
+      return const Color(0xFFB7E4C7); // Accent
+    default:
+      final accent = accentColor(name);
+      final hsl = HSLColor.fromColor(accent);
+      return hsl.withHue((hsl.hue + 180.0) % 360).toColor();
+  }
 }
 
 /// Returns [Colors.white] or [Colors.black] depending on the background brightness.
 Color textColorForPalette(String name, {bool darkMode = false}) {
-  final colors = pastelColors(name, darkMode: darkMode);
-  int r = 0, g = 0, b = 0;
-  for (final c in colors) {
-    r += c.red;
-    g += c.green;
-    b += c.blue;
+  switch (name) {
+    case 'navyCyanAmber':
+      return const Color(0xFF0F172A);
+    case 'indigoPurpleSky':
+      return const Color(0xFF111827);
+    case 'emeraldTealMint':
+      return const Color(0xFF0F172A);
+    case 'royalBlueGold':
+      return const Color(0xFF0F172A);
+    case 'charcoalElectric':
+      return const Color(0xFFE5E7EB);
+    case 'forestSandTerracotta':
+      return const Color(0xFF1F2937);
+    case 'cobaltLimeSlate':
+      return const Color(0xFF0F172A);
+    case 'calmPastels':
+      return const Color(0xFF1F2937);
+    default:
+      final colors = pastelColors(name, darkMode: darkMode);
+      int r = 0, g = 0, b = 0;
+      for (final c in colors) {
+        r += c.red;
+        g += c.green;
+        b += c.blue;
+      }
+      final avg = Color.fromARGB(255, r ~/ colors.length, g ~/ colors.length, b ~/ colors.length);
+      final brightness = ThemeData.estimateBrightnessForColor(avg);
+      return brightness == Brightness.dark ? Colors.white : Colors.black;
   }
-  final avg = Color.fromARGB(255, r ~/ colors.length, g ~/ colors.length, b ~/ colors.length);
-  final brightness = ThemeData.estimateBrightnessForColor(avg);
-  return brightness == Brightness.dark ? Colors.white : Colors.black;
 }
 
 /// Helper to get readable text color on top of any solid [color].
