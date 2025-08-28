@@ -37,12 +37,12 @@ class LeaderboardEntry {
     mode: (m['mode'] ?? 'training') as String,
     subject: (m['subject'] ?? '') as String,
     chapter: (m['chapter'] ?? '') as String,
-    total: (m['total'] ?? 0) as int,
-    correct: (m['correct'] ?? 0) as int,
-    wrong: (m['wrong'] ?? 0) as int,
-    blank: (m['blank'] ?? 0) as int,
-    durationSec: (m['durationSec'] ?? 0) as int,
-    percent: ((m['percent'] ?? 0.0) as num).toDouble(),
+    total: (m['total'] as num?)?.toInt() ?? 0,
+    correct: (m['correct'] as num?)?.toInt() ?? 0,
+    wrong: (m['wrong'] as num?)?.toInt() ?? 0,
+    blank: (m['blank'] as num?)?.toInt() ?? 0,
+    durationSec: (m['durationSec'] as num?)?.toInt() ?? 0,
+    percent: (m['percent'] as num?)?.toDouble() ?? 0.0,
     dateIso: (m['dateIso'] ?? '') as String,
   );
 }
