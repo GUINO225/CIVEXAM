@@ -7,6 +7,8 @@ ThemeData buildAppTheme(DesignConfig cfg) {
   final accent = accentColor(cfg.bgPaletteName);
   final complement = complementaryColor(cfg.bgPaletteName);
   final brightness = cfg.darkMode ? Brightness.dark : Brightness.light;
+  final textColor =
+      textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
 
   final base = ThemeData(
     colorScheme: ColorScheme.fromSeed(
@@ -17,21 +19,27 @@ ThemeData buildAppTheme(DesignConfig cfg) {
     scaffoldBackgroundColor: Colors.transparent,
   );
 
-  final textTheme = base.textTheme.copyWith(
-    headlineLarge: base.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700),
-    headlineMedium: base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
-    headlineSmall: base.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-    titleLarge: base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-    bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.3),
-    bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.3),
-  );
+  final textTheme = base.textTheme
+      .apply(bodyColor: textColor, displayColor: textColor)
+      .copyWith(
+        headlineLarge:
+            base.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700),
+        headlineMedium:
+            base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+        headlineSmall:
+            base.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+        titleLarge:
+            base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.3),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.3),
+      );
 
   return base.copyWith(
     textTheme: textTheme,
-    iconTheme: IconThemeData(color: accent),
+    iconTheme: IconThemeData(color: textColor, size: cfg.tileIconSize),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      foregroundColor: accent,
+      foregroundColor: textColor,
       elevation: 0,
       centerTitle: true,
     ),

@@ -29,6 +29,14 @@ Color accentColor(String name) {
       return const Color(0xFF43CEA2);
     case 'deepBlack':
       return const Color(0xFF121212);
+    case 'sereneBlue':
+      return const Color(0xFF1A73E8);
+    case 'forestGreen':
+      return const Color(0xFF2E7D32);
+    case 'deepIndigo':
+      return const Color(0xFF283593);
+    case 'royalViolet':
+      return const Color(0xFF6A1B9A);
     default:
       return const Color(0xFFF5F5F5);
   }
@@ -63,6 +71,14 @@ List<Color> pastelColors(String name, {bool darkMode = false}) {
       return const [Color(0xFF43CEA2), Color(0xFF185A9D)];
     case 'deepBlack':
       return const [Color(0xFF121212), Color(0xFF121212)];
+    case 'sereneBlue':
+      return const [Color(0xFF1A73E8), Color(0xFF64B5F6)];
+    case 'forestGreen':
+      return const [Color(0xFF2E7D32), Color(0xFF81C784)];
+    case 'deepIndigo':
+      return const [Color(0xFF283593), Color(0xFF5C6BC0)];
+    case 'royalViolet':
+      return const [Color(0xFF6A1B9A), Color(0xFFBA68C8)];
     default:
       final accent = accentColor(name);
       final hsl = HSLColor.fromColor(accent);
