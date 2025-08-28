@@ -15,6 +15,7 @@ import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'duel_screen.dart';
+import 'login_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -33,6 +34,16 @@ class _PlayScreenState extends State<PlayScreen> {
   Future<void> _seedFromPrefs() async {
     final cfg = await DesignPrefs.load();
     DesignBus.push(cfg);
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
@@ -71,6 +82,11 @@ class _PlayScreenState extends State<PlayScreen> {
                   await Navigator.push(context, MaterialPageRoute(builder: (_) => const DesignSettingsScreen()));
                   // pas besoin de reload : le bus pousse en live pendant l’édition
                 },
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Déconnexion',
+                onPressed: _signOut,
               ),
             ],
           ),
