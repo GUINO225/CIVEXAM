@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
-import 'play_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _auth = AuthService();
   bool _isLogin = true;
   String? _error;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +39,14 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(_error!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _submit,
-              child: Text(_isLogin ? 'Connexion' : 'Inscription'),
+              onPressed: _isLoading ? null : _submit,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(_isLogin ? 'Connexion' : 'Inscription'),
             ),
             TextButton(
               onPressed: () => setState(() => _isLogin = !_isLogin),
@@ -53,7 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    setState(() => _error = null);
+    setState(() {
+      _error = null;
+      _isLoading = true;
+    });
     try {
       if (_isLogin) {
         await _auth.signInWithEmail(
@@ -66,14 +75,12 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text.trim(),
         );
       }
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PlayScreen()),
-        );
-      }
     } on FirebaseAuthException catch (e) {
       setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'Une erreur inattendue est survenue');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
