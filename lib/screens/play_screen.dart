@@ -13,7 +13,7 @@ import 'subject_list_screen.dart';
 import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
-import 'theme_selection_screen.dart';
+import 'design_settings_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
 
@@ -74,7 +74,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const ThemeSelectionScreen()),
+                        builder: (_) => const DesignSettingsScreen()),
                   );
                 },
               ),
