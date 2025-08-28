@@ -168,6 +168,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_windowmanager:
+    dependency: "direct main"
+    description:
+      path: third_party/flutter_windowmanager
+      relative: true
+    source: path
+    version: "0.2.0"
   html:
     dependency: transitive
     description:
