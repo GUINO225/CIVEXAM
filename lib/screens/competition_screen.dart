@@ -1,19 +1,24 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../models/question.dart';
 
-/// A minimalist competition screen showing a question with a
-/// countdown timer and multiple possible answers.
+/// Competition quiz screen with a circular countdown and progress tracking.
 class CompetitionScreen extends StatefulWidget {
   final List<Question> questions;
+  final Map<String, int> indexMap;
+  final int poolSize;
+  final int drawCount;
+  final int timePerQuestion;
   final int currentIndex;
   final int correctCount;
 
   const CompetitionScreen({
     super.key,
     required this.questions,
+    required this.indexMap,
+    this.poolSize = 500,
+    this.drawCount = 50,
+    this.timePerQuestion = 5,
     this.currentIndex = 0,
     this.correctCount = 0,
   });
@@ -22,158 +27,188 @@ class CompetitionScreen extends StatefulWidget {
   State<CompetitionScreen> createState() => _CompetitionScreenState();
 }
 
-class _CompetitionScreenState extends State<CompetitionScreen> {
+class _CompetitionScreenState extends State<CompetitionScreen>
+    with SingleTickerProviderStateMixin {
   int _selected = -1;
-  int _seconds = 30;
-  Timer? _timer;
+  late final AnimationController _controller;
 
   Question get _currentQuestion => widget.questions[widget.currentIndex];
+
+  int get _remainingSeconds =>
+      (_controller.value * widget.timePerQuestion).ceil();
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
-      setState(() => _seconds--);
-      if (_seconds <= 0) t.cancel();
-    });
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: widget.timePerQuestion),
+    )
+      ..addListener(() => setState(() {}))
+      ..addStatusListener((s) {
+        if (s == AnimationStatus.dismissed) _goNext();
+      });
+    _controller.reverse(from: 1.0);
   }
 
   @override
   void dispose() {
-      _timer?.cancel();
-      super.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _cleanQuestion(String q) {
+    return q.replaceFirst(
+        RegExp(r'^Question\s*\d+[:\.\)]?\s*', caseSensitive: false),
+        '');
   }
 
   @override
   Widget build(BuildContext context) {
+    final questionIndex = widget.indexMap[_currentQuestion.id] ?? 0;
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE0BBE4), Color(0xFF957DAD)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Icon(Icons.wifi, color: Colors.white),
-                    Icon(Icons.battery_full, color: Colors.white),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'QUESTION ${widget.currentIndex + 1} OF ${widget.questions.length}',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: (widget.currentIndex + 1) / widget.questions.length,
-                  backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation(Colors.white),
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.pinkAccent,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _seconds.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  _currentQuestion.question,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                if (_selected >= 0)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.pinkAccent.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _currentQuestion.choices[_selected],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                ...List.generate(_currentQuestion.choices.length, (i) {
-                  final bool isSelected = _selected == i;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: GestureDetector(
-                      onTap: () => _onOptionTap(i),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
                       child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: const [
                             BoxShadow(
                               color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
                             ),
                           ],
-                          border: isSelected
-                              ? Border.all(
-                                  color: Colors.pinkAccent,
-                                  width: 2,
-                                )
-                              : null,
                         ),
-                        child: Text(
-                          _currentQuestion.choices[i],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: CircularProgressIndicator(
+                                value: _controller.value,
+                                strokeWidth: 6,
+                              ),
+                            ),
+                            Text(
+                              '$_remainingSeconds',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
-                }),
-                const Spacer(),
-              ],
-            ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Question $questionIndex/${widget.poolSize}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _cleanQuestion(_currentQuestion.question),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(
+                      value: (widget.currentIndex + 1) / widget.drawCount,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (_selected >= 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.pinkAccent.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _currentQuestion.choices[_selected],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 24),
+              ...List.generate(_currentQuestion.choices.length, (i) {
+                final bool isSelected = _selected == i;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: GestureDetector(
+                    onTap: () => _onOptionTap(i),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                        border: isSelected
+                            ? Border.all(
+                                color: Colors.pinkAccent,
+                                width: 2,
+                              )
+                            : null,
+                      ),
+                      child: Text(
+                        _currentQuestion.choices[i],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              const Spacer(),
+            ],
           ),
         ),
       ),
@@ -183,35 +218,41 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
   void _onOptionTap(int i) {
     if (_selected >= 0) return;
     setState(() => _selected = i);
-    final bool isCorrect = i == _currentQuestion.answerIndex;
+    _controller.stop();
+    Future.delayed(const Duration(milliseconds: 300), () => _goNext(i));
+  }
+
+  void _goNext([int? selected]) {
+    final isCorrect = selected != null &&
+        selected == _currentQuestion.answerIndex;
     final int totalCorrect =
         widget.correctCount + (isCorrect ? 1 : 0);
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-      if (widget.currentIndex + 1 < widget.questions.length) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CompetitionScreen(
-              questions: widget.questions,
-              currentIndex: widget.currentIndex + 1,
-              correctCount: totalCorrect,
-            ),
+    if (widget.currentIndex + 1 < widget.drawCount) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CompetitionScreen(
+            questions: widget.questions,
+            indexMap: widget.indexMap,
+            poolSize: widget.poolSize,
+            drawCount: widget.drawCount,
+            timePerQuestion: widget.timePerQuestion,
+            currentIndex: widget.currentIndex + 1,
+            correctCount: totalCorrect,
           ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CompetitionResultScreen(
-              total: widget.questions.length,
-              correct: totalCorrect,
-            ),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CompetitionResultScreen(
+            total: widget.drawCount,
+            correct: totalCorrect,
           ),
-        );
-      }
-    });
+        ),
+      );
+    }
   }
 }
 
