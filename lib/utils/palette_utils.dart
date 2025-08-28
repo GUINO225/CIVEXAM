@@ -4,107 +4,57 @@ import 'package:flutter/material.dart';
 List<Color> paletteFromName(String name) {
   switch (name) {
     case 'midnight':
-      // Soft steel blue toward deep navy
-      return const [Color(0xFFB0C4DE), Color(0xFF2C5364)];
+      // Soft steel blue pair for a gentle gradient
+      return const [Color(0xFFB0C4DE), Color(0xFFA5BAD6)];
     case 'forest':
-      // Gentle green center fading to dark forest edge
-      return const [Color(0xFFDDEED7), Color(0xFF2F7336)];
+      // Gentle green tones kept very close
+      return const [Color(0xFFDDEED7), Color(0xFFD2E3CC)];
     case 'ocean':
-      // Pale aqua center to deep ocean blue
-      return const [Color(0xFFD7F2F3), Color(0xFF1A2980)];
+      // Pale aqua shades for a subtle sea breeze
+      return const [Color(0xFFD7F2F3), Color(0xFFCDE9F0)];
     case 'purple':
-      // Light lavender center to rich purple edge
-      return const [Color(0xFFE6DAF5), Color(0xFF2A0845)];
+      // Light lavender pair
+      return const [Color(0xFFE6DAF5), Color(0xFFDCD0EF)];
     case 'lavender':
-      // Almost white lavender to muted periwinkle
-      return const [Color(0xFFF2ECFF), Color(0xFF8CA6DB)];
+      // Almost white lavender to muted periwinkle, softened
+      return const [Color(0xFFF2ECFF), Color(0xFFE8E1FA)];
     case 'steel':
-      // Soft grey center to charcoal edge
-      return const [Color(0xFFE5E7EA), Color(0xFF414345)];
+      // Subtle grey duo
+      return const [Color(0xFFE5E7EA), Color(0xFFDADCE0)];
     case 'coffee':
-      // Creamy center to dark coffee edge
-      return const [Color(0xFFEAD7C4), Color(0xFF603813)];
+      // Neutral greys to avoid warm tones
+      return const [Color(0xFFE0E0E0), Color(0xFFD0D0D0)];
     case 'fireOcean':
-      // Fire Ocean palette
-      return const [
-        Color(0xFF780000),
-        Color(0xFFC1121F),
-        Color(0xFFFDF0D5),
-        Color(0xFF003049),
-        Color(0xFF669BBC),
-      ];
+      // Cool blue pair
+      return const [Color(0xFF3A4CC5), Color(0xFF4557CA)];
     case 'refreshingSummer':
-      return const [
-        Color(0xFF8ECAE6),
-        Color(0xFF219EBC),
-        Color(0xFF023047),
-        Color(0xFFFFB703),
-        Color(0xFFFB8500),
-      ];
+      // Soft turquoise shades
+      return const [Color(0xFF8ECAE6), Color(0xFF7EBFDD)];
     case 'oliveGardenFeast':
-      return const [
-        Color(0xFF606C38),
-        Color(0xFF283618),
-        Color(0xFFFEFAE0),
-        Color(0xFFDDA15E),
-        Color(0xFFBC6C25),
-      ];
+      // Muted greens close together
+      return const [Color(0xFF606C38), Color(0xFF6A7642)];
     case 'oceanBleuSerenity':
-      return const [
-        Color(0xFF03045E),
-        Color(0xFF023E8A),
-        Color(0xFF0077B6),
-        Color(0xFF0096C7),
-        Color(0xFF00B4D8),
-        Color(0xFF48CAE4),
-        Color(0xFF90E0EF),
-        Color(0xFFADE8F4),
-        Color(0xFFCAF0F8),
-      ];
+      // Calm ocean blues
+      return const [Color(0xFF0077B6), Color(0xFF008BC0)];
     case 'softPink':
-      return const [
-        Color(0xFFFFE5EC),
-        Color(0xFFFFC2D1),
-        Color(0xFFFFB3C6),
-        Color(0xFFFF8FAB),
-        Color(0xFFFB6F92),
-      ];
+      // Cool pastel purples
+      return const [Color(0xFFE6DAF5), Color(0xFFDAD0EF)];
     case 'oceanBreeze':
-      return const [
-        Color(0xFF03045E),
-        Color(0xFF0077B6),
-        Color(0xFF00B4D8),
-        Color(0xFF90E0EF),
-        Color(0xFFCAF0F8),
-      ];
+      // Breezy light blues
+      return const [Color(0xFF00B4D8), Color(0xFF23C2E3)];
     case 'softSand':
-      return const [
-        Color(0xFFEDEDE9),
-        Color(0xFFD6CCC2),
-        Color(0xFFF5EBE0),
-        Color(0xFFE3D5CA),
-        Color(0xFFD5BDAF),
-      ];
+      // Neutral soft greys
+      return const [Color(0xFFE5E5E5), Color(0xFFDADADA)];
     case 'beachSunset':
-      return const [
-        Color(0xFFBEE9E8),
-        Color(0xFF62B6CB),
-        Color(0xFF1B4965),
-        Color(0xFFCAE9FF),
-        Color(0xFF5FA8D3),
-      ];
+      // Gentle seaside blues
+      return const [Color(0xFFBEE9E8), Color(0xFFC7EEF0)];
     case 'slateGrayContrast':
-      return const [
-        Color(0xFFFF6700),
-        Color(0xFFEBEBEB),
-        Color(0xFFC0C0C0),
-        Color(0xFF3A6EA5),
-        Color(0xFF004E98),
-      ];
+      // Slate blue duo
+      return const [Color(0xFF3A6EA5), Color(0xFF4678AD)];
     case 'blueRoyal':
     default:
-      // Subtle light blue center to royal blue edge
-      return const [Color(0xFFE1E6F2), Color(0xFF0D1E42)];
+      // Subtle light blue pair
+      return const [Color(0xFFDDE3F0), Color(0xFFE1E6F2)];
   }
 }
 

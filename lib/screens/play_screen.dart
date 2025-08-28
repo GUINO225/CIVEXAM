@@ -355,7 +355,7 @@ class _IconBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final gradientColors = useMono
         ? [monoColor.withOpacity(0.15), monoColor.withOpacity(0.35)]
-        : const [Color(0xFFFFB25E), Color(0xFFFF7A00)];
+        : const [Color(0xFF5C6BB7), Color(0xFF6C7BD0)];
     final iconColor = useMono ? monoColor : Colors.white;
     return Container(
       height: size,
@@ -382,19 +382,19 @@ class _MenuItem {
 
 const _items = <_MenuItem>[
   _MenuItem("S'entraîner", Icons.play_circle_fill_rounded,
-      [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
+      [Color(0xFF5C6BB7), Color(0xFF6C7BD0)]),
   _MenuItem('Concours ENA', Icons.school_rounded,
-      [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
+      [Color(0xFF4A90E2), Color(0xFF5A9AE5)]),
   _MenuItem('Par matière', Icons.menu_book_rounded,
-      [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
+      [Color(0xFF5FBF72), Color(0xFF66BB6A)]),
   _MenuItem('Historique examens', Icons.fact_check_rounded,
-      [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
+      [Color(0xFF9D3FB2), Color(0xFFA84ABD)]),
   _MenuItem("Historique entraînement", Icons.history_rounded,
-      [Color(0xFFFF7043), Color(0xFFD84315)]),
+      [Color(0xFF5E8CD1), Color(0xFF6B99D5)]),
   _MenuItem('Comment ça marche ?', Icons.info_rounded,
-      [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
+      [Color(0xFF1FB5C6), Color(0xFF26C6DA)]),
   _MenuItem('Compétition', Icons.sports_kabaddi,
-      [Color(0xFFFFEE58), Color(0xFFFDD835)]),
+      [Color(0xFF4AAAE0), Color(0xFF55B3E3)]),
   _MenuItem('Classement', Icons.emoji_events_outlined,
-      [Color(0xFFEC407A), Color(0xFFD81B60)]),
+      [Color(0xFF8662C5), Color(0xFF9270C8)]),
 ];

@@ -11,13 +11,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF37478F), Color(0xFF6C7BD0)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF5C6BB7), Color(0xFF6C7BD0)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),

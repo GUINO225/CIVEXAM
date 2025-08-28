@@ -55,7 +55,7 @@ class _SplashAnimatedState extends State<SplashAnimated>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF3A4CC5), Color(0xFF6C8BF5), Color(0xFF7BD3EA)],
+            colors: [Color(0xFF4B60CC), Color(0xFF5A6ED6)],
           ),
         ),
         child: Center(
