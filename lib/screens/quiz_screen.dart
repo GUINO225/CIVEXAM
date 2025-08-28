@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/question.dart';
+import '../models/design_config.dart';
+import '../services/design_bus.dart';
 
 class QuizScreen extends StatefulWidget {
   final List<Question> questions;
@@ -37,50 +39,64 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final q = widget.questions[index];
-    return Scaffold(
-      appBar: AppBar(title: Text('Question ${index + 1}/${widget.questions.length}')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(q.question, style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 16),
-                      for (int i = 0; i < q.choices.length; i++) ...[
-                        _ChoiceTile(
-                          text: q.choices[i],
-                          state: selected == null
-                              ? ChoiceState.neutral
-                              : (i == q.answerIndex ? ChoiceState.correct : (i == selected ? ChoiceState.wrong : ChoiceState.neutral)),
-                          onTap: () => _select(i),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      if (selected != null && q.explanation != null) ...[
-                        const SizedBox(height: 12),
-                        Text('Explication: ${q.explanation!}'),
-                      ]
-                    ],
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final q = widget.questions[index];
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+              title: Text('Question ${index + 1}/${widget.questions.length}')),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(q.question,
+                              style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 16),
+                          for (int i = 0; i < q.choices.length; i++) ...[
+                            _ChoiceTile(
+                              text: q.choices[i],
+                              state: selected == null
+                                  ? ChoiceState.neutral
+                                  : (i == q.answerIndex
+                                      ? ChoiceState.correct
+                                      : (i == selected
+                                          ? ChoiceState.wrong
+                                          : ChoiceState.neutral)),
+                              onTap: () => _select(i),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                          if (selected != null && q.explanation != null) ...[
+                            const SizedBox(height: 12),
+                            Text('Explication: ${q.explanation!}'),
+                          ]
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: selected == null ? null : _next,
+                    icon: const Icon(Icons.arrow_forward),
+                    label: Text(index < widget.questions.length - 1
+                        ? 'Suivant'
+                        : 'Terminer'),
+                  )
+                ],
               ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: selected == null ? null : _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(index < widget.questions.length - 1 ? 'Suivant' : 'Terminer'),
-              )
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -95,11 +111,17 @@ class _ChoiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     Color bg;
     switch (state) {
-      case ChoiceState.correct: bg = Colors.greenAccent.shade100; break;
-      case ChoiceState.wrong: bg = Colors.redAccent.shade100; break;
-      default: bg = Colors.grey.shade200;
+      case ChoiceState.correct:
+        bg = cs.primaryContainer;
+        break;
+      case ChoiceState.wrong:
+        bg = cs.errorContainer;
+        break;
+      default:
+        bg = cs.surfaceVariant;
     }
     return InkWell(
       onTap: onTap,
@@ -108,7 +130,7 @@ class _ChoiceTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: cs.outline),
         ),
         child: Text(text),
       ),
@@ -124,24 +146,31 @@ class _ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (score / total * 100).toStringAsFixed(0);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Résultats')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Score: $score / $total', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text('$pct % de réussite'),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.replay),
-              label: const Text('Rejouer'),
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(title: const Text('Résultats')),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Score: $score / $total',
+                    style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: 8),
+                Text('$pct % de réussite'),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.replay),
+                  label: const Text('Rejouer'),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

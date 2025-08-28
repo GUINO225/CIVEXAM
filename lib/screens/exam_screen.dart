@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/question.dart';
+import '../models/design_config.dart';
+import '../services/design_bus.dart';
 import 'result_screen.dart';
 import '../services/history_service.dart';
 
@@ -91,62 +93,79 @@ class _ExamScreenState extends State<ExamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final q = widget.questions[index];
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Examen ${index + 1}/${widget.questions.length}'),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Chip(
-                label: Text(_formatTime(remaining), style: const TextStyle(fontWeight: FontWeight.bold)),
-                backgroundColor: Colors.redAccent.shade100,
-              ),
-            )
-          ],
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(q.question, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: q.choices.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) {
-                      final isSelected = selected == i;
-                      return InkWell(
-                        onTap: () => _select(i),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isSelected ? Colors.blue.shade100 : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: Text(q.choices[i]),
-                        ),
-                      );
-                    },
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final q = widget.questions[index];
+        final cs = Theme.of(context).colorScheme;
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              title: Text('Examen ${index + 1}/${widget.questions.length}'),
+              actions: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Chip(
+                    label: Text(_formatTime(remaining),
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    backgroundColor: cs.errorContainer,
                   ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: _next,
-                  icon: Icon(index < widget.questions.length - 1 ? Icons.arrow_forward : Icons.flag),
-                  label: Text(index < widget.questions.length - 1 ? 'Suivant' : 'Terminer'),
                 )
               ],
             ),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(q.question,
+                        style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: q.choices.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (_, i) {
+                          final isSelected = selected == i;
+                          return InkWell(
+                            onTap: () => _select(i),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? cs.primaryContainer
+                                    : cs.surfaceVariant,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: cs.outline),
+                              ),
+                              child: Text(q.choices[i]),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _next,
+                      icon: Icon(index < widget.questions.length - 1
+                          ? Icons.arrow_forward
+                          : Icons.flag),
+                      label: Text(index < widget.questions.length - 1
+                          ? 'Suivant'
+                          : 'Terminer'),
+                    )
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

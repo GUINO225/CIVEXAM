@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../models/design_config.dart';
+import '../services/design_bus.dart';
 import 'play_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -30,62 +32,77 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Email requis' : null,
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar:
+              AppBar(title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    validator: (value) => value == null ||
+                            value.trim().isEmpty
+                        ? 'Email requis'
+                        : null,
+                  ),
+                  if (!_isLogin)
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(labelText: 'Nom'),
+                      validator: (value) {
+                        if (!_isLogin &&
+                            (value == null || value.trim().isEmpty)) {
+                          return 'Nom requis';
+                        }
+                        return null;
+                      },
+                    ),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration:
+                        const InputDecoration(labelText: 'Mot de passe'),
+                    obscureText: true,
+                    validator: (value) => value == null ||
+                            value.trim().isEmpty
+                        ? 'Mot de passe requis'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  if (_error != null)
+                    Text(_error!, style: errorStyle),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                  ),
+                  TextButton(
+                    onPressed: () => setState(() => _isLogin = !_isLogin),
+                    child: Text(
+                        _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
+                  )
+                ],
               ),
-              if (!_isLogin)
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Nom'),
-                  validator: (value) {
-                    if (!_isLogin && (value == null || value.trim().isEmpty)) {
-                      return 'Nom requis';
-                    }
-                    return null;
-                  },
-                ),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Mot de passe'),
-                obscureText: true,
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Mot de passe requis'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              if (_error != null)
-                Text(_error!, style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _submit,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isLogin ? 'Connexion' : 'Inscription'),
-              ),
-              TextButton(
-                onPressed: () => setState(() => _isLogin = !_isLogin),
-                child: Text(_isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
-              )
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
