@@ -379,7 +379,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               ),
             ),
             LinearProgressIndicator(
-              value: q.isEmpty ? 0 : _currentIndex / q.length,
+              value: (_currentIndex + 1) / q.length,
               minHeight: 6,
             ),
           ],
