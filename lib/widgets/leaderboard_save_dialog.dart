@@ -1,6 +1,7 @@
 // lib/widgets/leaderboard_save_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
@@ -12,6 +13,32 @@ Future<void> showSaveScoreDialog({
   required int total, required int correct, required int wrong, required int blank,
   required int durationSec, required double percent,
 }) async {
+  // Mode compétition : utilise automatiquement l'utilisateur connecté
+  if (mode == 'competition') {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? user?.email ?? 'Joueur';
+    final uid = user?.uid ?? '';
+    final entry = LeaderboardEntry(
+      userId: uid,
+      name: name,
+      mode: mode,
+      subject: subject,
+      chapter: chapter,
+      total: total,
+      correct: correct,
+      wrong: wrong,
+      blank: blank,
+      durationSec: durationSec,
+      percent: percent,
+      dateIso: DateTime.now().toIso8601String(),
+    );
+    await CompetitionService().saveEntry(entry);
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
+    return;
+  }
+
   final prefs = await SharedPreferences.getInstance();
   final savedName = prefs.getString('player_name') ?? 'Joueur';
   final controller = TextEditingController(text: savedName);
@@ -22,31 +49,45 @@ Future<void> showSaveScoreDialog({
     builder: (_) => AlertDialog(
       title: const Text('Enregistrer mon score'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(decoration: const InputDecoration(labelText: 'Votre nom', border: OutlineInputBorder()), controller: controller),
+        TextField(
+            decoration: const InputDecoration(
+                labelText: 'Votre nom', border: OutlineInputBorder()),
+            controller: controller),
         const SizedBox(height: 12),
         Text('Mode : $mode  •  Score : ${percent.toStringAsFixed(1)}%'),
       ]),
       actions: [
-        TextButton(onPressed: ()=>Navigator.pop(context,false), child: const Text('Annuler')),
-        FilledButton(onPressed: ()=>Navigator.pop(context,true), child: const Text('Enregistrer')),
+        TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler')),
+        FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Enregistrer')),
       ],
     ),
   );
 
   if (submit == true) {
-    final name = controller.text.trim().isEmpty ? 'Joueur' : controller.text.trim();
+    final name =
+        controller.text.trim().isEmpty ? 'Joueur' : controller.text.trim();
     await prefs.setString('player_name', name);
     final entry = LeaderboardEntry(
-      name: name, mode: mode, subject: subject, chapter: chapter,
-      total: total, correct: correct, wrong: wrong, blank: blank,
-      durationSec: durationSec, percent: percent, dateIso: DateTime.now().toIso8601String(),
+      userId: '',
+      name: name,
+      mode: mode,
+      subject: subject,
+      chapter: chapter,
+      total: total,
+      correct: correct,
+      wrong: wrong,
+      blank: blank,
+      durationSec: durationSec,
+      percent: percent,
+      dateIso: DateTime.now().toIso8601String(),
     );
     await LeaderboardStore.add(entry);
-    if (mode == 'competition') {
-      // Sauvegarde aussi dans Firestore pour le classement en ligne
-      await CompetitionService().saveEntry(entry);
-    }
     // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
   }
 }

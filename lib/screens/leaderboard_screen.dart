@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
+import 'dashboard_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -36,7 +37,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Classement'), actions:[IconButton(icon: const Icon(Icons.refresh), onPressed: _load)]),
+      appBar: AppBar(title: const Text('Classement'), actions:[
+        IconButton(icon: const Icon(Icons.person), onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen())); }),
+        IconButton(icon: const Icon(Icons.refresh), onPressed: _load)
+      ]),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12,12,12,6),
