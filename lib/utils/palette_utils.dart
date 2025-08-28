@@ -3,34 +3,75 @@ import 'package:flutter/material.dart';
 /// Utilities for design palettes and contrast helpers
 Color accentColor(String name) {
   switch (name) {
-    case 'red':
-      return const Color(0xFFE53935);
-    case 'orange':
-      return const Color(0xFFFB8C00);
-    case 'yellow':
-      return const Color(0xFFFDD835);
-    case 'green':
-      return const Color(0xFF43A047);
-    case 'blue':
-      return const Color(0xFF1E88E5);
-    case 'indigo':
-      return const Color(0xFF3949AB);
-    case 'violet':
-      return const Color(0xFF8E24AA);
+    case 'offWhite':
+      return const Color(0xFFF5F5F5);
+    case 'lightGrey':
+      return const Color(0xFFEAEAEA);
+    case 'darkGrey':
+      return const Color(0xFF2C2C2C);
+    case 'pastelBlue':
+      return const Color(0xFFA8DADC);
+    case 'powderPink':
+      return const Color(0xFFF7CAD0);
+    case 'lightGreen':
+      return const Color(0xFFB7E4C7);
+    case 'softYellow':
+      return const Color(0xFFFFE66D);
+    case 'midnightBlue':
+      return const Color(0xFF1E1E2F);
+    case 'anthracite':
+      return const Color(0xFF2B2B2B);
+    case 'blueIndigo':
+      return const Color(0xFF2193B0);
+    case 'violetRose':
+      return const Color(0xFF7F00FF);
+    case 'mintTurquoise':
+      return const Color(0xFF43CEA2);
+    case 'deepBlack':
+      return const Color(0xFF121212);
     default:
-      return const Color(0xFF1E88E5);
+      return const Color(0xFFF5F5F5);
   }
 }
 
 /// Returns two pastel variants of the accent color for gradient backgrounds.
 List<Color> pastelColors(String name, {bool darkMode = false}) {
-  final accent = accentColor(name);
-  final hsl = HSLColor.fromColor(accent);
-  final light1 = darkMode ? 0.25 : 0.85;
-  final light2 = darkMode ? 0.35 : 0.95;
-  final c1 = hsl.withLightness(light1).toColor();
-  final c2 = hsl.withLightness(light2).toColor();
-  return [c1, c2];
+  switch (name) {
+    case 'offWhite':
+      return const [Color(0xFFF5F5F5), Color(0xFFF5F5F5)];
+    case 'lightGrey':
+      return const [Color(0xFFEAEAEA), Color(0xFFEAEAEA)];
+    case 'darkGrey':
+      return const [Color(0xFF2C2C2C), Color(0xFF2C2C2C)];
+    case 'pastelBlue':
+      return const [Color(0xFFA8DADC), Color(0xFFA8DADC)];
+    case 'powderPink':
+      return const [Color(0xFFF7CAD0), Color(0xFFF7CAD0)];
+    case 'lightGreen':
+      return const [Color(0xFFB7E4C7), Color(0xFFB7E4C7)];
+    case 'softYellow':
+      return const [Color(0xFFFFE66D), Color(0xFFFFE66D)];
+    case 'midnightBlue':
+      return const [Color(0xFF1E1E2F), Color(0xFF1E1E2F)];
+    case 'anthracite':
+      return const [Color(0xFF2B2B2B), Color(0xFF2B2B2B)];
+    case 'blueIndigo':
+      return const [Color(0xFF2193B0), Color(0xFF6DD5ED)];
+    case 'violetRose':
+      return const [Color(0xFF7F00FF), Color(0xFFE100FF)];
+    case 'mintTurquoise':
+      return const [Color(0xFF43CEA2), Color(0xFF185A9D)];
+    case 'deepBlack':
+      return const [Color(0xFF121212), Color(0xFF121212)];
+    default:
+      final accent = accentColor(name);
+      final hsl = HSLColor.fromColor(accent);
+      final light1 = darkMode ? 0.25 : 0.85;
+      final light2 = darkMode ? 0.35 : 0.95;
+      final c1 = hsl.withLightness(light1).toColor();
+      final c2 = hsl.withLightness(light2).toColor();
+      return [c1, c2];
+  }
 }
 
 /// Complementary color used for buttons to stand out from the background.

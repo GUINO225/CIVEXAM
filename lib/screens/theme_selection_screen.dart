@@ -37,7 +37,13 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
   }
 
   Future<void> _select(String name) async {
-    await _apply(_cfg.copyWith(bgPaletteName: name));
+    final updated = _cfg.useMono
+        ? _cfg.copyWith(
+            bgPaletteName: name,
+            monoColor: complementaryColor(name),
+          )
+        : _cfg.copyWith(bgPaletteName: name);
+    await _apply(updated);
   }
 
   @override
@@ -51,8 +57,21 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final name in
-                  ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'])
+              for (final name in [
+                'offWhite',
+                'lightGrey',
+                'darkGrey',
+                'pastelBlue',
+                'powderPink',
+                'lightGreen',
+                'softYellow',
+                'midnightBlue',
+                'anthracite',
+                'blueIndigo',
+                'violetRose',
+                'mintTurquoise',
+                'deepBlack',
+              ])
                 _paletteChip(name, _cfg.bgPaletteName == name),
             ],
           ),

@@ -46,7 +46,7 @@ ThemeData buildAppTheme(DesignConfig cfg) {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         backgroundColor: complement,
         foregroundColor: onColor(complement),
       ),
