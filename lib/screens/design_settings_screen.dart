@@ -21,41 +21,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
-    'offWhite',
-    'lightGrey',
     'pastelBlue',
-    'powderPink',
-    'lightGreen',
-    'softYellow',
-    'midnightBlue',
-    'anthracite',
-    'blueIndigo',
-    'violetRose',
-    'mintTurquoise',
-    'deepBlack',
     'sereneBlue',
-    'forestGreen',
+    'blueIndigo',
+    'midnightBlue',
     'deepIndigo',
-    'royalViolet',
   ];
 
   static const Map<String, String> _paletteLabels = {
-    'offWhite': 'Blanc cassé',
-    'lightGrey': 'Gris clair',
     'pastelBlue': 'Bleu pastel',
-    'powderPink': 'Rose poudré',
-    'lightGreen': 'Vert doux',
-    'softYellow': 'Jaune pâle',
-    'midnightBlue': 'Bleu nuit',
-    'anthracite': 'Anthracite',
-    'blueIndigo': 'Indigo',
-    'violetRose': 'Violet',
-    'mintTurquoise': 'Turquoise',
-    'deepBlack': 'Noir profond',
     'sereneBlue': 'Bleu sérieux',
-    'forestGreen': 'Vert forêt',
+    'blueIndigo': 'Indigo',
+    'midnightBlue': 'Bleu nuit',
     'deepIndigo': 'Indigo profond',
-    'royalViolet': 'Violet royal',
   };
 
   @override
@@ -195,8 +173,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                 label: 'Taille icône (px)',
                 value: _cfg.tileIconSize,
                 min: 36,
-                max: 76,
-                divisions: 40,
+                max: 100,
+                divisions: 64,
                 onChanged: (v) =>
                     _apply(_cfg.copyWith(tileIconSize: v)),
               ),
