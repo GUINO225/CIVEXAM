@@ -38,3 +38,43 @@ Color textColorForPalette(String name) {
   final brightness = ThemeData.estimateBrightnessForColor(avg);
   return brightness == Brightness.dark ? Colors.white : Colors.black;
 }
+
+/// Returns a saturated "vivid" color for the palette.
+Color vividColorForPalette(String name) {
+  return paletteFromName(name).first;
+}
+
+/// Computes a pastel variant of [color] depending on [brightness]. The pastel
+/// is simply the same hue with a much higher lightness in light mode and a
+/// lower one in dark mode.
+Color _pastelize(Color color, Brightness brightness) {
+  final hsl = HSLColor.fromColor(color);
+  final lightness = brightness == Brightness.dark ? 0.20 : 0.85;
+  return hsl.withLightness(lightness).toColor();
+}
+
+/// Returns a list of pastel colors for the palette, to be used for backgrounds
+/// and gradients.
+List<Color> pastelPaletteFromName(String name, {Brightness brightness = Brightness.light}) {
+  final base = paletteFromName(name);
+  return base.map((c) => _pastelize(c, brightness)).toList();
+}
+
+/// Returns the pastel color associated with [name].
+Color pastelColorForPalette(String name, {Brightness brightness = Brightness.light}) {
+  return pastelPaletteFromName(name, brightness: brightness).last;
+}
+
+/// Computes a complementary color for the given [color].
+Color complementaryOf(Color color) {
+  final hsl = HSLColor.fromColor(color);
+  return hsl.withHue((hsl.hue + 180.0) % 360.0).toColor();
+}
+
+/// Chooses an appropriate text color (black or white) that contrasts with the
+/// [background] color.
+Color contrastingText(Color background) {
+  return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+      ? Colors.white
+      : Colors.black;
+}

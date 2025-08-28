@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 
-const Color kPrimaryBlue = Color(0xFF37478F);
-const Color kPrimaryBlueLight = Color(0xFF6C7BD0);
-const Color kSurface = Colors.white;
+import '../models/design_config.dart';
+import '../utils/palette_utils.dart';
 
-ThemeData buildAppTheme() {
+/// Builds the application [ThemeData] based on the selected palette in
+/// [DesignConfig]. The theme adapts to light/dark modes and ensures
+/// complementary button colors with readable text.
+ThemeData buildAppTheme(DesignConfig cfg, Brightness brightness) {
+  final vivid = vividColorForPalette(cfg.bgPaletteName);
+  final pastel = pastelColorForPalette(cfg.bgPaletteName, brightness: brightness);
+  final complement = complementaryOf(vivid);
+  final buttonText = contrastingText(complement);
+
   final base = ThemeData(
     colorScheme: ColorScheme.fromSeed(
-      seedColor: kPrimaryBlue,
-      brightness: Brightness.light,
+      seedColor: vivid,
+      brightness: brightness,
     ),
     useMaterial3: true,
-    scaffoldBackgroundColor: Colors.transparent,
+    scaffoldBackgroundColor: pastel,
   );
 
   final textTheme = base.textTheme.copyWith(
@@ -25,12 +32,13 @@ ThemeData buildAppTheme() {
 
   return base.copyWith(
     textTheme: textTheme,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: pastel,
+      foregroundColor: vivid,
       elevation: 0,
       centerTitle: true,
     ),
+    iconTheme: IconThemeData(color: vivid),
     cardTheme: CardThemeData(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -41,6 +49,8 @@ ThemeData buildAppTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        backgroundColor: complement,
+        foregroundColor: buttonText,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),

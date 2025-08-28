@@ -14,6 +14,7 @@ import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
+import 'theme_picker_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
 
@@ -64,6 +65,13 @@ class _PlayScreenState extends State<PlayScreen> {
                 tooltip: 'Classement',
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.color_lens_outlined),
+                tooltip: 'Choisir un thème',
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ThemePickerScreen()));
                 },
               ),
               IconButton(
