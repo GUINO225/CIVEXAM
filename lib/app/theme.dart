@@ -31,7 +31,7 @@ ThemeData buildAppTheme() {
       elevation: 0.5,
       centerTitle: true,
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
