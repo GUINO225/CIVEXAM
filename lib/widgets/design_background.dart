@@ -18,9 +18,9 @@ class DesignBackground extends StatelessWidget {
         final colors = paletteFromName(cfg.bgPaletteName);
         return DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 1.0,
               colors: colors,
             ),
           ),
