@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
+import '../services/competition_service.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -10,15 +11,16 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   List<LeaderboardEntry> _entries = const [];
-  String _mode = 'all'; // all | training | concours
+  String _mode = 'all'; // all | training | concours | competition
   String _query = '';
 
   @override void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     final all = await LeaderboardStore.all();
+    final comp = await CompetitionService().topEntries();
     if (!mounted) return;
-    setState(() { _entries = all; });
+    setState(() { _entries = [...all, ...comp]; });
   }
 
   List<LeaderboardEntry> get _filtered {
@@ -44,6 +46,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             _ModeChip(label:'Entraînement', value:'training', groupValue:_mode, onSelected:_onMode),
             const SizedBox(width:6),
             _ModeChip(label:'Concours', value:'concours', groupValue:_mode, onSelected:_onMode),
+            const SizedBox(width:6),
+            _ModeChip(label:'Compétition', value:'competition', groupValue:_mode, onSelected:_onMode),
             const Spacer(),
             SizedBox(width:170, child: TextField(
               decoration: const InputDecoration(isDense:true, prefixIcon: Icon(Icons.search), hintText:'Nom / matière', border: OutlineInputBorder()),
