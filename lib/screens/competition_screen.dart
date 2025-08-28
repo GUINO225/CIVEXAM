@@ -47,6 +47,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
           duration: const Duration(minutes: 5),
           scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0),
           title: 'Mode Compétition',
+          antiCheat: true,
         ),
       ),
     );

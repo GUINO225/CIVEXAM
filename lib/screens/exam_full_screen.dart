@@ -1,5 +1,10 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../app/theme.dart';
@@ -31,6 +36,8 @@ class ExamFullScreen extends StatefulWidget {
   /// If set (>0), total time = per-question seconds * number of questions.
   /// We hard-limit it to 5..10s now.
   final int? overridePerQuestionSeconds;
+  /// Enable anti-cheat protections (full screen, orientation lock, etc.)
+  final bool antiCheat;
 
   const ExamFullScreen({
     super.key,
@@ -40,23 +47,36 @@ class ExamFullScreen extends StatefulWidget {
     this.title,
     this.showLocalSummary = true,
     this.overridePerQuestionSeconds,
+    this.antiCheat = false,
   });
 
   @override
   State<ExamFullScreen> createState() => _ExamFullScreenState();
 }
 
-class _ExamFullScreenState extends State<ExamFullScreen> {
+class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObserver {
   late List<int?> answers;
   late int remaining;
   Timer? timer;
 
   bool _submitted = false;
   ExamResult? _lastResult;
+  bool _paused = false;
+  int _leaveCount = 0;
 
   @override
   void initState() {
     super.initState();
+    if (widget.antiCheat) {
+      WidgetsBinding.instance.addObserver(this);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      WakelockPlus.enable();
+      if (!kIsWeb && Platform.isAndroid) {
+        FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      }
+    }
+
     answers = List<int?>.filled(widget.questions.length, null);
 
     // Base: provided duration
@@ -84,6 +104,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
 
   @override
   void dispose() {
+    if (widget.antiCheat) {
+      WidgetsBinding.instance.removeObserver(this);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      WakelockPlus.disable();
+      if (!kIsWeb && Platform.isAndroid) {
+        FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      }
+    }
     timer?.cancel();
     super.dispose();
   }
@@ -92,6 +121,46 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
     final m = (s ~/ 60).toString().padLeft(2, '0');
     final ss = (s % 60).toString().padLeft(2, '0');
     return '$m:$ss';
+  }
+
+  Future<void> _showAlert(String title, String message) async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.antiCheat || _submitted) return;
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _paused = true;
+    } else if (state == AppLifecycleState.resumed && _paused) {
+      _paused = false;
+      _leaveCount++;
+      if (_leaveCount == 1) {
+        _showAlert('Attention', 'Sortie de l'application détectée. Prochaine sortie : pénalité.');
+      } else if (_leaveCount == 2) {
+        setState(() {
+          remaining = remaining - 30;
+          if (remaining < 0) remaining = 0;
+        });
+        _showAlert('Pénalité', '30 secondes retirées pour sortie de l'application.');
+      } else if (_leaveCount >= 3) {
+        _showAlert('Exclusion', 'Épreuve terminée pour tentatives répétées de sortie.');
+        _submit(auto: true);
+      }
+    }
   }
 
   Future<void> _confirmSubmitIfBlanks() async {
@@ -194,6 +263,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
     final title = widget.title ?? 'Examen officiel';
     return WillPopScope(
       onWillPop: () async {
+        if (!_submitted && widget.antiCheat) {
+          return false;
+        }
         if (_submitted) {
           Navigator.of(context).pop(_lastResult);
           return false;
@@ -211,7 +283,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> {
         );
         return ok == true;
       },
-      child: Scaffold(
+      child: widget.antiCheat
+          ? SelectionContainer.disabled(child: _buildScaffold(q, title))
+          : _buildScaffold(q, title),
+    );
+  }
+
+  Widget _buildScaffold(List<Question> q, String title) {
+    return Scaffold(
         appBar: AppBar(
           title: Text(title),
           actions: [
