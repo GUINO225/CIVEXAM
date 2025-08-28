@@ -22,18 +22,20 @@ class CloudSync {
     }
   }
 
-  static Future<void> ensureInitialized() async {
-    if (_ready || _initTried) return;
-    _initTried = true;
+  static Future<bool> ensureInitialized() async {
+    if (_ready || _initTried) return _ready;
     try {
       await Firebase.initializeApp();
       await _ensureSignedIn();
       _ready = true;
+      _initTried = true;
       if (kDebugMode) debugPrint('[CloudSync] Firebase initialized.');
     } catch (e) {
       if (kDebugMode) debugPrint('[CloudSync] Firebase init skipped: $e');
       _ready = false;
+      _initTried = false;
     }
+    return _ready;
   }
 
   static Future<void> _ensureSignedIn() async {
@@ -52,8 +54,7 @@ class CloudSync {
     required DateTime timestamp,
   }) async {
     try {
-      await ensureInitialized();
-      if (!_ready) return;
+      if (!await ensureInitialized()) return;
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
       final col = FirebaseFirestore.instance
