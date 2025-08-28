@@ -10,6 +10,7 @@ class DesignConfig {
   // Thème fond
   final String bgPaletteName;
   final bool waveEnabled;
+  final bool bgGradient;
 
   // Verre
   final double glassBlur;
@@ -30,6 +31,7 @@ class DesignConfig {
     // Thème fond
     this.bgPaletteName = 'midnight',
     this.waveEnabled = true,
+    this.bgGradient = true,
     // Verre
     this.glassBlur = 18.0,
     this.glassBgOpacity = 0.16,
@@ -47,6 +49,7 @@ class DesignConfig {
   DesignConfig copyWith({
     String? bgPaletteName,
     bool? waveEnabled,
+    bool? bgGradient,
     double? glassBlur,
     double? glassBgOpacity,
     double? glassBorderOpacity,
@@ -60,6 +63,7 @@ class DesignConfig {
     return DesignConfig(
       bgPaletteName: bgPaletteName ?? this.bgPaletteName,
       waveEnabled: waveEnabled ?? this.waveEnabled,
+      bgGradient: bgGradient ?? this.bgGradient,
       glassBlur: glassBlur ?? this.glassBlur,
       glassBgOpacity: glassBgOpacity ?? this.glassBgOpacity,
       glassBorderOpacity: glassBorderOpacity ?? this.glassBorderOpacity,
@@ -75,6 +79,7 @@ class DesignConfig {
   Map<String, dynamic> toJson() => {
     'bgPaletteName': bgPaletteName,
     'waveEnabled': waveEnabled,
+    'bgGradient': bgGradient,
     'glassBlur': glassBlur,
     'glassBgOpacity': glassBgOpacity,
     'glassBorderOpacity': glassBorderOpacity,
@@ -95,6 +100,7 @@ class DesignConfig {
     return DesignConfig(
       bgPaletteName: map['bgPaletteName'] ?? 'midnight',
       waveEnabled: (map['waveEnabled'] ?? true) as bool,
+      bgGradient: (map['bgGradient'] ?? true) as bool,
       glassBlur: (map['glassBlur'] ?? 18.0).toDouble(),
       glassBgOpacity: (map['glassBgOpacity'] ?? 0.16).toDouble(),
       glassBorderOpacity: (map['glassBorderOpacity'] ?? 0.22).toDouble(),
