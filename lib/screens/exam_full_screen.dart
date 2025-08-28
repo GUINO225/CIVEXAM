@@ -59,6 +59,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   late List<int?> answers;
   late int remaining;
   Timer? timer;
+  PageController? _pageController;
+  int _currentIndex = 0;
 
   bool _submitted = false;
   ExamResult? _lastResult;
@@ -76,6 +78,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       _checkEmulator();
+      _pageController = PageController();
     }
     answers = List<int?>.filled(widget.questions.length, null);
 
@@ -98,6 +101,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         _submit(auto: true);
       } else {
         setState(() => remaining--);
+        if (widget.competitionMode && remaining <= 10) {
+          if (remaining <= 3) {
+            HapticFeedback.heavyImpact();
+          } else if (remaining <= 5) {
+            HapticFeedback.mediumImpact();
+          } else {
+            HapticFeedback.selectionClick();
+          }
+        }
       }
     });
   }
@@ -112,6 +124,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
     }
+    _pageController?.dispose();
     super.dispose();
   }
 
@@ -119,6 +132,56 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     final m = (s ~/ 60).toString().padLeft(2, '0');
     final ss = (s % 60).toString().padLeft(2, '0');
     return '$m:$ss';
+  }
+
+  void _onAnswer(int index, int choice) {
+    setState(() => answers[index] = choice);
+    if (widget.competitionMode) {
+      if (index < widget.questions.length - 1) {
+        _currentIndex = index + 1;
+        _pageController?.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      } else {
+        _submit();
+      }
+    }
+  }
+
+  Widget _questionCard(Question item, int i) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: kPrimaryBlue,
+                  foregroundColor: Colors.white,
+                  child: Text('${i + 1}'),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: Text(item.question,
+                        style: const TextStyle(fontWeight: FontWeight.w600))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            for (int c = 0; c < item.choices.length; c++)
+              RadioListTile<int>(
+                value: c,
+                groupValue: answers[i],
+                onChanged: _submitted ? null : (v) => _onAnswer(i, v!),
+                title: Text(item.choices[c]),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -278,21 +341,72 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final q = widget.questions;
     final title = widget.title ?? 'Examen officiel';
+
+    if (widget.competitionMode) {
+      Widget content = Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+          actions: [
+            if (!_submitted)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Chip(
+                  label: Text(_format(remaining),
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  backgroundColor: Colors.redAccent.shade100,
+                ),
+              )
+            else
+              const Padding(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Chip(label: Text('Terminé')),
+              ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: q.length,
+                itemBuilder: (_, i) => Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: _questionCard(q[i], i),
+                ),
+              ),
+            ),
+            LinearProgressIndicator(
+              value: q.isEmpty ? 0 : _currentIndex / q.length,
+              minHeight: 6,
+            ),
+          ],
+        ),
+      );
+      content = SelectionContainer.disabled(child: content);
+      return WillPopScope(onWillPop: () async => false, child: content);
+    }
+
     Widget content = Scaffold(
         appBar: AppBar(
           title: Text(title),
           actions: [
             if (!_submitted)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Chip(
-                  label: Text(_format(remaining), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  label: Text(_format(remaining),
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   backgroundColor: Colors.redAccent.shade100,
                 ),
               )
             else
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Chip(label: Text('Terminé')),
               ),
           ],
@@ -311,52 +425,26 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Instructions', style: TextStyle(fontWeight: FontWeight.w700)),
+                  const Text('Instructions',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  Text('Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}'),
+                  Text(
+                      'Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}'),
                   const SizedBox(height: 4),
-                  const Text('Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.'),
+                  const Text(
+                      'Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.'),
                 ],
               ),
             ),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 itemCount: q.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final item = q[i];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: kPrimaryBlue,
-                                foregroundColor: Colors.white,
-                                child: Text('${i + 1}'),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(item.question, style: const TextStyle(fontWeight: FontWeight.w600))),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          for (int c = 0; c < item.choices.length; c++)
-                            RadioListTile<int>(
-                              value: c,
-                              groupValue: answers[i],
-                              onChanged: _submitted ? null : (v) => setState(() => answers[i] = v),
-                              title: Text(item.choices[c]),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
+                  return _questionCard(item, i);
                 },
               ),
             ),
@@ -375,10 +463,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                           context: context,
                           builder: (_) => AlertDialog(
                             title: const Text('Quitter ?'),
-                            content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
+                            content: const Text(
+                                'Quitter l’épreuve mettra fin à l’examen en cours.'),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-                              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+                              TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Annuler')),
+                              TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Quitter')),
                             ],
                           ),
                         );
@@ -418,10 +511,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
           context: context,
           builder: (_) => AlertDialog(
             title: const Text('Quitter ?'),
-            content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
+            content: const Text(
+                'Quitter l’épreuve mettra fin à l’examen en cours.'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Annuler')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Quitter')),
             ],
           ),
         );
