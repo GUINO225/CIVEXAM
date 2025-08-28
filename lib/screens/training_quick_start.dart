@@ -33,6 +33,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
       final totalSeconds = _perQuestionSeconds * _questionCount;
       final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
 
+      final startTime = DateTime.now();
       final res = await Navigator.push<ExamResult?>(context, MaterialPageRoute(
         builder: (_) => ExamFullScreen(
           questions: selected,
@@ -42,6 +43,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           showLocalSummary: true,
         ),
       ));
+      final elapsedSeconds = DateTime.now().difference(startTime).inSeconds;
 
       if (res != null) {
         final bool success = res.total > 0 && (res.correctCount / res.total) >= 0.5; // ≥50% de bonnes réponses
@@ -49,7 +51,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           date: DateTime.now(),
           subject: 'Entraînement (mix)',
           chapter: 'Général',
-          durationMinutes: (totalSeconds / 60).ceil(),
+          durationMinutes: (elapsedSeconds / 60).ceil(),
           correct: res.correctCount,
           total: res.total,
           rawScore: res.rawScore,
@@ -64,12 +66,12 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           chapter: 'Général',
           total: res.total,
           correct: res.correctCount,
-          wrong: res.total - res.correctCount,
-          blank: 0,
-          durationSec: totalSeconds,
+          wrong: res.wrongCount,
+          blank: res.blankCount,
+          durationSec: elapsedSeconds,
           percent: res.total == 0 ? 0.0 : (res.correctCount / res.total) * 100.0,
         );
-if (!mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(success ? 'Tentative enregistrée — Validé.' : 'Tentative enregistrée — Échoué.')),
         );
@@ -79,7 +81,7 @@ if (!mounted) return;
           date: DateTime.now(),
           subject: 'Entraînement (mix)',
           chapter: 'Général',
-          durationMinutes: (totalSeconds / 60).ceil(),
+          durationMinutes: (elapsedSeconds / 60).ceil(),
           correct: 0,
           total: selected.length,
           rawScore: 0,
