@@ -14,7 +14,7 @@ import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
-import 'duel_screen.dart';
+import 'competition_screen.dart';
 import 'login_screen.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -236,7 +236,7 @@ class _PlayScreenState extends State<PlayScreen> {
         );
         break;
       case 6:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const DuelScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const CompetitionScreen()));
         break;
       case 7:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
@@ -442,6 +442,6 @@ const _items = <_MenuItem>[
   _MenuItem('Historique examens', Icons.fact_check_rounded),
   _MenuItem("Historique entraînement", Icons.history_rounded),
   _MenuItem('Comment ça marche ?', Icons.info_rounded),
-  _MenuItem('Duels', Icons.sports_kabaddi),
+  _MenuItem('Compétition', Icons.sports_kabaddi),
   _MenuItem('Classement', Icons.emoji_events_outlined),
 ];
