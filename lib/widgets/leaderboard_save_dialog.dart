@@ -35,7 +35,9 @@ Future<void> showSaveScoreDialog({
     );
     final service = CompetitionService();
     await service.saveEntry(entry);
+    if (!context.mounted) return;
     final top = await service.topEntries(limit: 1);
+    if (!context.mounted) return;
     if (top.isNotEmpty && top.first.userId == uid) {
       final controller =
           ConfettiController(duration: const Duration(seconds: 2))..play();
@@ -74,6 +76,7 @@ Future<void> showSaveScoreDialog({
   }
 
   final prefs = await SharedPreferences.getInstance();
+  if (!context.mounted) return;
   final savedName = prefs.getString('player_name') ?? 'Joueur';
   final controller = TextEditingController(text: savedName);
 
@@ -100,6 +103,7 @@ Future<void> showSaveScoreDialog({
       ],
     ),
   );
+  if (!context.mounted) return;
 
   if (submit == true) {
     final name =
