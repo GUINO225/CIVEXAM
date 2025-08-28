@@ -48,13 +48,19 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _paletteChip('red', _cfg.bgPaletteName == 'red'),
-              _paletteChip('orange', _cfg.bgPaletteName == 'orange'),
-              _paletteChip('yellow', _cfg.bgPaletteName == 'yellow'),
-              _paletteChip('green', _cfg.bgPaletteName == 'green'),
-              _paletteChip('blue', _cfg.bgPaletteName == 'blue'),
-              _paletteChip('indigo', _cfg.bgPaletteName == 'indigo'),
-              _paletteChip('violet', _cfg.bgPaletteName == 'violet'),
+              _paletteChip('offWhite', _cfg.bgPaletteName == 'offWhite'),
+              _paletteChip('lightGrey', _cfg.bgPaletteName == 'lightGrey'),
+              _paletteChip('darkGrey', _cfg.bgPaletteName == 'darkGrey'),
+              _paletteChip('pastelBlue', _cfg.bgPaletteName == 'pastelBlue'),
+              _paletteChip('powderPink', _cfg.bgPaletteName == 'powderPink'),
+              _paletteChip('lightGreen', _cfg.bgPaletteName == 'lightGreen'),
+              _paletteChip('softYellow', _cfg.bgPaletteName == 'softYellow'),
+              _paletteChip('midnightBlue', _cfg.bgPaletteName == 'midnightBlue'),
+              _paletteChip('anthracite', _cfg.bgPaletteName == 'anthracite'),
+              _paletteChip('blueIndigo', _cfg.bgPaletteName == 'blueIndigo'),
+              _paletteChip('violetRose', _cfg.bgPaletteName == 'violetRose'),
+              _paletteChip('mintTurquoise', _cfg.bgPaletteName == 'mintTurquoise'),
+              _paletteChip('deepBlack', _cfg.bgPaletteName == 'deepBlack'),
             ],
           ),
           const SizedBox(height: 16),
@@ -74,16 +80,15 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           SwitchListTile(
             title: const Text('Icônes monochromes'),
             value: _cfg.useMono,
-            onChanged: (v) => _apply(_cfg.copyWith(useMono: v)),
-          ),
-          if (_cfg.useMono)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _iconColorsForPalette(_cfg.bgPaletteName)
-                  .map((c) => _colorChip(c, _cfg.monoColor == c))
-                  .toList(),
+            onChanged: (v) => _apply(
+              _cfg.copyWith(
+                useMono: v,
+                monoColor: v
+                    ? complementaryColor(_cfg.bgPaletteName)
+                    : _cfg.monoColor,
+              ),
             ),
+          ),
           const Divider(height: 32),
 
           const Text('Verre (glassmorphism)', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -140,7 +145,15 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () => _apply(_cfg.copyWith(bgPaletteName: name)),
+        onTap: () {
+          final updated = _cfg.useMono
+              ? _cfg.copyWith(
+                  bgPaletteName: name,
+                  monoColor: complementaryColor(name),
+                )
+              : _cfg.copyWith(bgPaletteName: name);
+          _apply(updated);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -158,22 +171,6 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           child: Text(name, style: TextStyle(color: textColor)),
         ),
       ),
-    );
-  }
-
-  List<Color> _iconColorsForPalette(String name) {
-    return [accentColor(name), complementaryColor(name)];
-  }
-
-  Widget _colorChip(Color color, bool selected) {
-    final brightness = ThemeData.estimateBrightnessForColor(color);
-    return ChoiceChip(
-      label: const SizedBox(width: 24, height: 24),
-      selected: selected,
-      selectedColor: color,
-      backgroundColor: color,
-      checkmarkColor: brightness == Brightness.dark ? Colors.white : Colors.black,
-      onSelected: (_) => _apply(_cfg.copyWith(monoColor: color)),
     );
   }
 
