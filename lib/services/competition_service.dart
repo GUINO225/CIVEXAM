@@ -10,11 +10,11 @@ import '../models/leaderboard_entry.dart';
 class CompetitionService {
   final _col = FirebaseFirestore.instance.collection('competition_scores');
 
-  /// Sauvegarde un résultat de compétition.
+  /// Sauvegarde ou met à jour un résultat de compétition pour l'utilisateur.
   Future<void> saveEntry(LeaderboardEntry entry) async {
     final data = entry.toJson();
-    data['createdAt'] = FieldValue.serverTimestamp();
-    await _col.add(data);
+    data['updatedAt'] = FieldValue.serverTimestamp();
+    await _col.doc(entry.userId).set(data);
   }
 
   /// Récupère les meilleurs résultats (max 100 par défaut).
