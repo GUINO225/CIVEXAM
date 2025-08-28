@@ -95,6 +95,11 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           const SnackBar(content: Text('Tentative enregistrée — Abandonné.')),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Échec du lancement de l\'entraînement.')),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
