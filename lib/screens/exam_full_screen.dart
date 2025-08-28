@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -229,6 +230,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   }
 
   Future<void> _checkEmulator() async {
+    if (kIsWeb) return;
     final info = DeviceInfoPlugin();
     bool emulator = false;
     if (Platform.isAndroid) {
