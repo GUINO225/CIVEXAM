@@ -186,7 +186,7 @@ class _PlayScreenState extends State<PlayScreen> {
         break;
       case 6:
         final all = await QuestionLoader.loadENA();
-        final selected = pickAndShuffle(all, 50);
+        final selected = pickAndShuffle(all, 20);
         final indexMap = <String, int>{
           for (int i = 0; i < all.length; i++) all[i].id: i + 1
         };
@@ -200,6 +200,7 @@ class _PlayScreenState extends State<PlayScreen> {
               poolSize: all.length,
               drawCount: selected.length,
               timePerQuestion: 5,
+              startTime: DateTime.now(),
             ),
           ),
         );

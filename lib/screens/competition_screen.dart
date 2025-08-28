@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/question.dart';
 import '../theme/competition_theme.dart';
+import '../services/leaderboard_hooks.dart';
 
 /// Competition quiz screen with a circular countdown and progress tracking.
 class CompetitionScreen extends StatefulWidget {
@@ -26,6 +27,15 @@ class CompetitionScreen extends StatefulWidget {
   /// Number of correct answers so far.
   final int correctCount;
 
+  /// Number of wrong answers so far.
+  final int wrongCount;
+
+  /// Number of unanswered questions.
+  final int blankCount;
+
+  /// Start time of the competition.
+  final DateTime startTime;
+
   /// Visual theme used to style the screen.
   final CompetitionTheme theme;
 
@@ -34,10 +44,13 @@ class CompetitionScreen extends StatefulWidget {
     required this.questions,
     required this.indexMap,
     this.poolSize = 500,
-    this.drawCount = 50,
+    this.drawCount = 20,
     this.timePerQuestion = 5,
     this.currentIndex = 0,
     this.correctCount = 0,
+    this.wrongCount = 0,
+    this.blankCount = 0,
+    required this.startTime,
     this.theme = kDefaultCompetitionTheme,
   });
 
@@ -235,11 +248,17 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   }
 
   void _goNext([int? selected]) {
-    // Determine whether the chosen option (if any) is correct.
-    final isCorrect = selected != null &&
-        selected == _currentQuestion.answerIndex;
+    // Determine whether the chosen option (if any) is correct, wrong or blank.
+    final bool isBlank = selected == null;
+    final bool isCorrect =
+        selected != null && selected == _currentQuestion.answerIndex;
+    final bool isWrong = selected != null && selected != _currentQuestion.answerIndex;
+
     final int totalCorrect =
         widget.correctCount + (isCorrect ? 1 : 0);
+    final int totalWrong = widget.wrongCount + (isWrong ? 1 : 0);
+    final int totalBlank = widget.blankCount + (isBlank ? 1 : 0);
+
     if (widget.currentIndex + 1 < widget.drawCount) {
       // Continue to the next question by replacing the current screen.
       Navigator.pushReplacement(
@@ -253,18 +272,26 @@ class _CompetitionScreenState extends State<CompetitionScreen>
             timePerQuestion: widget.timePerQuestion,
             currentIndex: widget.currentIndex + 1,
             correctCount: totalCorrect,
+            wrongCount: totalWrong,
+            blankCount: totalBlank,
+            startTime: widget.startTime,
             theme: widget.theme,
           ),
         ),
       );
     } else {
       // All questions answered: show result screen.
+      final durationSec =
+          DateTime.now().difference(widget.startTime).inSeconds;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => CompetitionResultScreen(
             total: widget.drawCount,
             correct: totalCorrect,
+            wrong: totalWrong,
+            blank: totalBlank,
+            durationSec: durationSec,
             theme: widget.theme,
           ),
         ),
@@ -273,12 +300,21 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   }
 }
 
-class CompetitionResultScreen extends StatelessWidget {
+class CompetitionResultScreen extends StatefulWidget {
   /// Total number of questions answered.
   final int total;
 
   /// Number of correct answers.
   final int correct;
+
+  /// Number of wrong answers.
+  final int wrong;
+
+  /// Number of unanswered questions.
+  final int blank;
+
+  /// Total duration of the competition (in seconds).
+  final int durationSec;
 
   /// Theme used to style the result screen.
   final CompetitionTheme theme;
@@ -287,13 +323,36 @@ class CompetitionResultScreen extends StatelessWidget {
     super.key,
     required this.total,
     required this.correct,
+    required this.wrong,
+    required this.blank,
+    required this.durationSec,
     this.theme = kDefaultCompetitionTheme,
   });
 
   @override
+  State<CompetitionResultScreen> createState() => _CompetitionResultScreenState();
+}
+
+class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      LeaderboardHooks.saveCompetition(
+        context: context,
+        total: widget.total,
+        correct: widget.correct,
+        wrong: widget.wrong,
+        blank: widget.blank,
+        durationSec: widget.durationSec,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: widget.theme.backgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -301,11 +360,12 @@ class CompetitionResultScreen extends StatelessWidget {
             // Title of the result screen.
             Text(
               'Résultat',
-              style: theme.questionTextStyle,
+              style: widget.theme.questionTextStyle,
             ),
             const SizedBox(height: 16),
             // Display final score.
-            Text('Score: $correct / $total', style: theme.optionTextStyle),
+            Text('Score: ${widget.correct} / ${widget.total}',
+                style: widget.theme.optionTextStyle),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
