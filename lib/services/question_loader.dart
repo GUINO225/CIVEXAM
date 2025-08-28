@@ -31,11 +31,13 @@ class QuestionLoader {
         final decoded = json.decode(raw);
         if (decoded is List) {
           final out = <Question>[];
+          final seen = <String>{};
           for (int i = 0; i < decoded.length; i++) {
             final item = decoded[i];
             if (item is Map<String, dynamic>) {
               final q = _mapToQuestionCompat(item, i);
-              if (q.choices.isNotEmpty) {
+              final key = q.id.isNotEmpty ? q.id : q.question;
+              if (q.choices.isNotEmpty && seen.add(key)) {
                 out.add(q);
               }
             }
