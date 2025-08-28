@@ -11,7 +11,7 @@ ThemeData buildAppTheme() {
       brightness: Brightness.light,
     ),
     useMaterial3: true,
-    scaffoldBackgroundColor: kSurface,
+    scaffoldBackgroundColor: Colors.transparent,
   );
 
   final textTheme = base.textTheme.copyWith(
@@ -26,9 +26,9 @@ ThemeData buildAppTheme() {
   return base.copyWith(
     textTheme: textTheme,
     appBarTheme: const AppBarTheme(
-      backgroundColor: kSurface,
-      foregroundColor: Colors.black87,
-      elevation: 0.5,
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.white,
+      elevation: 0,
       centerTitle: true,
     ),
     cardTheme: CardThemeData(
