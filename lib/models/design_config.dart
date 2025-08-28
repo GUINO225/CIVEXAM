@@ -30,7 +30,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'offWhite',
+    this.bgPaletteName = 'sereneBlue',
     this.waveEnabled = true,
     this.bgGradient = true,
     this.darkMode = false,

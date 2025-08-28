@@ -20,14 +20,11 @@ class DesignBackground extends StatelessWidget {
 
         return DecoratedBox(
           decoration: BoxDecoration(
-            gradient: cfg.bgGradient
-                ? LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: baseColors,
-                  )
-                : null,
-            color: cfg.bgGradient ? null : baseColors.first,
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: baseColors,
+            ),
           ),
           child: Stack(
             children: [
