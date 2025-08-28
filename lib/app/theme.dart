@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../models/design_config.dart';
+import '../utils/palette_utils.dart';
 
-const Color kPrimaryBlue = Color(0xFF37478F);
-const Color kPrimaryBlueLight = Color(0xFF6C7BD0);
-const Color kSurface = Colors.white;
+/// Builds the global [ThemeData] based on the chosen palette and mode.
+ThemeData buildAppTheme(DesignConfig cfg) {
+  final accent = accentColor(cfg.bgPaletteName);
+  final complement = complementaryColor(cfg.bgPaletteName);
+  final brightness = cfg.darkMode ? Brightness.dark : Brightness.light;
 
-ThemeData buildAppTheme() {
   final base = ThemeData(
     colorScheme: ColorScheme.fromSeed(
-      seedColor: kPrimaryBlue,
-      brightness: Brightness.light,
+      seedColor: accent,
+      brightness: brightness,
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
@@ -25,9 +28,10 @@ ThemeData buildAppTheme() {
 
   return base.copyWith(
     textTheme: textTheme,
-    appBarTheme: const AppBarTheme(
+    iconTheme: IconThemeData(color: accent),
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      foregroundColor: Colors.white,
+      foregroundColor: accent,
       elevation: 0,
       centerTitle: true,
     ),
@@ -43,6 +47,8 @@ ThemeData buildAppTheme() {
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: complement,
+        foregroundColor: onColor(complement),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
