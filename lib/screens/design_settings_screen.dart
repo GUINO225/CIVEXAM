@@ -44,6 +44,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
         children: [
           const Text('Palette de fond', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
+          const Text('Couleurs unies'),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -56,6 +58,15 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               _paletteChip('lightGreen', _cfg.bgPaletteName == 'lightGreen'),
               _paletteChip('softYellow', _cfg.bgPaletteName == 'softYellow'),
               _paletteChip('midnightBlue', _cfg.bgPaletteName == 'midnightBlue'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Dégradés doux'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               _paletteChip('anthracite', _cfg.bgPaletteName == 'anthracite'),
               _paletteChip('blueIndigo', _cfg.bgPaletteName == 'blueIndigo'),
               _paletteChip('violetRose', _cfg.bgPaletteName == 'violetRose'),
@@ -141,10 +152,11 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   Widget _paletteChip(String name, bool selected) {
     final colors = pastelColors(name, darkMode: _cfg.darkMode);
     final textColor = textColorForPalette(name, darkMode: _cfg.darkMode);
+    final borderColor = selected ? textColor : Colors.transparent;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4),
         onTap: () {
           final updated = _cfg.useMono
               ? _cfg.copyWith(
@@ -162,9 +174,9 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               end: Alignment.centerRight,
               colors: colors,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: selected ? Colors.white : Colors.transparent,
+              color: borderColor,
               width: 2,
             ),
           ),
