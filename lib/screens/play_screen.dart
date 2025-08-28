@@ -15,6 +15,7 @@ import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'duel_screen.dart';
+import 'login_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -57,6 +58,18 @@ class _PlayScreenState extends State<PlayScreen> {
             title: const Text('CivExam'),
             centerTitle: true,
             actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Déconnexion',
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (!mounted) return;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.emoji_events_outlined),
                 tooltip: 'Classement',
