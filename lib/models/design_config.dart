@@ -6,6 +6,13 @@
 import 'dart:convert';
 import 'dart:ui' show Color;
 
+double _toDouble(dynamic v, double fallback) {
+  if (v == null) return fallback;
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v) ?? fallback;
+  return fallback;
+}
+
 class DesignConfig {
   // Thème fond
   final String bgPaletteName;
@@ -99,16 +106,16 @@ class DesignConfig {
 
   factory DesignConfig.fromJson(Map<String, dynamic> map) {
     // Extraction sûre + pont entre svgIconSize et tileIconSize
-    final double svgSize = (map['svgIconSize'] ?? 54.0).toDouble();
-    final double tileSize = (map['tileIconSize'] ?? svgSize).toDouble();
+    final double svgSize = _toDouble(map['svgIconSize'], 54.0);
+    final double tileSize = _toDouble(map['tileIconSize'], svgSize);
 
     return DesignConfig(
       bgPaletteName: map['bgPaletteName'] ?? 'sereneBlue',
       waveEnabled: (map['waveEnabled'] ?? true) as bool,
       bgGradient: (map['bgGradient'] ?? true) as bool,
-      glassBlur: (map['glassBlur'] ?? 18.0).toDouble(),
-      glassBgOpacity: (map['glassBgOpacity'] ?? 0.16).toDouble(),
-      glassBorderOpacity: (map['glassBorderOpacity'] ?? 0.22).toDouble(),
+      glassBlur: _toDouble(map['glassBlur'], 18.0),
+      glassBgOpacity: _toDouble(map['glassBgOpacity'], 0.16),
+      glassBorderOpacity: _toDouble(map['glassBorderOpacity'], 0.22),
       tileIconSize: tileSize,
       tileCenter: (map['tileCenter'] ?? true) as bool,
       darkMode: (map['darkMode'] ?? false) as bool,
