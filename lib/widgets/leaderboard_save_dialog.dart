@@ -47,7 +47,7 @@ Future<void> showSaveScoreDialog({
             Align(
               alignment: Alignment.topCenter,
               child: ConfettiWidget(
-                controller: controller,
+                confettiController: controller,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
               ),
