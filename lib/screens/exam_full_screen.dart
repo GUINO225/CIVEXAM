@@ -159,7 +159,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundColor: kPrimaryBlue,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                   child: Text('${i + 1}'),
                 ),
