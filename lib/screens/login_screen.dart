@@ -13,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   final _auth = AuthService();
   bool _isLogin = true;
   String? _error;
@@ -29,6 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
             ),
+            if (!_isLogin)
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nom'),
+              ),
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Mot de passe'),
@@ -64,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await _auth.registerWithEmail(
           _emailController.text.trim(),
           _passwordController.text.trim(),
+          _nameController.text.trim(),
         );
       }
       if (mounted) {
