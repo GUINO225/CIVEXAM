@@ -17,6 +17,7 @@ import 'design_settings_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
 import '../services/question_loader.dart';
+import '../services/question_randomizer.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -184,12 +185,22 @@ class _PlayScreenState extends State<PlayScreen> {
         );
         break;
       case 6:
-        final qs = await QuestionLoader.loadENA();
+        final all = await QuestionLoader.loadENA();
+        final selected = pickAndShuffle(all, 50);
+        final indexMap = <String, int>{
+          for (int i = 0; i < all.length; i++) all[i].id: i + 1
+        };
         if (!mounted) return;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => CompetitionScreen(questions: qs),
+            builder: (_) => CompetitionScreen(
+              questions: selected,
+              indexMap: indexMap,
+              poolSize: all.length,
+              drawCount: selected.length,
+              timePerQuestion: 5,
+            ),
           ),
         );
         break;
