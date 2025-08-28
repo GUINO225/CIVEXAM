@@ -66,7 +66,7 @@ Future<void> showSaveScoreDialog({
       );
       controller.dispose();
     } else {
-      // ignore: use_build_context_synchronously
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
     }
@@ -120,7 +120,7 @@ Future<void> showSaveScoreDialog({
       dateIso: DateTime.now().toIso8601String(),
     );
     await LeaderboardStore.add(entry);
-    // ignore: use_build_context_synchronously
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
   }
