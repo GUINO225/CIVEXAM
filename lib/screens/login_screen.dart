@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../models/design_config.dart';
+import '../services/auth_service.dart';
 import '../services/design_bus.dart';
 import '../widgets/primary_button.dart';
 import 'play_screen.dart';
@@ -50,11 +52,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   TextFormField(
                     controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    autofillHints: const [AutofillHints.email],
                     decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) => value == null ||
-                            value.trim().isEmpty
-                        ? 'Email requis'
-                        : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email requis';
+                      }
+                      final email = value.trim();
+                      final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
+                      if (!emailRegex.hasMatch(email)) {
+                        return 'Email invalide';
+                      }
+                      return null;
+                    },
                   ),
                   if (!_isLogin)
                     TextFormField(
