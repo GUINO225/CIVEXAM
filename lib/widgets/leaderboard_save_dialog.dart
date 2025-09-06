@@ -41,32 +41,37 @@ Future<void> showSaveScoreDialog({
     if (top.isNotEmpty && top.first.userId == uid) {
       final controller =
           ConfettiController(duration: const Duration(seconds: 2))..play();
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => Stack(
-          children: [
-            Align(
-              alignment: Alignment.topCenter,
-              child: ConfettiWidget(
-                confettiController: controller,
-                blastDirectionality: BlastDirectionality.explosive,
-                shouldLoop: false,
+      try {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => Stack(
+            children: [
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: controller,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                ),
               ),
-            ),
-            AlertDialog(
-              title: const Text('Félicitations !'),
-              content: const Text('Vous êtes en tête du classement.'),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK')),
-              ],
-            ),
-          ],
-        ),
-      );
-      controller.dispose();
+              AlertDialog(
+                title: const Text('Félicitations !'),
+                content: const Text('Vous êtes en tête du classement.'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('OK')),
+                ],
+              ),
+            ],
+          ),
+        );
+      } catch (e, st) {
+        debugPrint('Error showing leaderboard dialog: $e\n$st');
+      } finally {
+        controller.dispose();
+      }
     } else {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
