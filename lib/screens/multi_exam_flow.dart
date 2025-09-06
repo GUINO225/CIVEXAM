@@ -232,7 +232,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     );
     await HistoryStore.add(entry);
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(abandoned ? 'Concours abandonné' : 'Résumé du concours — ${difficultyLabel(_difficulty)}'),
