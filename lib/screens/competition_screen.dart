@@ -37,7 +37,7 @@ class CompetitionScreen extends StatefulWidget {
   final DateTime startTime;
 
   /// Visual theme used to style the screen.
-  final CompetitionTheme theme;
+  final CompetitionTheme? theme;
 
   const CompetitionScreen({
     super.key,
@@ -51,7 +51,7 @@ class CompetitionScreen extends StatefulWidget {
     this.wrongCount = 0,
     this.blankCount = 0,
     DateTime? startTime,
-    this.theme = kDefaultCompetitionTheme,
+    this.theme,
   }) : startTime = startTime ?? DateTime.now();
 
   @override
@@ -108,9 +108,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   @override
   Widget build(BuildContext context) {
     final questionIndex = widget.indexMap[_currentQuestion.id] ?? 0;
+    final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
     return Scaffold(
       // Global background color comes from the theme.
-      backgroundColor: widget.theme.backgroundColor,
+      backgroundColor: theme.backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -121,10 +122,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: widget.theme.questionCardColor,
+                  color: theme.questionCardColor,
                   borderRadius:
-                      BorderRadius.circular(widget.theme.questionCardRadius),
-                  boxShadow: widget.theme.questionCardShadow,
+                      BorderRadius.circular(theme.questionCardRadius),
+                  boxShadow: theme.questionCardShadow,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,26 +135,26 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: widget.theme.timerContainerColor,
-                          borderRadius: BorderRadius.circular(
-                              widget.theme.timerContainerRadius),
-                          boxShadow: widget.theme.timerContainerShadow,
+                          color: theme.timerContainerColor,
+                          borderRadius:
+                              BorderRadius.circular(theme.timerContainerRadius),
+                          boxShadow: theme.timerContainerShadow,
                         ),
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
                             SizedBox(
-                              width: widget.theme.timerSize,
-                              height: widget.theme.timerSize,
+                              width: theme.timerSize,
+                              height: theme.timerSize,
                               child: CircularProgressIndicator(
                                 value: _controller.value,
-                                strokeWidth: widget.theme.timerStrokeWidth,
-                                color: widget.theme.timerColor,
+                                strokeWidth: theme.timerStrokeWidth,
+                                color: theme.timerColor,
                               ),
                             ),
                             Text(
                               '$_remainingSeconds',
-                              style: widget.theme.timerTextStyle,
+                              style: theme.timerTextStyle,
                             ),
                           ],
                         ),
@@ -163,21 +164,21 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     // Question number within the pool.
                     Text(
                       'Question $questionIndex/${widget.poolSize}',
-                      style: widget.theme.questionIndexTextStyle,
+                      style: theme.questionIndexTextStyle,
                     ),
                     const SizedBox(height: 8),
                     // Actual question text.
                     Text(
                       _cleanQuestion(_currentQuestion.question),
-                      style: widget.theme.questionTextStyle,
+                      style: theme.questionTextStyle,
                     ),
                     const SizedBox(height: 12),
                     // Progress bar for overall quiz progression.
                     LinearProgressIndicator(
                       value: (widget.currentIndex + 1) / widget.drawCount,
-                      color: widget.theme.progressBarColor,
+                      color: theme.progressBarColor,
                       backgroundColor:
-                          widget.theme.progressBarColor.withOpacity(0.3),
+                          theme.progressBarColor.withOpacity(0.3),
                     ),
                   ],
                 ),
@@ -189,13 +190,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                   padding:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: widget.theme.selectedChipBackgroundColor,
-                    borderRadius:
-                        BorderRadius.circular(widget.theme.selectedChipRadius),
+                    color: theme.selectedChipBackgroundColor,
+                    borderRadius: BorderRadius.circular(theme.selectedChipRadius),
                   ),
                   child: Text(
                     _currentQuestion.choices[_selected],
-                    style: widget.theme.selectedChipTextStyle,
+                    style: theme.selectedChipTextStyle,
                   ),
                 ),
               const SizedBox(height: 24),
@@ -210,13 +210,13 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: widget.theme.optionCardColor,
-                        borderRadius: BorderRadius.circular(
-                            widget.theme.optionCardRadius),
-                        boxShadow: widget.theme.optionCardShadow,
+                        color: theme.optionCardColor,
+                        borderRadius:
+                            BorderRadius.circular(theme.optionCardRadius),
+                        boxShadow: theme.optionCardShadow,
                         border: isSelected
                             ? Border.all(
-                                color: widget.theme.optionSelectedBorderColor,
+                                color: theme.optionSelectedBorderColor,
                                 width: 2,
                               )
                             : null,
@@ -224,7 +224,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       child: Text(
                         _currentQuestion.choices[i],
                         textAlign: TextAlign.center,
-                        style: widget.theme.optionTextStyle,
+                        style: theme.optionTextStyle,
                       ),
                     ),
                   ),
@@ -317,7 +317,7 @@ class CompetitionResultScreen extends StatefulWidget {
   final int durationSec;
 
   /// Theme used to style the result screen.
-  final CompetitionTheme theme;
+  final CompetitionTheme? theme;
 
   const CompetitionResultScreen({
     super.key,
@@ -326,7 +326,7 @@ class CompetitionResultScreen extends StatefulWidget {
     required this.wrong,
     required this.blank,
     required this.durationSec,
-    this.theme = kDefaultCompetitionTheme,
+    this.theme,
   });
 
   @override
@@ -351,8 +351,9 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
     return Scaffold(
-      backgroundColor: widget.theme.backgroundColor,
+      backgroundColor: theme.backgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -360,12 +361,12 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
             // Title of the result screen.
             Text(
               'Résultat',
-              style: widget.theme.questionTextStyle,
+              style: theme.questionTextStyle,
             ),
             const SizedBox(height: 16),
             // Display final score.
             Text('Score: ${widget.correct} / ${widget.total}',
-                style: widget.theme.optionTextStyle),
+                style: theme.optionTextStyle),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
