@@ -74,12 +74,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   itemBuilder: (_, i) {
                     final a = attempts[i];
                     final pct = (a.score / a.total * 100).toStringAsFixed(0);
+                    final date = a.timestamp.toLocal();
                     return Card(
                       child: ListTile(
                         title: Text('${a.subject} > ${a.chapter}'),
                         subtitle: Text('Score: ${a.score}/${a.total} • ${pct}% • Durée: ${_formatDuration(a.durationSeconds)}'),
                         trailing: Text(
-                          '${a.timestamp.day.toString().padLeft(2, '0')}/${a.timestamp.month.toString().padLeft(2, '0')}/${a.timestamp.year}'
+                          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}'
                         ),
                       ),
                     );
