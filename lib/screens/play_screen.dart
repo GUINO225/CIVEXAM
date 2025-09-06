@@ -38,6 +38,7 @@ class _PlayScreenState extends State<PlayScreen> {
             : 'Bienvenue 👋  •  Choisis un mode';
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+        final gradientColors = playIconColors(cfg.bgPaletteName);
 
         return Scaffold(
           extendBody: true,
@@ -101,6 +102,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 size: cfg.tileIconSize,
                                 useMono: cfg.useMono,
                                 monoColor: cfg.monoColor,
+                                gradientColors: gradientColors,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -135,7 +137,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         return _GlassTile(
                           title: item.title,
                           icon: item.icon,
-                          gradientColors: item.gradientColors,
+                          gradientColors: gradientColors,
                           blur: cfg.glassBlur,
                           bgOpacity: cfg.glassBgOpacity,
                           borderOpacity: cfg.glassBorderOpacity,
@@ -382,16 +384,18 @@ class _IconBadge extends StatelessWidget {
     this.size = 52,
     required this.useMono,
     required this.monoColor,
+    required this.gradientColors,
   });
   final IconData icon;
   final double size;
   final bool useMono;
   final Color monoColor;
+   final List<Color> gradientColors;
   @override
   Widget build(BuildContext context) {
-    final gradientColors = useMono
+    final colors = useMono
         ? [monoColor.withOpacity(0.15), monoColor.withOpacity(0.35)]
-        : const [Color(0xFFFFB25E), Color(0xFFFF7A00)];
+        : gradientColors;
     final iconColor = useMono ? monoColor : Colors.white;
     return Container(
       height: size,
@@ -401,7 +405,7 @@ class _IconBadge extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: gradientColors,
+          colors: colors,
         ),
       ),
       child: Icon(icon, size: size * 0.58, color: iconColor),
@@ -412,25 +416,16 @@ class _IconBadge extends StatelessWidget {
 class _MenuItem {
   final String title;
   final IconData icon;
-  final List<Color> gradientColors;
-  const _MenuItem(this.title, this.icon, this.gradientColors);
+  const _MenuItem(this.title, this.icon);
 }
 
 const _items = <_MenuItem>[
-  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded,
-      [Color(0xFFFFB25E), Color(0xFFFF7A00)]),
-  _MenuItem('Concours ENA', Icons.school_rounded,
-      [Color(0xFF42A5F5), Color(0xFF1E88E5)]),
-  _MenuItem('Par matière', Icons.menu_book_rounded,
-      [Color(0xFF66BB6A), Color(0xFF2E7D32)]),
-  _MenuItem('Historique examens', Icons.fact_check_rounded,
-      [Color(0xFFAB47BC), Color(0xFF8E24AA)]),
-  _MenuItem("Historique entraînement", Icons.history_rounded,
-      [Color(0xFFFF7043), Color(0xFFD84315)]),
-  _MenuItem('Comment ça marche ?', Icons.info_rounded,
-      [Color(0xFF26C6DA), Color(0xFF00ACC1)]),
-  _MenuItem('Compétition', Icons.sports_kabaddi,
-      [Color(0xFFFFEE58), Color(0xFFFDD835)]),
-  _MenuItem('Classement', Icons.emoji_events_outlined,
-      [Color(0xFFEC407A), Color(0xFFD81B60)]),
+  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded),
+  _MenuItem('Concours ENA', Icons.school_rounded),
+  _MenuItem('Par matière', Icons.menu_book_rounded),
+  _MenuItem('Historique examens', Icons.fact_check_rounded),
+  _MenuItem("Historique entraînement", Icons.history_rounded),
+  _MenuItem('Comment ça marche ?', Icons.info_rounded),
+  _MenuItem('Compétition', Icons.sports_kabaddi),
+  _MenuItem('Classement', Icons.emoji_events_outlined),
 ];
