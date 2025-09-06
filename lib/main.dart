@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app/theme.dart';
@@ -10,10 +12,38 @@ import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final cfg = await DesignPrefs.load();
-  DesignBus.push(cfg);
-  runApp(const CivExamApp());
+  await runZonedGuarded<Future<void>>(() async {
+    try {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+      final cfg = await DesignPrefs.load();
+      DesignBus.push(cfg);
+      runApp(const CivExamApp());
+    } catch (e, st) {
+      debugPrint('App initialization failed: $e\n$st');
+      runApp(ErrorApp(error: e));
+    }
+  }, (error, stack) {
+    debugPrint('Uncaught async error: $error\n$stack');
+  });
+}
+
+class ErrorApp extends StatelessWidget {
+  const ErrorApp({super.key, this.error});
+
+  final Object? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Text('Une erreur est survenue: $error'),
+        ),
+      ),
+    );
+  }
 }
 
 class CivExamApp extends StatelessWidget {
