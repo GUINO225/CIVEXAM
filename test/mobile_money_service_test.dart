@@ -26,6 +26,8 @@ void main() {
     );
 
     expect(ok, isTrue);
+
+    service.dispose();
   });
 
   test('makePayment returns false on 4xx response', () async {
@@ -44,6 +46,8 @@ void main() {
     );
 
     expect(ok, isFalse);
+
+    service.dispose();
   });
 
   test('makePayment returns false on 5xx response', () async {
@@ -62,6 +66,8 @@ void main() {
     );
 
     expect(ok, isFalse);
+
+    service.dispose();
   });
 
   test('makePayment throws PaymentException on timeout', () async {
@@ -74,14 +80,16 @@ void main() {
       }),
     );
 
-    expect(
-      () => service.makePayment(
+    await expectLater(
+      service.makePayment(
         phoneNumber: '0123456789',
         amount: 10.0,
         currency: 'XOF',
       ),
       throwsA(isA<PaymentException>()),
     );
+
+    service.dispose();
   });
 
   test('makePayment throws PaymentException on invalid JSON', () async {
@@ -93,13 +101,15 @@ void main() {
       }),
     );
 
-    expect(
-      () => service.makePayment(
+    await expectLater(
+      service.makePayment(
         phoneNumber: '0123456789',
         amount: 10.0,
         currency: 'XOF',
       ),
       throwsA(isA<PaymentException>()),
     );
+
+    service.dispose();
   });
 }
