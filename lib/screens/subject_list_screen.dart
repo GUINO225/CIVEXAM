@@ -7,11 +7,8 @@ import '../utils/palette_utils.dart';
 import 'chapter_list_screen.dart';
 
 /// Liste des matières ENA
-/// Ajout : [subjectIndex] optionnel pour compatibilité avec les anciens appels
-/// (ex: SubjectListScreen(subjectIndex: index)).
 class SubjectListScreen extends StatelessWidget {
-  final int? subjectIndex;
-  const SubjectListScreen({super.key, this.subjectIndex});
+  const SubjectListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
