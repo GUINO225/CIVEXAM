@@ -91,6 +91,39 @@ class CompetitionTheme {
     this.selectedChipRadius = 20.0,
   });
 
+  /// Builds a [CompetitionTheme] that matches the global [ThemeData].
+  ///
+  /// Using the app's color scheme ensures the competition screen adopts the
+  /// same visual language as the rest of the interface.
+  factory CompetitionTheme.fromTheme(ThemeData theme) {
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    return CompetitionTheme(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      questionCardColor: theme.cardColor,
+      optionCardColor: theme.cardColor,
+      optionSelectedBorderColor: scheme.primary,
+      progressBarColor: scheme.primary,
+      timerColor: scheme.primary,
+      timerContainerColor: theme.cardColor,
+      timerTextStyle:
+          textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) ??
+              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      questionIndexTextStyle: textTheme.bodySmall ?? const TextStyle(),
+      questionTextStyle:
+          textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
+              const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      optionTextStyle: textTheme.bodyMedium ??
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      selectedChipTextStyle: textTheme.bodyMedium?.copyWith(
+            color: scheme.onPrimary,
+            fontWeight: FontWeight.w600,
+          ) ??
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      selectedChipBackgroundColor: scheme.primary,
+    );
+  }
+
   /// Creates a copy of this theme with the given fields replaced by new values.
   CompetitionTheme copyWith({
     Color? backgroundColor,
