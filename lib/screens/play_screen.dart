@@ -8,7 +8,7 @@ import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 
 import 'training_quick_start.dart';
-import 'multi_exam_flow.dart';
+import 'official_intro_screen.dart';
 import 'subject_list_screen.dart';
 import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
@@ -166,7 +166,7 @@ class _PlayScreenState extends State<PlayScreen> {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()));
         break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const MultiExamFlowScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
         break;
       case 2:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const SubjectListScreen()));
