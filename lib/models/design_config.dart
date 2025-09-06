@@ -13,6 +13,11 @@ double _toDouble(dynamic v, double fallback) {
   return fallback;
 }
 
+bool _toBool(Map<String, dynamic> map, String key, bool fallback) {
+  final v = map[key];
+  return v is bool ? v : fallback;
+}
+
 class DesignConfig {
   // Thème fond
   final String bgPaletteName;
@@ -111,15 +116,15 @@ class DesignConfig {
 
     return DesignConfig(
       bgPaletteName: map['bgPaletteName'] ?? 'sereneBlue',
-      waveEnabled: (map['waveEnabled'] ?? true) as bool,
-      bgGradient: (map['bgGradient'] ?? true) as bool,
+      waveEnabled: _toBool(map, 'waveEnabled', true),
+      bgGradient: _toBool(map, 'bgGradient', true),
       glassBlur: _toDouble(map['glassBlur'], 18.0),
       glassBgOpacity: _toDouble(map['glassBgOpacity'], 0.16),
       glassBorderOpacity: _toDouble(map['glassBorderOpacity'], 0.22),
       tileIconSize: tileSize,
-      tileCenter: (map['tileCenter'] ?? true) as bool,
-      darkMode: (map['darkMode'] ?? false) as bool,
-      useMono: (map['useMono'] ?? false) as bool,
+      tileCenter: _toBool(map, 'tileCenter', true),
+      darkMode: _toBool(map, 'darkMode', false),
+      useMono: _toBool(map, 'useMono', false),
       iconSetName: map['iconSetName'] ?? 'default',
       svgIconSize: svgSize,
       monoColor: Color((map['monoColor'] ?? 0xFFFFFFFF) as int),
