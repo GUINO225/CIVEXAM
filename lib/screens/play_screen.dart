@@ -208,6 +208,9 @@ class _PlayScreenState extends State<PlayScreen> {
       case 7:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
         break;
+      default:
+        assert(false, 'Unexpected index: $index');
+        break;
     }
   }
 }
