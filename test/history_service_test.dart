@@ -25,6 +25,7 @@ void main() {
     final attempts = await HistoryService.load();
     expect(attempts.length, 1);
     expect(attempts.first.subject, 'Math');
+    expect(attempts.first.timestamp.isUtc, true);
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getStringList('attempts_v1'), [valid]);
