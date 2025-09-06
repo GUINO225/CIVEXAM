@@ -1,4 +1,4 @@
-package com.example.civexam_app
+package com.company.civexam
 
 import io.flutter.embedding.android.FlutterActivity
 
