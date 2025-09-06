@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:civexam_app/models/question.dart';
 import 'package:civexam_app/services/question_loader.dart';
+import 'package:civexam_app/services/question_randomizer.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
@@ -58,5 +61,49 @@ void main() {
     mockAssets({});
 
     await expectLater(QuestionLoader.loadENA(), throwsException);
+  });
+
+  test('pickAndShuffle is deterministic with injected Random', () {
+    final pool = [
+      const Question(
+        id: 'Q1',
+        concours: 'ENA',
+        subject: 'S',
+        chapter: 'C',
+        difficulty: 1,
+        question: '1?',
+        choices: ['A', 'B'],
+        answerIndex: 0,
+      ),
+      const Question(
+        id: 'Q2',
+        concours: 'ENA',
+        subject: 'S',
+        chapter: 'C',
+        difficulty: 1,
+        question: '2?',
+        choices: ['C', 'D'],
+        answerIndex: 1,
+      ),
+      const Question(
+        id: 'Q3',
+        concours: 'ENA',
+        subject: 'S',
+        chapter: 'C',
+        difficulty: 1,
+        question: '3?',
+        choices: ['E', 'F'],
+        answerIndex: 0,
+      ),
+    ];
+
+    final r1 = Random(1);
+    final r2 = Random(1);
+
+    final res1 = pickAndShuffle(pool, 3, rng: r1);
+    final res2 = pickAndShuffle(pool, 3, rng: r2);
+
+    expect(res1.map((q) => q.id).toList(), res2.map((q) => q.id).toList());
+    expect(res1.first.choices, res2.first.choices);
   });
 }
