@@ -18,8 +18,10 @@ flutter run
 ## Fichiers clés
 - `lib/screens/exam_screen.dart` – examen chronométré
 - `lib/screens/result_screen.dart` – récap détaillé
-- `lib/services/history_service.dart` – stockage des essais
-- `lib/screens/history_screen.dart` – liste des essais
+- `lib/services/history_store.dart` – stockage de l’historique des examens
+- `lib/services/training_history_store.dart` – stockage de l’historique d’entraînement
+- `lib/screens/exam_history_screen.dart` – historique des examens
+- `lib/screens/training_history_screen.dart` – historique d’entraînement
 - `lib/widgets/glass_card.dart` – composant glassmorphism
 - `lib/screens/chapter_list_screen.dart` – boutons Entraînement/Examen + temps/question
 - `pubspec.yaml` – ajoute `shared_preferences`
