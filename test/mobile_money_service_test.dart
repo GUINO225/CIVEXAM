@@ -27,4 +27,79 @@ void main() {
 
     expect(ok, isTrue);
   });
+
+  test('makePayment returns false on 4xx response', () async {
+    final service = MobileMoneyPaymentService(
+      apiUrl: 'https://example.com',
+      apiKey: 'token',
+      client: MockClient((request) async {
+        return http.Response('Bad Request', 400);
+      }),
+    );
+
+    final ok = await service.makePayment(
+      phoneNumber: '0123456789',
+      amount: 10.0,
+      currency: 'XOF',
+    );
+
+    expect(ok, isFalse);
+  });
+
+  test('makePayment returns false on 5xx response', () async {
+    final service = MobileMoneyPaymentService(
+      apiUrl: 'https://example.com',
+      apiKey: 'token',
+      client: MockClient((request) async {
+        return http.Response('Server Error', 500);
+      }),
+    );
+
+    final ok = await service.makePayment(
+      phoneNumber: '0123456789',
+      amount: 10.0,
+      currency: 'XOF',
+    );
+
+    expect(ok, isFalse);
+  });
+
+  test('makePayment throws PaymentException on timeout', () async {
+    final service = MobileMoneyPaymentService(
+      apiUrl: 'https://example.com',
+      apiKey: 'token',
+      client: MockClient((request) async {
+        await Future.delayed(const Duration(seconds: 10));
+        return http.Response(jsonEncode({'status': 'success'}), 200);
+      }),
+    );
+
+    expect(
+      () => service.makePayment(
+        phoneNumber: '0123456789',
+        amount: 10.0,
+        currency: 'XOF',
+      ),
+      throwsA(isA<PaymentException>()),
+    );
+  });
+
+  test('makePayment throws PaymentException on invalid JSON', () async {
+    final service = MobileMoneyPaymentService(
+      apiUrl: 'https://example.com',
+      apiKey: 'token',
+      client: MockClient((request) async {
+        return http.Response('not json', 200);
+      }),
+    );
+
+    expect(
+      () => service.makePayment(
+        phoneNumber: '0123456789',
+        amount: 10.0,
+        currency: 'XOF',
+      ),
+      throwsA(isA<PaymentException>()),
+    );
+  });
 }
