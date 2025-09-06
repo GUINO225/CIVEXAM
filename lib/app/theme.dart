@@ -4,7 +4,8 @@ import '../utils/palette_utils.dart';
 
 /// Builds the global [ThemeData] based on the chosen palette and mode.
 ThemeData buildAppTheme(DesignConfig cfg) {
-  final accent = accentColor(cfg.bgPaletteName);
+  final iconColors = playIconColors(cfg.bgPaletteName);
+  final accent = iconColors.first;
   final complement = complementaryColor(cfg.bgPaletteName);
   final brightness = cfg.darkMode ? Brightness.dark : Brightness.light;
   final textColor =
@@ -37,7 +38,7 @@ ThemeData buildAppTheme(DesignConfig cfg) {
   return base.copyWith(
     textTheme: textTheme,
     iconTheme: IconThemeData(
-      color: darkerAccentColor(cfg.bgPaletteName),
+      color: iconColors.last,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
