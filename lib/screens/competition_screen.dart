@@ -39,7 +39,7 @@ class CompetitionScreen extends StatefulWidget {
   /// Visual theme used to style the screen.
   final CompetitionTheme? theme;
 
-  const CompetitionScreen({
+  CompetitionScreen({
     super.key,
     required this.questions,
     required this.indexMap,
