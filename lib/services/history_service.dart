@@ -25,7 +25,7 @@ class Attempt {
     'score': score,
     'total': total,
     'durationSeconds': durationSeconds,
-    'timestamp': timestamp.toIso8601String(),
+    'timestamp': timestamp.toUtc().toIso8601String(),
   };
 
   factory Attempt.fromMap(Map<String, dynamic> m) => Attempt(
@@ -34,7 +34,7 @@ class Attempt {
     score: (m['score'] as num).toInt(),
     total: (m['total'] as num).toInt(),
     durationSeconds: (m['durationSeconds'] as num).toInt(),
-    timestamp: DateTime.parse(m['timestamp'] as String),
+    timestamp: DateTime.parse(m['timestamp'] as String).toUtc(),
   );
 }
 
