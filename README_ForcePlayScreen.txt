@@ -14,5 +14,5 @@ Fichier fourni : `lib/main.dart`
 
 Notes :
 - Ce patch n’altère AUCUN autre fichier.
-- Si vous avez un Splash ou une redirection automatique vers un ancien HomeScreen,
+- Si vous avez un Splash ou une redirection automatique,
   vérifiez que le Splash navigue bien vers `PlayScreen`.
