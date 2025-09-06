@@ -69,6 +69,25 @@ Color darken(Color color, [double amount = 0.1]) {
 Color darkerAccentColor(String name, [double amount = 0.2]) =>
     darken(accentColor(name), amount);
 
+/// Gradient colors used for PlayScreen icons based on the active palette.
+///
+/// Returns a pair of colors where the first color should match the
+/// [accentColor] for the palette so that the UI theme and the play icons share
+/// the same hue. If the [paletteName] is unknown, it falls back to the original
+/// PlayScreen gradient.
+List<Color> playIconColors(String paletteName) {
+  const fallback = [Color(0xFFFFB25E), Color(0xFFFF7A00)];
+  final accent = accentColor(paletteName);
+
+  // If the palette name is not recognized, accentColor returns the offWhite
+  // color. In that case, preserve the legacy gradient from the PlayScreen.
+  if (accent.value == const Color(0xFFF5F5F5).value && paletteName != 'offWhite') {
+    return fallback;
+  }
+
+  return [accent, darkerAccentColor(paletteName)];
+}
+
 /// Returns two pastel variants of the accent color for gradient backgrounds.
 List<Color> pastelColors(String name, {bool darkMode = false}) {
   switch (name) {
