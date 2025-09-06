@@ -92,6 +92,25 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       remaining = perQ * widget.questions.length;
     }
 
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    if (widget.competitionMode) {
+      WidgetsBinding.instance.removeObserver(this);
+      WakelockPlus.disable();
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+    _pageController?.dispose();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
       if (_submitted) {
@@ -113,20 +132,6 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         }
       }
     });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    if (widget.competitionMode) {
-      WidgetsBinding.instance.removeObserver(this);
-      WakelockPlus.disable();
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-    }
-    _pageController?.dispose();
-    super.dispose();
   }
 
   String _format(int s) {
@@ -190,8 +195,10 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     if (!widget.competitionMode) return;
     if (state == AppLifecycleState.paused) {
       _wasPaused = true;
+      timer?.cancel();
     } else if (state == AppLifecycleState.resumed && _wasPaused) {
       _wasPaused = false;
+      _startTimer();
       Future.microtask(_handleResume);
     }
   }
