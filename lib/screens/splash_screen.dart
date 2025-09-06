@@ -15,25 +15,19 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      final user = FirebaseAuth.instance.currentUser;
-      final next = user == null ? const LoginScreen() : const PlayScreen();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => next),
-      );
-    });
+    _navigate();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  Future<void> _navigate() async {
+    final User? user = await FirebaseAuth.instance.authStateChanges().first;
+    if (!mounted) return;
+    final next = user == null ? const LoginScreen() : const PlayScreen();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => next),
+    );
   }
 
   @override
