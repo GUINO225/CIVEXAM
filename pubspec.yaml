@@ -33,6 +33,7 @@ flutter:
   assets:
     - assets/questions/           # <-- inclut tout le dossier questions
     - assets/images/logo_splash_square.png
+    - assets/images/logo_splash.png
     - assets/images/logo_icon_square.png
     - assets/icons/
 
