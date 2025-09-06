@@ -210,8 +210,8 @@ class _PlayScreenState extends State<PlayScreen> {
         } catch (e) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Unable to load question bank.'),
+            SnackBar(
+              content: Text('Unable to load question bank: $e'),
             ),
           );
         }

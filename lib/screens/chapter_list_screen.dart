@@ -34,13 +34,21 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
   }
 
   Future<void> _load() async {
-    final all = await QuestionLoader.loadENA();
-    final pool = _filterBy(all, subject: widget.subjectName, chapter: widget.chapterName);
-    if (!mounted) return;
-    setState(() {
-      _pool = pool;
-      _loading = false;
-    });
+    try {
+      final all = await QuestionLoader.loadENA();
+      final pool = _filterBy(all, subject: widget.subjectName, chapter: widget.chapterName);
+      if (!mounted) return;
+      setState(() {
+        _pool = pool;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   List<Question> _filterBy(List<Question> items, {required String subject, required String chapter}) {

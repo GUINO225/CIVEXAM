@@ -10,7 +10,6 @@
 // -----------------------------------------------------------------------------
 
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
 
@@ -24,8 +23,9 @@ class QuestionLoader {
       'assets/questions/ena_sample.json',                 // fallback
     ];
 
-    for (int p = 0; p < paths.length; p++) {
-      final path = paths[p];
+    final errors = <String>[];
+
+    for (final path in paths) {
       try {
         final raw = await rootBundle.loadString(path);
         final decoded = json.decode(raw);
@@ -48,13 +48,19 @@ class QuestionLoader {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          debugPrint('Failed to load ENA questions from $path: $e');
-        }
+        final msg = 'Failed to load ENA questions from $path: $e';
+        // Utilise `print` pour logger aussi en production
+        // et conserver le détail du chemin et de l\'exception.
+        // ignore: avoid_print
+        print(msg);
+        errors.add(msg);
         // on passe au fichier suivant
       }
     }
-    throw Exception('Aucune banque de questions ENA n\'a pu être chargée. Veuillez vérifier votre installation.');
+
+    throw Exception(
+      'Aucune banque de questions ENA n\'a pu être chargée. Détails: ${errors.join(' ; ')}',
+    );
   }
 
   /// Convertit `difficulty` (texte/entier) en entier 1..3

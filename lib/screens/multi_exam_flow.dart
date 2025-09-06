@@ -152,12 +152,20 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   }
 
   Future<void> _loadAll() async {
-    final data = await QuestionLoader.loadENA();
-    if (!mounted) return;
-    setState(() {
-      all = data;
-      loading = false;
-    });
+    try {
+      final data = await QuestionLoader.loadENA();
+      if (!mounted) return;
+      setState(() {
+        all = data;
+        loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   Future<void> _startFlow() async {
