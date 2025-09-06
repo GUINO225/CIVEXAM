@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../firebase_options.dart' deferred as firebase_options;
 
 class CloudSync {
   static bool _initTried = false;
@@ -25,7 +26,12 @@ class CloudSync {
   static Future<bool> ensureInitialized() async {
     if (_ready || _initTried) return _ready;
     try {
-      await Firebase.initializeApp();
+      if (Firebase.apps.isEmpty) {
+        await firebase_options.loadLibrary();
+        await Firebase.initializeApp(
+          options: firebase_options.DefaultFirebaseOptions.currentPlatform,
+        );
+      }
       await _ensureSignedIn();
       _ready = true;
       _initTried = true;
