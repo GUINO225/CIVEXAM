@@ -176,7 +176,7 @@ class _PlayScreenState extends State<PlayScreen> {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
         break;
       case 5:
-        showDialog(
+        await showDialog(
           context: context,
           builder: (_) => const AlertDialog(
             title: Text('Comment ça marche ?'),

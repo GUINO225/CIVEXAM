@@ -308,7 +308,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       return;
     }
 
-    showDialog(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
