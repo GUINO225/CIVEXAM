@@ -185,25 +185,34 @@ class _PlayScreenState extends State<PlayScreen> {
         );
         break;
       case 6:
-        final all = await QuestionLoader.loadENA();
-        final selected = pickAndShuffle(all, 20);
-        final indexMap = <String, int>{
-          for (int i = 0; i < all.length; i++) all[i].id: i + 1
-        };
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CompetitionScreen(
-              questions: selected,
-              indexMap: indexMap,
-              poolSize: all.length,
-              drawCount: selected.length,
-              timePerQuestion: 5,
-              startTime: DateTime.now(),
+        try {
+          final all = await QuestionLoader.loadENA();
+          final selected = pickAndShuffle(all, 20);
+          final indexMap = <String, int>{
+            for (int i = 0; i < all.length; i++) all[i].id: i + 1
+          };
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CompetitionScreen(
+                questions: selected,
+                indexMap: indexMap,
+                poolSize: all.length,
+                drawCount: selected.length,
+                timePerQuestion: 5,
+                startTime: DateTime.now(),
+              ),
             ),
-          ),
-        );
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to load question bank.'),
+            ),
+          );
+        }
         break;
       case 7:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
