@@ -72,4 +72,9 @@ class MobileMoneyPaymentService {
       throw PaymentException('Délai d\'attente dépassé');
     }
   }
+
+  /// Ferme le client HTTP sous-jacent.
+  void dispose() {
+    _client.close();
+  }
 }
