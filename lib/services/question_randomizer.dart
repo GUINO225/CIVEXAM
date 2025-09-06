@@ -9,9 +9,10 @@ final _rng = Random();
 
 /// Retourne une **copie** de la question avec les choix mélangés
 /// et un `answerIndex` recalculé.
-Question shuffleChoices(Question q) {
+Question shuffleChoices(Question q, {Random? rng}) {
+  final r = rng ?? _rng;
   // permutation aléatoire des indices
-  final order = List.generate(q.choices.length, (i) => i)..shuffle(_rng);
+  final order = List.generate(q.choices.length, (i) => i)..shuffle(r);
 
   final newChoices = <String>[];
   int newAnswer = 0;
@@ -36,11 +37,11 @@ Question shuffleChoices(Question q) {
 
 /// Sélectionne jusqu'à `take` questions **au hasard**, puis mélange l'ordre
 /// des questions et des choix.
-List<Question> pickAndShuffle(List<Question> pool, int take) {
+List<Question> pickAndShuffle(List<Question> pool, int take, {Random? rng}) {
+  final r = rng ?? _rng;
   if (pool.isEmpty) return const <Question>[];
-  final copy = List<Question>.from(pool)..shuffle(_rng);
+  final copy = List<Question>.from(pool)..shuffle(r);
   final n = take <= copy.length ? take : copy.length;
-  final selected = copy.take(n).map(shuffleChoices).toList();
-  selected.shuffle(_rng);
+  final selected = copy.take(n).map((q) => shuffleChoices(q, rng: r)).toList();
   return selected;
 }
