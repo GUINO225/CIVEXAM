@@ -27,10 +27,20 @@ class CloudSync {
     if (_ready || _initTried) return _ready;
     try {
       if (Firebase.apps.isEmpty) {
-        await firebase_options.loadLibrary();
-        await Firebase.initializeApp(
-          options: firebase_options.DefaultFirebaseOptions.currentPlatform,
-        );
+        FirebaseOptions? options;
+        try {
+          await firebase_options.loadLibrary();
+          options = firebase_options.DefaultFirebaseOptions.currentPlatform;
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[CloudSync] firebase_options.dart not found: $e');
+          }
+        }
+        if (options != null) {
+          await Firebase.initializeApp(options: options);
+        } else {
+          await Firebase.initializeApp();
+        }
       }
       await _ensureSignedIn();
       _ready = true;
