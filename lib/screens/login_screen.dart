@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -144,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (_) => const PlayScreen()),
       );
-    } on FirebaseAuthException catch (e) {
+    } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
       if (mounted) {
