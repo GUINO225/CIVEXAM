@@ -83,6 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     decoration:
                         const InputDecoration(labelText: 'Mot de passe'),
+                    keyboardType: TextInputType.visiblePassword,
+                    autocorrect: false,
+                    enableSuggestions: false,
                     obscureText: true,
                     validator: (value) => value == null ||
                             value.trim().isEmpty
