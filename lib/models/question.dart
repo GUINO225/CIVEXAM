@@ -22,7 +22,10 @@ class Question {
   });
 
   factory Question.fromMap(Map<String, dynamic> map) {
-    final choices = (map['choices'] as List).map((e) => e.toString()).toList(growable: false);
+    final rawChoices = map['choices'];
+    final choices = rawChoices is List
+        ? rawChoices.map((e) => e.toString()).toList(growable: false)
+        : const <String>[];
     return Question(
       id: map['id']?.toString() ?? '',
       concours: map['concours']?.toString() ?? '',
