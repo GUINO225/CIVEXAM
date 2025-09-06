@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Attempt {
@@ -67,7 +68,23 @@ class HistoryService {
   static Future<List<Attempt>> load() async {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_key) ?? <String>[];
-    return list.map((s) => Attempt.fromMap(jsonDecode(s) as Map<String, dynamic>)).toList(growable: false);
+    final valid = <String>[];
+    final attempts = <Attempt>[];
+    for (final s in list) {
+      try {
+        final m = jsonDecode(s) as Map<String, dynamic>;
+        attempts.add(Attempt.fromMap(m));
+        valid.add(s);
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Ignoring corrupted attempt entry: $e');
+        }
+      }
+    }
+    if (valid.length != list.length) {
+      await prefs.setStringList(_key, valid);
+    }
+    return attempts;
   }
 
   static Future<void> clear() async {
