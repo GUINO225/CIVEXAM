@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.company.civexam"
+    namespace = "com.company.civexam_pro"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.company.civexam"
+        applicationId = "com.company.civexam_pro"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
