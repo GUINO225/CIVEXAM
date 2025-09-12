@@ -14,16 +14,26 @@ class CompetitionService {
   Future<void> saveEntry(LeaderboardEntry entry) async {
     final data = entry.toJson();
     data['updatedAt'] = FieldValue.serverTimestamp();
-    await _col.doc(entry.userId).set(data);
+    try {
+      await _col.doc(entry.userId).set(data);
+    } catch (e) {
+      throw Exception("Échec de l'enregistrement du score: $e");
+    }
   }
 
   /// Récupère les meilleurs résultats (max 100 par défaut).
   Future<List<LeaderboardEntry>> topEntries({int limit = 100}) async {
-    final snap = await _col
-        .orderBy('percent', descending: true)
-        .orderBy('durationSec')
-        .limit(limit)
-        .get();
-    return snap.docs.map((d) => LeaderboardEntry.fromJson(d.data())).toList();
+    try {
+      final snap = await _col
+          .orderBy('percent', descending: true)
+          .orderBy('durationSec')
+          .limit(limit)
+          .get();
+      return snap.docs
+          .map((d) => LeaderboardEntry.fromJson(d.data()))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 }
