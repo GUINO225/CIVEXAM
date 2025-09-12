@@ -40,8 +40,13 @@ class AuthService {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      await userCredential.user?.updateDisplayName(name);
-      await userCredential.user?.reload();
+      final user = userCredential.user;
+      if (user != null) {
+        await Future.wait([
+          user.updateDisplayName(name),
+          user.reload(),
+        ]);
+      }
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw AuthException(_messageFromCode(e.code));
