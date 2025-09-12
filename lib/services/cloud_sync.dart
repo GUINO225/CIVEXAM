@@ -56,7 +56,15 @@ class CloudSync {
           await Firebase.initializeApp();
         }
       }
-      await _ensureSignedIn();
+      final signedIn = await _ensureSignedIn();
+      if (!signedIn) {
+        if (kDebugMode) {
+          debugPrint('[CloudSync] Firebase sign-in failed.');
+        }
+        _ready = false;
+        _initTried = false;
+        return false;
+      }
       _ready = true;
       _initTried = true;
       if (kDebugMode) debugPrint('[CloudSync] Firebase initialized.');
@@ -77,19 +85,27 @@ class CloudSync {
   /// If the application later signs in with a real account, it should either
   /// link the existing anonymous user or delete it depending on the desired
   /// behaviour.
-  static Future<void> _ensureSignedIn() async {
+  static Future<bool> _ensureSignedIn() async {
     final auth = FirebaseAuth.instance;
     final user = auth.currentUser;
     if (user != null) {
-      return; // Already signed in (anonymous or real).
+      return true; // Already signed in (anonymous or real).
     }
     if (!allowAnonymousSignIn) {
       if (kDebugMode) {
         debugPrint('[CloudSync] Anonymous sign-in disabled.');
       }
-      return;
+      return false;
     }
-    await auth.signInAnonymously();
+    try {
+      await auth.signInAnonymously();
+      return auth.currentUser != null;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CloudSync] Anonymous sign-in failed: $e');
+      }
+      return false;
+    }
   }
 
   static Future<void> uploadAttempt({
