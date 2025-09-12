@@ -50,6 +50,7 @@ class AuthService {
         await Future.wait([
           user.updateDisplayName(name),
           user.reload(),
+          user.sendEmailVerification(),
         ]);
       }
       return userCredential;
