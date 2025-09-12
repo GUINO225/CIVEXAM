@@ -5,6 +5,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val storePasswordLocal: String? = project.findProperty("storePassword") as String?
+    ?: System.getenv("STORE_PASSWORD")
+val keyPasswordLocal: String? = project.findProperty("keyPassword") as String?
+    ?: System.getenv("KEY_PASSWORD")
+
 android {
     namespace = "com.company.civexam_pro"
     compileSdk = flutter.compileSdkVersion
@@ -32,9 +37,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("civexam-release.jks")
-            storePassword = "password"
+            storePassword = storePasswordLocal
             keyAlias = "civexam"
-            keyPassword = "password"
+            keyPassword = keyPasswordLocal
         }
     }
 
