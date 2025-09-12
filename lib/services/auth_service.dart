@@ -53,6 +53,17 @@ class AuthService {
     }
   }
 
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Sign out failed: $e');
+      }
+      throw AuthException("Échec de la déconnexion");
+    }
+  }
+
   String _messageFromCode(String code) {
     switch (code) {
       case 'invalid-email':
