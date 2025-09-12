@@ -30,4 +30,11 @@ void main() {
     expect(service.messageFromCodeForTest('requires-recent-login'),
         'Veuillez vous reconnecter pour continuer');
   });
+
+  test('returns message for internal-error with CONFIGURATION_NOT_FOUND', () {
+    expect(
+        service.messageFromCodeForTest(
+            'internal-error', 'Some CONFIGURATION_NOT_FOUND error'),
+        'Configuration d’authentification invalide – reCAPTCHA manquant.');
+  });
 }
