@@ -22,12 +22,28 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigate() async {
-    final User? user = await FirebaseAuth.instance.authStateChanges().first;
-    if (!mounted) return;
-    final next = user == null ? const LoginScreen() : const PlayScreen();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => next),
-    );
+    try {
+      final User? user = await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 5));
+      if (!mounted) return;
+      final next = user == null ? const LoginScreen() : const PlayScreen();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => next),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Connexion impossible. Veuillez vous reconnecter.'),
+        ),
+      );
+    }
   }
 
   @override
