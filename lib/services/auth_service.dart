@@ -20,7 +20,7 @@ class AuthService {
       return await _auth.signInWithEmailAndPassword(
           email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      throw AuthException(_messageFromCode(e.code));
+      throw AuthException(_messageFromCode(e.code, e.message));
     }
   }
 
@@ -39,7 +39,7 @@ class AuthService {
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw AuthException(_messageFromCode(e.code));
+      throw AuthException(_messageFromCode(e.code, e.message));
     }
   }
 
@@ -54,7 +54,7 @@ class AuthService {
     }
   }
 
-  String _messageFromCode(String code) {
+  String _messageFromCode(String code, [String? message]) {
     switch (code) {
       case 'invalid-email':
         return 'Email invalide';
@@ -76,11 +76,17 @@ class AuthService {
         return 'Opération non autorisée';
       case 'requires-recent-login':
         return 'Veuillez vous reconnecter pour continuer';
+      case 'internal-error':
+        if (message != null && message.contains('CONFIGURATION_NOT_FOUND')) {
+          return 'Configuration d’authentification invalide – reCAPTCHA manquant.';
+        }
+        return "Erreur interne d'authentification";
       default:
         return "Erreur d'authentification";
     }
   }
 
   @visibleForTesting
-  String messageFromCodeForTest(String code) => _messageFromCode(code);
+  String messageFromCodeForTest(String code, [String? message]) =>
+      _messageFromCode(code, message);
 }
