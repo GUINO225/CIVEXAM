@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "522640251078",
-    "project_id": "civexam-54e17",
-    "storage_bucket": "civexam-54e17.firebasestorage.app"
+    "project_number": "339452590323",
+    "project_id": "civexam-bf521",
+    "storage_bucket": "civexam-bf521.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:522640251078:android:c59b78f08fbdde5870dfc7",
+        "mobilesdk_app_id": "1:339452590323:android:8157ff3781f38b4b0b9f86",
         "android_client_info": {
-          "package_name": "com.company.civexam_pro"
+          "package_name": "com.example.civexam_app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q"
+          "current_key": "AIzaSyDWgRCw51mY8n4ZiX257UlEVxG9F_1D9ac"
         }
       ],
       "services": {
