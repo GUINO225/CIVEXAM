@@ -6,10 +6,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firebase_options.dart' deferred as firebase_options;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CloudSync {
   static bool _initTried = false;
   static bool _ready = false;
+
+  static const String _kAllowAnonymous = 'allowAnonymousSignIn';
 
   static String _currentPlatform() {
     try {
@@ -65,7 +68,18 @@ class CloudSync {
   /// Ensures there is an authenticated Firebase user.
   static Future<bool> _ensureSignedIn() async {
     final auth = FirebaseAuth.instance;
-    return auth.currentUser != null;
+    if (auth.currentUser != null) return true;
+
+    final prefs = await SharedPreferences.getInstance();
+    final allowAnon = prefs.getBool(_kAllowAnonymous) ?? true;
+    if (!allowAnon) return false;
+
+    try {
+      await auth.signInAnonymously();
+      return auth.currentUser != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> uploadAttempt({
