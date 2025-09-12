@@ -84,10 +84,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     autocorrect: false,
                     enableSuggestions: false,
                     obscureText: true,
-                    validator: (value) => value == null ||
-                            value.trim().isEmpty
-                        ? 'Mot de passe requis'
-                        : null,
+                    validator: (value) {
+                      final pwd = value?.trim() ?? '';
+                      if (pwd.isEmpty) {
+                        return 'Mot de passe requis';
+                      }
+                      if (pwd.length < 6) {
+                        return 'Le mot de passe doit contenir au moins 6 caractères';
+                      }
+                      final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
+                      final hasDigit = RegExp(r'\d').hasMatch(pwd);
+                      if (!hasLetter || !hasDigit) {
+                        return 'Le mot de passe doit contenir des lettres et des chiffres';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 12),
                   if (_error != null)
