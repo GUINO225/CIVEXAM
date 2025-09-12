@@ -28,6 +28,7 @@ class PlayScreen extends StatefulWidget {
 
 class _PlayScreenState extends State<PlayScreen> {
   final _auth = AuthService();
+  bool _signingOut = false;
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DesignConfig>(
@@ -56,24 +57,29 @@ class _PlayScreenState extends State<PlayScreen> {
               IconButton(
                 icon: const Icon(Icons.logout),
                 tooltip: 'Déconnexion',
-                onPressed: () async {
-                  try {
-                    await _auth.signOut();
-                    if (!mounted) return;
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-                    final message = e is AuthException
-                        ? e.message
-                        : 'Déconnexion échouée';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message)),
-                    );
-                  }
-                },
+                onPressed: _signingOut
+                    ? null
+                    : () async {
+                        setState(() => _signingOut = true);
+                        try {
+                          await _auth.signOut();
+                          if (!mounted) return;
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen()),
+                          );
+                        } catch (e) {
+                          if (!mounted) return;
+                          final message =
+                              e is AuthException ? e.message : 'Déconnexion échouée';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(message)),
+                          );
+                        } finally {
+                          if (mounted) setState(() => _signingOut = false);
+                        }
+                      },
               ),
               IconButton(
                 icon: const Icon(Icons.emoji_events_outlined),
