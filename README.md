@@ -33,3 +33,13 @@ export KEY_PASSWORD="mon-mot-de-passe-cle"
 - test/question_parsing_test.dart – test unitaire basique
 
 Si tu cibles Android, copie/colle les fichiers de `../android_config_pack/` dans `android/` après `flutter create .`.
+
+## Synchronisation cloud
+
+La classe `CloudSync` tente d'initialiser Firebase et de connecter
+l'utilisateur. Une connexion anonyme n'est effectuée que si la préférence
+`allowAnonymousSignIn` n'est pas désactivée (stockée via
+`SharedPreferences`).
+
+Si cette préférence vaut `false`, l'application ne se connecte pas
+automatiquement et l'écran de connexion est affiché.
