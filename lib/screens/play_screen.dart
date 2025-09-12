@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/glass_tile.dart';
 
@@ -26,6 +27,7 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
+  final _auth = AuthService();
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DesignConfig>(
@@ -55,12 +57,22 @@ class _PlayScreenState extends State<PlayScreen> {
                 icon: const Icon(Icons.logout),
                 tooltip: 'Déconnexion',
                 onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                  if (!mounted) return;
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
+                  try {
+                    await _auth.signOut();
+                    if (!mounted) return;
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    final message = e is AuthException
+                        ? e.message
+                        : 'Déconnexion échouée';
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(message)),
+                    );
+                  }
                 },
               ),
               IconButton(
