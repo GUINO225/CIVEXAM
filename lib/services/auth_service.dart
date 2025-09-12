@@ -21,7 +21,12 @@ class AuthService {
     if (kDebugMode) {
       unawaited(
         FirebaseAuth.instance
-            .setSettings(appVerificationDisabledForTesting: true),
+            .setSettings(appVerificationDisabledForTesting: true)
+            .catchError((error, _) {
+          debugPrint('Failed to configure FirebaseAuth: $error');
+          throw AuthException(
+              'Failed to disable app verification for testing: $error');
+        }),
       );
     }
   }
