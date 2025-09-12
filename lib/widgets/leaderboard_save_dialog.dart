@@ -84,39 +84,45 @@ Future<void> showSaveScoreDialog({
   if (!context.mounted) return;
   final savedName = prefs.getString('player_name') ?? 'Joueur';
   final controller = TextEditingController(text: savedName);
-
-  final submit = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      title: const Text('Enregistrer mon score'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(
-            decoration: const InputDecoration(
-                labelText: 'Votre nom', border: OutlineInputBorder()),
-            controller: controller),
-        const SizedBox(height: 12),
-        Text('Mode : $mode  •  Score : ${percent.toStringAsFixed(1)}%'),
-      ]),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler')),
-        FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Enregistrer')),
-      ],
-    ),
-  );
+  bool? submit;
+  String name = savedName;
+  try {
+    submit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Enregistrer mon score'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(
+              decoration: const InputDecoration(
+                  labelText: 'Votre nom', border: OutlineInputBorder()),
+              controller: controller),
+          const SizedBox(height: 12),
+          Text('Mode : $mode  •  Score : ${percent.toStringAsFixed(1)}%'),
+        ]),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    name = controller.text;
+  } finally {
+    controller.dispose();
+  }
   if (!context.mounted) return;
 
   if (submit == true) {
-    final name =
-        controller.text.trim().isEmpty ? 'Joueur' : controller.text.trim();
-    await prefs.setString('player_name', name);
+    final sanitizedName =
+        name.trim().isEmpty ? 'Joueur' : name.trim();
+    await prefs.setString('player_name', sanitizedName);
     final entry = LeaderboardEntry(
       userId: '',
-      name: name,
+      name: sanitizedName,
       mode: mode,
       subject: subject,
       chapter: chapter,
