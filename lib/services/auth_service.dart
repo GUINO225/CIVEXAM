@@ -20,12 +20,11 @@ class AuthService {
   AuthService() {
     if (kDebugMode) {
       unawaited(
-        _auth.setSettings(appVerificationDisabledForTesting: true),
+        FirebaseAuth.instance
+            .setSettings(appVerificationDisabledForTesting: true),
       );
     }
   }
-
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   Future<UserCredential> signInWithEmail(String email, String password) async {
     try {
@@ -47,10 +46,6 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw AuthException(_messageFromCode(e.code));
     }
-  }
-
-  Future<void> signOut() {
-    return _auth.signOut();
   }
 
   String _messageFromCode(String code) {
