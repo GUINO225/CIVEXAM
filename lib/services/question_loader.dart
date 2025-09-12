@@ -10,6 +10,7 @@
 // -----------------------------------------------------------------------------
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
 
@@ -28,24 +29,10 @@ class QuestionLoader {
     for (final path in paths) {
       try {
         final raw = await rootBundle.loadString(path);
-        final decoded = json.decode(raw);
-        if (decoded is List) {
-          final out = <Question>[];
-          final seen = <String>{};
-          for (int i = 0; i < decoded.length; i++) {
-            final item = decoded[i];
-            if (item is Map<String, dynamic>) {
-              final q = _mapToQuestionCompat(item, i);
-              final key = q.id.isNotEmpty ? q.id : q.question;
-              if (q.choices.isNotEmpty && seen.add(key)) {
-                out.add(q);
-              }
-            }
-          }
-          if (out.isNotEmpty) {
-            // OK
-            return out;
-          }
+        final out = await compute(_parseQuestions, raw);
+        if (out.isNotEmpty) {
+          // OK
+          return out;
         }
       } catch (e) {
         final msg = 'Failed to load ENA questions from $path: $e';
@@ -175,4 +162,23 @@ class QuestionLoader {
       return _norm(q.question).contains(v) || _norm(q.subject).contains(v) || _norm(q.chapter).contains(v);
     }).toList(growable: false);
   }
+}
+
+// Effectue le décodage JSON et le mapping vers `Question` dans un isolate.
+List<Question> _parseQuestions(String raw) {
+  final decoded = json.decode(raw);
+  if (decoded is! List) return <Question>[];
+  final out = <Question>[];
+  final seen = <String>{};
+  for (int i = 0; i < decoded.length; i++) {
+    final item = decoded[i];
+    if (item is Map<String, dynamic>) {
+      final q = QuestionLoader._mapToQuestionCompat(item, i);
+      final key = q.id.isNotEmpty ? q.id : q.question;
+      if (q.choices.isNotEmpty && seen.add(key)) {
+        out.add(q);
+      }
+    }
+  }
+  return out;
 }
