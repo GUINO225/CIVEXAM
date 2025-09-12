@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 /// Exception thrown for authentication failures with a user-friendly message.
 class AuthException implements Exception {
@@ -14,13 +15,14 @@ class AuthException implements Exception {
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Disables Firebase's reCAPTCHA requirement for phone authentication,
-  /// ensuring the login flow does not prompt the user with a challenge.
-  /// This is useful for environments where reCAPTCHA is not desired.
+  /// Disables Firebase's reCAPTCHA requirement for phone authentication only
+  /// during debug builds so developers aren't blocked during local testing.
   AuthService() {
-    unawaited(
-      _auth.setSettings(appVerificationDisabledForTesting: true),
-    );
+    if (kDebugMode) {
+      unawaited(
+        _auth.setSettings(appVerificationDisabledForTesting: true),
+      );
+    }
   }
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
