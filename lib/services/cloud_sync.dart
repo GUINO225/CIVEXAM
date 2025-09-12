@@ -10,20 +10,6 @@ import '../firebase_options.dart' deferred as firebase_options;
 class CloudSync {
   static bool _initTried = false;
   static bool _ready = false;
-  /// Whether an anonymous Firebase user may be created automatically.
-  ///
-  /// Defaults to `true`. Call [requireAuthentication] to disable the
-  /// automatic anonymous sign-in when the application expects the user to
-  /// authenticate with a real account.
-  static bool allowAnonymousSignIn = true;
-
-  /// Disables automatic anonymous authentication.
-  ///
-  /// Call this before [ensureInitialized] when the application requires the
-  /// user to be authenticated with a real account.
-  static void requireAuthentication() {
-    allowAnonymousSignIn = false;
-  }
 
   static String _currentPlatform() {
     try {
@@ -59,7 +45,7 @@ class CloudSync {
       final signedIn = await _ensureSignedIn();
       if (!signedIn) {
         if (kDebugMode) {
-          debugPrint('[CloudSync] Firebase sign-in failed.');
+          debugPrint('[CloudSync] No authenticated user.');
         }
         _ready = false;
         _initTried = false;
@@ -77,35 +63,9 @@ class CloudSync {
   }
 
   /// Ensures there is an authenticated Firebase user.
-  ///
-  /// If a user is already signed in, nothing happens. When no user exists
-  /// and [allowAnonymousSignIn] is true, an anonymous account is created.
-  /// Otherwise the caller is responsible for authenticating the user.
-  ///
-  /// If the application later signs in with a real account, it should either
-  /// link the existing anonymous user or delete it depending on the desired
-  /// behaviour.
   static Future<bool> _ensureSignedIn() async {
     final auth = FirebaseAuth.instance;
-    final user = auth.currentUser;
-    if (user != null) {
-      return true; // Already signed in (anonymous or real).
-    }
-    if (!allowAnonymousSignIn) {
-      if (kDebugMode) {
-        debugPrint('[CloudSync] Anonymous sign-in disabled.');
-      }
-      return false;
-    }
-    try {
-      await auth.signInAnonymously();
-      return auth.currentUser != null;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[CloudSync] Anonymous sign-in failed: $e');
-      }
-      return false;
-    }
+    return auth.currentUser != null;
   }
 
   static Future<void> uploadAttempt({
@@ -117,9 +77,19 @@ class CloudSync {
     required DateTime timestamp,
   }) async {
     try {
-      if (!await ensureInitialized()) return;
+      if (!await ensureInitialized()) {
+        if (kDebugMode) {
+          debugPrint('[CloudSync] Upload skipped: user not signed in.');
+        }
+        return;
+      }
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return;
+      if (uid == null) {
+        if (kDebugMode) {
+          debugPrint('[CloudSync] No authenticated user. Please sign in.');
+        }
+        return;
+      }
       final col = FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
