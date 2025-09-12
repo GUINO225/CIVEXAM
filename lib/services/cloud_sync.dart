@@ -10,6 +10,20 @@ import '../firebase_options.dart' deferred as firebase_options;
 class CloudSync {
   static bool _initTried = false;
   static bool _ready = false;
+  /// Whether an anonymous Firebase user may be created automatically.
+  ///
+  /// Defaults to `true`. Call [requireAuthentication] to disable the
+  /// automatic anonymous sign-in when the application expects the user to
+  /// authenticate with a real account.
+  static bool allowAnonymousSignIn = true;
+
+  /// Disables automatic anonymous authentication.
+  ///
+  /// Call this before [ensureInitialized] when the application requires the
+  /// user to be authenticated with a real account.
+  static void requireAuthentication() {
+    allowAnonymousSignIn = false;
+  }
 
   static String _currentPlatform() {
     try {
@@ -54,11 +68,28 @@ class CloudSync {
     return _ready;
   }
 
+  /// Ensures there is an authenticated Firebase user.
+  ///
+  /// If a user is already signed in, nothing happens. When no user exists
+  /// and [allowAnonymousSignIn] is true, an anonymous account is created.
+  /// Otherwise the caller is responsible for authenticating the user.
+  ///
+  /// If the application later signs in with a real account, it should either
+  /// link the existing anonymous user or delete it depending on the desired
+  /// behaviour.
   static Future<void> _ensureSignedIn() async {
     final auth = FirebaseAuth.instance;
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
+    final user = auth.currentUser;
+    if (user != null) {
+      return; // Already signed in (anonymous or real).
     }
+    if (!allowAnonymousSignIn) {
+      if (kDebugMode) {
+        debugPrint('[CloudSync] Anonymous sign-in disabled.');
+      }
+      return;
+    }
+    await auth.signInAnonymously();
   }
 
   static Future<void> uploadAttempt({
