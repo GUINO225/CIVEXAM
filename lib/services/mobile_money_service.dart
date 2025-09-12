@@ -61,7 +61,8 @@ class MobileMoneyPaymentService {
         }
         throw const FormatException('Réponse JSON invalide');
       }
-      return false;
+      throw PaymentException(
+          'Échec du paiement (code ${response.statusCode}): ${response.body}');
     } on SocketException catch (e) {
       throw PaymentException('Erreur réseau: ${e.message}');
     } on http.ClientException catch (e) {
