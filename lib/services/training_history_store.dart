@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/training_history_entry.dart';
 
@@ -12,8 +13,7 @@ class TrainingHistoryStore {
     final raw = prefs.getString(_key);
     if (raw != null && raw.isNotEmpty) {
       try {
-        final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-        return list.map(TrainingHistoryEntry.fromJson).toList();
+        return await compute(_decodeEntries, raw);
       } catch (_) {
         // fallthrough: tente de lire l'ancienne clé si nécessaire
       }
@@ -22,8 +22,7 @@ class TrainingHistoryStore {
     final legacy = prefs.getString('trainingHistoryV1');
     if (legacy != null && legacy.isNotEmpty) {
       try {
-        final list = (jsonDecode(legacy) as List).cast<Map<String, dynamic>>();
-        final items = list.map(TrainingHistoryEntry.fromJson).toList();
+        final items = await compute(_decodeEntries, legacy);
         // Sauvegarde au nouveau format sans TTL
         await _save(items);
         await prefs.remove('trainingHistoryV1');
@@ -52,5 +51,11 @@ class TrainingHistoryStore {
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
+  }
+
+  // Décodage JSON en isolate pour ne pas bloquer l'UI.
+  static List<TrainingHistoryEntry> _decodeEntries(String raw) {
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    return list.map(TrainingHistoryEntry.fromJson).toList();
   }
 }
