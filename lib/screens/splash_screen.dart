@@ -32,18 +32,22 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => next),
       );
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Connexion impossible. Veuillez vous reconnecter.'),
-        ),
-      );
+    } on TimeoutException {
+      _goToLogin(
+          'La connexion a expiré. Veuillez vous reconnecter.');
+    } catch (_) {
+      _goToLogin('Connexion impossible. Veuillez vous reconnecter.');
     }
+  }
+
+  void _goToLogin(String message) {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
