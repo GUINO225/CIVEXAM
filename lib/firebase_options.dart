@@ -27,10 +27,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: '',
-    appId: '',
-    messagingSenderId: '',
-    projectId: '',
+    apiKey: 'AIzaSyDWgRCw51mY8n4ZiX257UlEVxG9F_1D9ac',
+    appId: '1:339452590323:web:8157ff3781f38b4b0b9f86',
+    messagingSenderId: '339452590323',
+    projectId: 'civexam-bf521',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
