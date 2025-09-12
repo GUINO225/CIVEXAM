@@ -83,8 +83,19 @@ class AuthService {
         return 'Email déjà utilisé';
       case 'weak-password':
         return 'Mot de passe trop faible';
+      case 'network-request-failed':
+        return 'Problème de connexion réseau';
+      case 'too-many-requests':
+        return 'Trop de tentatives, réessayez plus tard';
+      case 'operation-not-allowed':
+        return 'Opération non autorisée';
+      case 'requires-recent-login':
+        return 'Veuillez vous reconnecter pour continuer';
       default:
         return "Erreur d'authentification";
     }
   }
+
+  @visibleForTesting
+  String messageFromCodeForTest(String code) => _messageFromCode(code);
 }
