@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/design_config.dart';
 import '../services/auth_service.dart';
 import '../services/design_bus.dart';
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLogin = true;
   String? _error;
   bool _isLoading = false;
+  User? _unverifiedUser;
 
   @override
   void dispose() {
@@ -114,8 +116,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : Text(_isLogin ? 'Connexion' : 'Inscription'),
                   ),
+                  if (_unverifiedUser != null)
+                    TextButton(
+                      onPressed: _resendVerificationEmail,
+                      child: const Text('Renvoyer l\'email de vérification'),
+                    ),
                   TextButton(
-                    onPressed: () => setState(() => _isLogin = !_isLogin),
+                    onPressed: () => setState(() {
+                      _isLogin = !_isLogin;
+                      _unverifiedUser = null;
+                    }),
                     child: Text(
                         _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
                   )
@@ -133,19 +143,31 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _error = null;
       _isLoading = true;
+      _unverifiedUser = null;
     });
     try {
+      UserCredential credential;
       if (_isLogin) {
-        await _auth.signInWithEmail(
+        credential = await _auth.signInWithEmail(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
       } else {
-        await _auth.registerWithEmail(
+        credential = await _auth.registerWithEmail(
           _emailController.text.trim(),
           _passwordController.text.trim(),
           _nameController.text.trim(),
         );
+      }
+      final user = credential.user;
+      if (user != null && !user.emailVerified) {
+        if (mounted) {
+          setState(() {
+            _error = 'Veuillez vérifier votre email';
+            _unverifiedUser = user;
+          });
+        }
+        return;
       }
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -160,6 +182,26 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _resendVerificationEmail() async {
+    final user = _unverifiedUser;
+    if (user != null) {
+      try {
+        await user.sendEmailVerification();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email de vérification envoyé')),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Envoi de l\'email impossible')),
+          );
+        }
+      }
     }
   }
 }
