@@ -53,6 +53,8 @@ Color accentColor(String name) {
       return const Color(0xFF2563EB); // Primary
     case 'calmPastels':
       return const Color(0xFF8FA6FF); // Primary
+    case 'civFlag':
+      return const Color(0xFFFF7F00); // Primary
     default:
       return const Color(0xFFF5F5F5);
   }
@@ -141,6 +143,8 @@ List<Color> pastelColors(String name, {bool darkMode = false}) {
       return const [Color(0xFFF8FAFC), Color(0xFFFFFFFF)];
     case 'calmPastels':
       return const [Color(0xFFF7F7FB), Color(0xFFFFFFFF)];
+    case 'civFlag':
+      return const [Color(0xFFFFF2E5), Color(0xFFE5FFF1)];
     default:
       final accent = accentColor(name);
       final hsl = HSLColor.fromColor(accent);
@@ -171,6 +175,8 @@ Color complementaryColor(String name) {
       return const Color(0xFF64748B); // Accent
     case 'calmPastels':
       return const Color(0xFFB7E4C7); // Accent
+    case 'civFlag':
+      return const Color(0xFF009E60); // Accent
     default:
       final accent = accentColor(name);
       final hsl = HSLColor.fromColor(accent);
@@ -197,6 +203,8 @@ Color textColorForPalette(String name, {bool darkMode = false}) {
       return const Color(0xFF0F172A);
     case 'calmPastels':
       return const Color(0xFF1F2937);
+    case 'civFlag':
+      return const Color(0xFF0F172A);
     default:
       final colors = pastelColors(name, darkMode: darkMode);
       int r = 0, g = 0, b = 0;
