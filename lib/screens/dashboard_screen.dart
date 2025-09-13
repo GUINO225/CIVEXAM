@@ -7,6 +7,7 @@ import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
 import '../services/user_profile_service.dart';
 import '../models/user_profile.dart';
+import 'profile_edit_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -61,32 +62,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Future<void> _editName() async {
-    final controller = TextEditingController(text: _profile?.nickname ?? '');
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifier le nom'),
-        content: TextField(controller: controller),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Enregistrer')),
-        ],
-      ),
+  Future<void> _openProfileEdit() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
     );
-    if (newName != null && newName.trim().isNotEmpty) {
-      final profile = UserProfile(
-          firstName: _profile?.firstName ?? '',
-          lastName: _profile?.lastName ?? '',
-          nickname: newName.trim(),
-          profession: _profile?.profession ?? '',
-          photoUrl: _profile?.photoUrl ?? '');
-      await _profileService.saveProfile(profile);
-      if (!mounted) return;
+    if (updated == true && mounted) {
       await _load();
     }
   }
@@ -145,9 +125,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: const Icon(Icons.camera_alt),
               tooltip: 'Changer la photo'),
           IconButton(
-              onPressed: _editName,
+              onPressed: _openProfileEdit,
               icon: const Icon(Icons.edit),
-              tooltip: 'Modifier le nom'),
+              tooltip: 'Modifier le profil'),
         ],
       ),
       body: _loading

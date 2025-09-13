@@ -44,7 +44,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Classement'), actions:[
-        IconButton(icon: const Icon(Icons.person), onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen())); }),
+        IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const DashboardScreen()));
+              if (mounted) _load();
+            }),
         IconButton(icon: const Icon(Icons.refresh), onPressed: _load)
       ]),
       body: Column(children: [
