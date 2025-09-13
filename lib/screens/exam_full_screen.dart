@@ -140,6 +140,13 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     return '$m:$ss';
   }
 
+  /// Removes any "Question XX:" prefix from the question text.
+  String _cleanQuestion(String q) {
+    return q.replaceFirst(
+        RegExp(r'^Question\s*\d+[:\.\)]?\s*', caseSensitive: false),
+        '');
+  }
+
   void _onAnswer(int index, int choice) {
     setState(() => answers[index] = choice);
     if (widget.competitionMode) {
@@ -171,7 +178,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: Text(item.question,
+                    child: Text(_cleanQuestion(item.question),
                         style: const TextStyle(fontWeight: FontWeight.w600))),
               ],
             ),
