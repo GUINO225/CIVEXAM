@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
 
@@ -24,17 +24,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _load() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
       return;
     }
-    final entries = await CompetitionService().topEntries(limit: 1000);
-    final index = entries.indexWhere((e) => e.userId == uid);
+    final service = CompetitionService();
+    final entries = await service.topEntries(limit: 1000);
+    var index = entries.indexWhere((e) => e.userId == uid);
+    LeaderboardEntry? entry;
+    int? rank;
+    if (index >= 0) {
+      entry = entries[index];
+      rank = index + 1;
+    } else {
+      entry = await service.entryForUser(uid);
+    }
     if (!mounted) return;
     setState(() {
-      _entry = index >= 0 ? entries[index] : null;
-      _rank = index >= 0 ? index + 1 : null;
+      _entry = entry;
+      _rank = rank;
       _loading = false;
     });
   }
@@ -58,8 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text(
                           'Score : ${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
                       const SizedBox(height: 8),
-                      if (_rank != null)
-                        Text('Classement global : $_rank'),
+                      Text('Classement global : ${_rank ?? 'Non classé'}'),
                     ],
                   ),
                 ),
