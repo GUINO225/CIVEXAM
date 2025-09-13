@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
@@ -16,33 +14,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   LeaderboardEntry? _entry;
   int? _rank;
   bool _loading = true;
-  StreamSubscription<List<LeaderboardEntry>>? _sub;
 
   @override
   void initState() {
     super.initState();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      _loading = false;
-      return;
-    }
-    _sub = CompetitionService()
-        .topEntriesStream(limit: 1000)
-        .listen((entries) {
-      final index = entries.indexWhere((e) => e.userId == uid);
-      if (!mounted) return;
-      setState(() {
-        _entry = index >= 0 ? entries[index] : null;
-        _rank = index >= 0 ? index + 1 : null;
-        _loading = false;
-      });
-    });
+    _load();
   }
 
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
+  Future<void> _load() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _loading = false);
+      return;
+    }
+    final service = CompetitionService();
+    final entries = await service.topEntries(limit: 1000);
+    var index = entries.indexWhere((e) => e.userId == uid);
+    LeaderboardEntry? entry;
+    int? rank;
+    if (index >= 0) {
+      entry = entries[index];
+      rank = index + 1;
+    } else {
+      entry = await service.entryForUser(uid);
+    }
+    if (!mounted) return;
+    setState(() {
+      _entry = entry;
+      _rank = rank;
+      _loading = false;
+    });
   }
 
   @override
@@ -64,8 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text(
                           'Score : ${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
                       const SizedBox(height: 8),
-                      if (_rank != null)
-                        Text('Classement global : $_rank'),
+                      Text('Classement global : ${_rank ?? 'Non classé'}'),
                     ],
                   ),
                 ),
