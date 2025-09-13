@@ -9,12 +9,6 @@ class CompetitionScreen extends StatefulWidget {
   /// List of questions drawn for the competition.
   final List<Question> questions;
 
-  /// Maps question IDs to their global index. Used for display.
-  final Map<String, int> indexMap;
-
-  /// Total size of the question pool.
-  final int poolSize;
-
   /// Number of questions in this session.
   final int drawCount;
 
@@ -42,8 +36,6 @@ class CompetitionScreen extends StatefulWidget {
   CompetitionScreen({
     super.key,
     required this.questions,
-    required this.indexMap,
-    this.poolSize = 500,
     this.drawCount = 20,
     this.timePerQuestion = 5,
     this.currentIndex = 0,
@@ -107,7 +99,6 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final questionIndex = widget.indexMap[_currentQuestion.id] ?? 0;
     final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
     return Scaffold(
       // Global background color comes from the theme.
@@ -161,9 +152,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Question number within the pool.
+                    // Question number within the current session.
                     Text(
-                      'Question $questionIndex/${widget.poolSize}',
+                      'Question ${widget.currentIndex + 1}/${widget.drawCount}',
                       style: theme.questionIndexTextStyle,
                     ),
                     const SizedBox(height: 8),
@@ -266,8 +257,6 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         MaterialPageRoute(
           builder: (_) => CompetitionScreen(
             questions: widget.questions,
-            indexMap: widget.indexMap,
-            poolSize: widget.poolSize,
             drawCount: widget.drawCount,
             timePerQuestion: widget.timePerQuestion,
             currentIndex: widget.currentIndex + 1,
