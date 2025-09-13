@@ -36,7 +36,12 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
   Future<void> _load() async {
     try {
       final all = await QuestionLoader.loadENA();
-      final pool = _filterBy(all, subject: widget.subjectName, chapter: widget.chapterName);
+      final pool = QuestionLoader.filterBy(
+        all,
+        '',
+        subject: widget.subjectName,
+        chapter: widget.chapterName,
+      );
       if (!mounted) return;
       setState(() {
         _pool = pool;
@@ -49,15 +54,6 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         SnackBar(content: Text(e.toString())),
       );
     }
-  }
-
-  List<Question> _filterBy(List<Question> items, {required String subject, required String chapter}) {
-    String norm(String s) => s.toLowerCase().trim();
-    final s0 = norm(subject);
-    final c0 = norm(chapter);
-    final exact = items.where((q) => norm(q.subject) == s0 && norm(q.chapter) == c0).toList(growable: false);
-    if (exact.isNotEmpty) return exact;
-    return items.where((q) => norm(q.subject) == s0).toList(growable: false);
   }
 
   Future<void> _start() async {
