@@ -23,6 +23,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   // Palettes proposées (tons épurés et contrastes soignés)
   static const List<String> _palettes = [
+    'civFlag',
     'navyCyanAmber',
     'indigoPurpleSky',
     'emeraldTealMint',
@@ -34,6 +35,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   ];
 
   static const Map<String, String> _paletteLabels = {
+    'civFlag': 'Orange/Blanc/Vert',
     'navyCyanAmber': 'Navy/Cyan/Ambre',
     'indigoPurpleSky': 'Indigo/Violet/Ciel',
     'emeraldTealMint': 'Émeraude/Teal/Menthe',
