@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
+import '../services/user_profile_service.dart';
+import '../models/user_profile.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,7 +13,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final _profileService = UserProfileService();
   LeaderboardEntry? _entry;
+  UserProfile? _profile;
   int? _rank;
   bool _loading = true;
 
@@ -38,12 +42,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       entry = await service.entryForUser(uid);
     }
+    final profile = await _profileService.loadProfile(uid);
     if (!mounted) return;
     setState(() {
       _entry = entry;
+      _profile = profile;
       _rank = rank;
       _loading = false;
     });
+  }
+
+  Future<void> _editName() async {
+    final controller = TextEditingController(text: _entry?.name ?? '');
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Modifier le nom'),
+        content: TextField(controller: controller),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    if (newName != null && newName.trim().isNotEmpty) {
+      final profile = UserProfile(
+        firstName: _profile?.firstName ?? '',
+        lastName: _profile?.lastName ?? '',
+        nickname: newName.trim(),
+        profession: _profile?.profession ?? '',
+        photoUrl: _profile?.photoUrl ?? '',
+      );
+      await _profileService.saveProfile(profile);
+      if (!mounted) return;
+      await _load();
+    }
   }
 
   @override
@@ -59,8 +96,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Nom : ${_entry!.name}',
-                          style: Theme.of(context).textTheme.titleLarge),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text('Nom : ${_entry!.name}',
+                                style: Theme.of(context).textTheme.titleLarge),
+                          ),
+                          IconButton(
+                              onPressed: _editName,
+                              icon: const Icon(Icons.edit)),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       Text(
                           'Score : ${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
