@@ -6,6 +6,8 @@ import 'package:confetti/confetti.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
+import '../services/user_profile_service.dart';
+import '../models/user_profile.dart';
 
 Future<void> showSaveScoreDialog({
   required BuildContext context,
@@ -17,8 +19,57 @@ Future<void> showSaveScoreDialog({
   // Mode compétition : utilise automatiquement l'utilisateur connecté
   if (mode == 'competition') {
     final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName ?? user?.email ?? 'Joueur';
     final uid = user?.uid ?? '';
+    String name = user?.displayName ?? user?.email ?? 'Joueur';
+
+    // Charge le profil pour récupérer le pseudonyme
+    final profileService = UserProfileService();
+    final profile = uid.isEmpty ? null : await profileService.loadProfile(uid);
+    String nickname = profile?.nickname ?? '';
+
+    // Demande le pseudonyme si absent
+    if (nickname.trim().isEmpty && context.mounted) {
+      final controller = TextEditingController();
+      try {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Votre pseudonyme'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                  labelText: 'Pseudonyme', border: OutlineInputBorder()),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK')),
+            ],
+          ),
+        );
+        nickname = controller.text.trim();
+      } finally {
+        controller.dispose();
+      }
+      if (nickname.isNotEmpty) {
+        final toSave = UserProfile(
+          firstName: profile?.firstName ?? '',
+          lastName: profile?.lastName ?? '',
+          nickname: nickname,
+          profession: profile?.profession ?? '',
+          photoUrl: profile?.photoUrl ?? '',
+        );
+        try {
+          await profileService.saveProfile(toSave);
+        } catch (_) {}
+      }
+    }
+
+    if (nickname.isNotEmpty) {
+      name = nickname;
+    }
+
     final entry = LeaderboardEntry(
       userId: uid,
       name: name,
