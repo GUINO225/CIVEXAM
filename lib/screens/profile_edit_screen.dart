@@ -5,7 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_profile.dart';
+import '../models/leaderboard_entry.dart';
 import '../services/user_profile_service.dart';
+import '../services/leaderboard_store.dart';
+import '../services/competition_service.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -22,6 +25,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _professionController = TextEditingController();
   final _profileService = UserProfileService();
   String? _avatarPath;
+  String? _initialPseudo;
 
   @override
   void initState() {
@@ -37,11 +41,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     setState(() {
       _avatarPath = prefs.getString('avatar_path');
     });
+    _pseudoController.text = prefs.getString('nickname') ?? '';
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       final profile = await _profileService.loadProfile(uid);
-      _pseudoController.text = profile?.nickname ?? '';
+      _pseudoController.text = profile?.nickname ?? _pseudoController.text;
     }
+    _initialPseudo = _pseudoController.text;
   }
 
   @override
@@ -69,6 +75,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await prefs.setString('first_name', _firstNameController.text);
     await prefs.setString('last_name', _lastNameController.text);
     await prefs.setString('profession', _professionController.text);
+    await prefs.setString('nickname', _pseudoController.text);
     if (_avatarPath != null) {
       await prefs.setString('avatar_path', _avatarPath!);
     }
@@ -80,6 +87,50 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       photoUrl: _avatarPath ?? '',
     );
     await _profileService.saveProfile(profile);
+
+    if (_initialPseudo != _pseudoController.text) {
+      final entries = await LeaderboardStore.all();
+      await LeaderboardStore.clear();
+      for (final e in entries) {
+        await LeaderboardStore.add(LeaderboardEntry(
+          userId: e.userId,
+          name: _pseudoController.text,
+          mode: e.mode,
+          subject: e.subject,
+          chapter: e.chapter,
+          total: e.total,
+          correct: e.correct,
+          wrong: e.wrong,
+          blank: e.blank,
+          durationSec: e.durationSec,
+          percent: e.percent,
+          dateIso: e.dateIso,
+        ));
+      }
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final compService = CompetitionService();
+        final entry = await compService.entryForUser(uid);
+        if (entry != null) {
+          final updatedEntry = LeaderboardEntry(
+            userId: entry.userId,
+            name: _pseudoController.text,
+            mode: entry.mode,
+            subject: entry.subject,
+            chapter: entry.chapter,
+            total: entry.total,
+            correct: entry.correct,
+            wrong: entry.wrong,
+            blank: entry.blank,
+            durationSec: entry.durationSec,
+            percent: entry.percent,
+            dateIso: entry.dateIso,
+          );
+          await compService.saveEntry(updatedEntry);
+        }
+      }
+    }
+
     if (!mounted) return;
     Navigator.pop(context, true);
   }
