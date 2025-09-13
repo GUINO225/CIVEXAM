@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
 import '../services/user_profile_service.dart';
@@ -83,6 +86,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Galerie'),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Caméra'),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
+        ],
+      ),
+    );
+    if (source == null) return;
+
+    final file = await picker.pickImage(source: source, maxWidth: 600);
+    if (file == null) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final ref = FirebaseStorage.instance.ref('profiles/$uid.jpg');
+    await ref.putFile(File(file.path));
+    final url = await ref.getDownloadURL();
+
+    final profile = UserProfile(
+      firstName: _profile?.firstName ?? '',
+      lastName: _profile?.lastName ?? '',
+      nickname: _profile?.nickname ?? _entry?.name ?? '',
+      profession: _profile?.profession ?? '',
+      photoUrl: url,
+    );
+    await _profileService.saveProfile(profile);
+    if (!mounted) return;
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,6 +145,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Row(
                         children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage:
+                                _profile?.photoUrl.isNotEmpty == true
+                                    ? NetworkImage(_profile!.photoUrl)
+                                    : null,
+                            child: _profile?.photoUrl.isNotEmpty == true
+                                ? null
+                                : const Icon(Icons.person),
+                          ),
+                          IconButton(
+                              onPressed: _pickPhoto,
+                              icon: const Icon(Icons.camera_alt)),
                           Expanded(
                             child: Text('Nom : ${_entry!.name}',
                                 style: Theme.of(context).textTheme.titleLarge),
