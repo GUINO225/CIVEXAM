@@ -19,6 +19,8 @@ dependencies:
     path: third_party/flutter_windowmanager
   device_info_plus: ^10.0.0
   confetti: ^0.7.0
+  image_picker: ^1.0.7
+  firebase_storage: ^11.2.6
 
 dev_dependencies:
   flutter_test:
