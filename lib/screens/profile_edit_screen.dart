@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/user_profile.dart';
+import '../services/user_profile_service.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -18,6 +20,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _lastNameController = TextEditingController();
   final _pseudoController = TextEditingController();
   final _professionController = TextEditingController();
+  final _profileService = UserProfileService();
   String? _avatarPath;
 
   @override
@@ -30,11 +33,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final prefs = await SharedPreferences.getInstance();
     _firstNameController.text = prefs.getString('first_name') ?? '';
     _lastNameController.text = prefs.getString('last_name') ?? '';
-    _pseudoController.text = prefs.getString('pseudo') ?? '';
     _professionController.text = prefs.getString('profession') ?? '';
     setState(() {
       _avatarPath = prefs.getString('avatar_path');
     });
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final profile = await _profileService.loadProfile(uid);
+      _pseudoController.text = profile?.nickname ?? '';
+    }
   }
 
   @override
@@ -61,14 +68,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('first_name', _firstNameController.text);
     await prefs.setString('last_name', _lastNameController.text);
-    await prefs.setString('pseudo', _pseudoController.text);
     await prefs.setString('profession', _professionController.text);
     if (_avatarPath != null) {
       await prefs.setString('avatar_path', _avatarPath!);
     }
+    final profile = UserProfile(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      nickname: _pseudoController.text,
+      profession: _professionController.text,
+      photoUrl: _avatarPath ?? '',
+    );
+    await _profileService.saveProfile(profile);
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Profil enregistré')));
+    Navigator.pop(context, true);
   }
 
   void _showChangePasswordDialog() {
