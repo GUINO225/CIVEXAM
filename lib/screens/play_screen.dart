@@ -6,6 +6,7 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
 
 import 'training_quick_start.dart';
