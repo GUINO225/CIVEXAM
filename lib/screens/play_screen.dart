@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
+import '../widgets/adaptive_text.dart';
 
 import 'training_quick_start.dart';
 import 'official_intro_screen.dart';
@@ -42,7 +43,9 @@ class _PlayScreenState extends State<PlayScreen> {
             : 'Bienvenue 👋  •  Choisis un mode';
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
-        final gradientColors = playIconColors(cfg.bgPaletteName);
+        final badgeColors = playIconColors(cfg.bgPaletteName);
+        final bgColor =
+            pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
         return Scaffold(
           extendBody: true,
@@ -121,18 +124,18 @@ class _PlayScreenState extends State<PlayScreen> {
                                 size: cfg.tileIconSize,
                                 useMono: cfg.useMono,
                                 monoColor: cfg.monoColor,
-                                gradientColors: gradientColors,
+                                gradientColors: badgeColors,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(
+                                child: AdaptiveText(
                                   welcomeText,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  backgroundColor: bgColor,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: textColor,
                                   ),
                                 ),
                               ),
@@ -153,10 +156,11 @@ class _PlayScreenState extends State<PlayScreen> {
                       itemCount: _items.length,
                       itemBuilder: (context, i) {
                         final item = _items[i];
+                        final iconColors = playIconColors(item.palette);
                         return GlassTile(
                           title: item.title,
                           icon: item.icon,
-                          gradientColors: gradientColors,
+                          gradientColors: iconColors,
                           blur: cfg.glassBlur,
                           bgOpacity: cfg.glassBgOpacity,
                           borderOpacity: cfg.glassBorderOpacity,
@@ -283,16 +287,17 @@ class _IconBadge extends StatelessWidget {
 class _MenuItem {
   final String title;
   final IconData icon;
-  const _MenuItem(this.title, this.icon);
+  final String palette;
+  const _MenuItem(this.title, this.icon, this.palette);
 }
 
 const _items = <_MenuItem>[
-  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded),
-  _MenuItem('Concours ENA', Icons.school_rounded),
-  _MenuItem('Par matière', Icons.menu_book_rounded),
-  _MenuItem('Historique examens', Icons.fact_check_rounded),
-  _MenuItem("Historique entraînement", Icons.history_rounded),
-  _MenuItem('Comment ça marche ?', Icons.info_rounded),
-  _MenuItem('Compétition', Icons.sports_kabaddi),
-  _MenuItem('Classement', Icons.emoji_events_outlined),
+  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded, 'mintTurquoise'),
+  _MenuItem('Concours ENA', Icons.school_rounded, 'violetRose'),
+  _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue'),
+  _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
+  _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow'),
+  _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),
+  _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen'),
+  _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet'),
 ];
