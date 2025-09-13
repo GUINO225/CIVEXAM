@@ -133,7 +133,15 @@ Future<void> showSaveScoreDialog({
 
   final prefs = await SharedPreferences.getInstance();
   if (!context.mounted) return;
-  final savedName = prefs.getString('player_name') ?? 'Joueur';
+  final user = FirebaseAuth.instance.currentUser;
+  String savedName = 'Joueur';
+  if (user != null) {
+    final profile = await UserProfileService().loadProfile(user.uid);
+    savedName = profile?.nickname ?? 'Joueur';
+    await prefs.setString('nickname', savedName);
+  } else {
+    savedName = prefs.getString('nickname') ?? 'Joueur';
+  }
   final controller = TextEditingController(text: savedName);
   bool? submit;
   String name = savedName;
@@ -170,7 +178,7 @@ Future<void> showSaveScoreDialog({
   if (submit == true) {
     final sanitizedName =
         name.trim().isEmpty ? 'Joueur' : name.trim();
-    await prefs.setString('player_name', sanitizedName);
+    await prefs.setString('nickname', sanitizedName);
     final entry = LeaderboardEntry(
       userId: '',
       name: sanitizedName,
