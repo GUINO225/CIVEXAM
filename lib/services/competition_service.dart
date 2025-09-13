@@ -8,7 +8,11 @@ import '../models/leaderboard_entry.dart';
 /// et permet de récupérer un classement trié par pourcentage décroissant,
 /// puis par durée croissante.
 class CompetitionService {
-  final _col = FirebaseFirestore.instance.collection('competition_scores');
+  final CollectionReference<Map<String, dynamic>> _col;
+
+  CompetitionService({CollectionReference<Map<String, dynamic>>? col})
+      : _col = col ??
+            FirebaseFirestore.instance.collection('competition_scores');
 
   /// Sauvegarde ou met à jour un résultat de compétition pour l'utilisateur.
   Future<void> saveEntry(LeaderboardEntry entry) async {
@@ -22,6 +26,9 @@ class CompetitionService {
   }
 
   /// Récupère les meilleurs résultats (max 100 par défaut).
+  ///
+  /// En cas d'erreur (par exemple réseau), l'exception est relancée afin
+  /// que l'appelant puisse l'intercepter et afficher un message adapté.
   Future<List<LeaderboardEntry>> topEntries({int limit = 100}) async {
     try {
       final snap = await _col
@@ -33,7 +40,7 @@ class CompetitionService {
           .map((d) => LeaderboardEntry.fromJson(d.data()))
           .toList();
     } catch (e) {
-      return [];
+      rethrow;
     }
   }
 

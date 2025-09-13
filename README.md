@@ -42,3 +42,11 @@ l'utilisateur. Une connexion anonyme n'est effectuée que si la préférence
 
 Si cette préférence vaut `false`, l'application ne se connecte pas
 automatiquement et l'écran de connexion est affiché.
+
+## Gestion des erreurs réseau
+
+Le service `CompetitionService.topEntries()` relance désormais les
+exceptions afin que l'interface puisse détecter un problème de
+connexion. Par exemple, `DashboardScreen` affiche un `SnackBar` et un
+message d'erreur spécifique lorsque le chargement du classement
+échoue.
