@@ -34,18 +34,6 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     'calmPastels',
   ];
 
-  static const Map<String, String> _paletteLabels = {
-    'civFlag': 'Orange/Blanc/Vert',
-    'navyCyanAmber': 'Navy/Cyan/Ambre',
-    'indigoPurpleSky': 'Indigo/Violet/Ciel',
-    'emeraldTealMint': 'Émeraude/Teal/Menthe',
-    'royalBlueGold': 'Bleu royal/Or doux',
-    'charcoalElectric': 'Charbon/Bleu élect.',
-    'forestSandTerracotta': 'Forêt/Sable/Terre cuite',
-    'cobaltLimeSlate': 'Cobalt/Lime/Ardoise',
-    'calmPastels': 'Pastels calmes',
-  };
-
   @override
   void initState() {
     super.initState();
@@ -220,23 +208,22 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   Widget _colorChoice(String name) {
     final color = accentColor(name);
     final selected = _cfg.bgPaletteName == name;
-    final label = _paletteLabels[name] ?? name;
-    final labelStyle = TextStyle(fontSize: 12, color: onColor(color));
 
-    return GestureDetector(
-      onTap: () {
-        final updated = _cfg.useMono
-            ? _cfg.copyWith(
-                bgPaletteName: name,
-                monoColor: complementaryColor(name),
-              )
-            : _cfg.copyWith(bgPaletteName: name);
-        _apply(updated);
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
+    return Semantics(
+      label: name,
+      selected: selected,
+      child: GestureDetector(
+        onTap: () {
+          final updated = _cfg.useMono
+              ? _cfg.copyWith(
+                  bgPaletteName: name,
+                  monoColor: complementaryColor(name),
+                )
+              : _cfg.copyWith(bgPaletteName: name);
+          _apply(updated);
+        },
+        child: Center(
+          child: Stack(
             alignment: Alignment.center,
             children: [
               Container(
@@ -254,9 +241,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               if (selected) Icon(Icons.check, color: onColor(color)),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(label, style: labelStyle, textAlign: TextAlign.center),
-        ],
+        ),
       ),
     );
   }
