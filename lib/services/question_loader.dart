@@ -10,13 +10,24 @@
 // -----------------------------------------------------------------------------
 
 import 'dart:convert';
+import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
 
-String _norm(String s) => s.toLowerCase().trim();
+String _norm(String s) {
+  final base = removeDiacritics(s)
+      .toLowerCase()
+      .replaceAll(RegExp(r"[’`´‘]"), "'")
+      .trim();
+  const aliases = {
+    'culture generale': 'culture générale',
+  };
+  return aliases[base] ?? base;
+}
 
 class QuestionLoader {
+  static String canon(String s) => _norm(s);
   /// Tente de charger la banque principale puis, en fallback, un échantillon.
   static Future<List<Question>> loadENA() async {
     final paths = <String>[

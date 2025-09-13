@@ -53,25 +53,24 @@ int? secondsPerQuestion(ExamDifficulty d) {
   }
 }
 
-String _norm(String s) => s.toLowerCase().trim();
-
 List<Question> _filterQuestions(List<Question> all, String subject, String chapter) {
-  final s0 = _norm(subject);
-  final c0 = _norm(chapter);
+  final s0 = QuestionLoader.canon(subject);
+  final c0 = QuestionLoader.canon(chapter);
   final subjectAliases = {
-    'droit (ohada)': 'droit constitutionnel',
-    'logique': 'organisation & logique',
+    QuestionLoader.canon('droit (ohada)'): QuestionLoader.canon('droit constitutionnel'),
+    QuestionLoader.canon('logique'): QuestionLoader.canon('organisation & logique'),
   };
   final chapterAliases = {
-    'institutions': 'institutions & principes',
-    'geographie de la ci': 'côte d’ivoire',
-    'geographie de la côte d’ivoire': 'côte d’ivoire',
+    QuestionLoader.canon('institutions'): QuestionLoader.canon('institutions & principes'),
+    QuestionLoader.canon('geographie de la ci'): QuestionLoader.canon("côte d’Ivoire"),
+    QuestionLoader.canon('geographie de la côte d’ivoire'): QuestionLoader.canon("côte d’Ivoire"),
   };
   final s = subjectAliases[s0] ?? s0;
   final c = chapterAliases[c0] ?? c0;
-  final exact = all.where((q) => _norm(q.subject) == s && _norm(q.chapter) == c).toList(growable: false);
+  final exact =
+      all.where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c).toList(growable: false);
   if (exact.isNotEmpty) return exact;
-  final bySubject = all.where((q) => _norm(q.subject) == s).toList(growable: false);
+  final bySubject = all.where((q) => QuestionLoader.canon(q.subject) == s).toList(growable: false);
   return bySubject;
 }
 
