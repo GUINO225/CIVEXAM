@@ -45,7 +45,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       entry = await service.entryForUser(uid);
     }
-    final profile = await _profileService.loadProfile(uid);
+    var profile = await _profileService.loadProfile(uid);
+    profile ??= UserProfile(
+        firstName: '',
+        lastName: '',
+        nickname: entry?.name ?? '',
+        profession: '',
+        photoUrl: '');
     if (!mounted) return;
     setState(() {
       _entry = entry;
@@ -56,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _editName() async {
-    final controller = TextEditingController(text: _entry?.name ?? '');
+    final controller = TextEditingController(text: _profile?.nickname ?? '');
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -74,12 +80,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     if (newName != null && newName.trim().isNotEmpty) {
       final profile = UserProfile(
-        firstName: _profile?.firstName ?? '',
-        lastName: _profile?.lastName ?? '',
-        nickname: newName.trim(),
-        profession: _profile?.profession ?? '',
-        photoUrl: _profile?.photoUrl ?? '',
-      );
+          firstName: _profile?.firstName ?? '',
+          lastName: _profile?.lastName ?? '',
+          nickname: newName.trim(),
+          profession: _profile?.profession ?? '',
+          photoUrl: _profile?.photoUrl ?? '');
       await _profileService.saveProfile(profile);
       if (!mounted) return;
       await _load();
@@ -119,12 +124,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final url = await ref.getDownloadURL();
 
     final profile = UserProfile(
-      firstName: _profile?.firstName ?? '',
-      lastName: _profile?.lastName ?? '',
-      nickname: _profile?.nickname ?? _entry?.name ?? '',
-      profession: _profile?.profession ?? '',
-      photoUrl: url,
-    );
+        firstName: _profile?.firstName ?? '',
+        lastName: _profile?.lastName ?? '',
+        nickname: _profile?.nickname ?? '',
+        profession: _profile?.profession ?? '',
+        photoUrl: url);
     await _profileService.saveProfile(profile);
     if (!mounted) return;
     await _load();
@@ -159,14 +163,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               onPressed: _pickPhoto,
                               icon: const Icon(Icons.camera_alt)),
                           Expanded(
-                            child: Text('Nom : ${_entry!.name}',
-                                style: Theme.of(context).textTheme.titleLarge),
-                          ),
+                              child: Text(
+                                  'Pseudo : ${_profile?.nickname ?? ''}',
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge)),
                           IconButton(
                               onPressed: _editName,
                               icon: const Icon(Icons.edit)),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      Text('Prénom : ${_profile?.firstName ?? ''}'),
+                      Text('Nom : ${_profile?.lastName ?? ''}'),
+                      Text('Profession : ${_profile?.profession ?? ''}'),
                       const SizedBox(height: 8),
                       Text(
                           'Score : ${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
