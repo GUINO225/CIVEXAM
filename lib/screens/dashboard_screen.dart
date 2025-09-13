@@ -137,7 +137,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mon dashboard')),
+      appBar: AppBar(
+        title: const Text('Mon dashboard'),
+        actions: [
+          IconButton(
+              onPressed: _pickPhoto,
+              icon: const Icon(Icons.camera_alt),
+              tooltip: 'Changer la photo'),
+          IconButton(
+              onPressed: _editName,
+              icon: const Icon(Icons.edit),
+              tooltip: 'Modifier le nom'),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _entry == null
@@ -159,17 +171,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ? null
                                 : const Icon(Icons.person),
                           ),
-                          IconButton(
-                              onPressed: _pickPhoto,
-                              icon: const Icon(Icons.camera_alt)),
                           Expanded(
                               child: Text(
                                   'Pseudo : ${_profile?.nickname ?? ''}',
                                   style:
                                       Theme.of(context).textTheme.titleLarge)),
-                          IconButton(
-                              onPressed: _editName,
-                              icon: const Icon(Icons.edit)),
                         ],
                       ),
                       const SizedBox(height: 8),
