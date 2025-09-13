@@ -37,6 +37,17 @@ class CompetitionService {
     }
   }
 
+  /// Récupère le résultat d'un utilisateur spécifique.
+  Future<LeaderboardEntry?> entryForUser(String userId) async {
+    try {
+      final doc = await _col.doc(userId).get();
+      if (!doc.exists) return null;
+      return LeaderboardEntry.fromJson(doc.data()!);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Retourne un flux des meilleurs résultats (max 100 par défaut).
   Stream<List<LeaderboardEntry>> topEntriesStream({int limit = 100}) {
     return _col
