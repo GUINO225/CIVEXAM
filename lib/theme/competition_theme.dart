@@ -5,6 +5,8 @@
 /// be modified as needed.
 import 'package:flutter/material.dart';
 
+import '../utils/palette_utils.dart';
+
 @immutable
 class CompetitionTheme {
   /// Background color of the whole screen.
@@ -98,6 +100,7 @@ class CompetitionTheme {
   factory CompetitionTheme.fromTheme(ThemeData theme) {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final onCard = onColor(theme.cardColor);
     return CompetitionTheme(
       backgroundColor: theme.scaffoldBackgroundColor,
       questionCardColor: theme.cardColor,
@@ -106,20 +109,19 @@ class CompetitionTheme {
       progressBarColor: scheme.primary,
       timerColor: scheme.primary,
       timerContainerColor: theme.cardColor,
-      timerTextStyle:
-          textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) ??
-              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      questionIndexTextStyle: textTheme.bodySmall ?? const TextStyle(),
-      questionTextStyle:
-          textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
-              const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      optionTextStyle: textTheme.bodyMedium ??
-          const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      selectedChipTextStyle: textTheme.bodyMedium?.copyWith(
-            color: scheme.onPrimary,
-            fontWeight: FontWeight.w600,
-          ) ??
-          const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      timerTextStyle: (textTheme.titleLarge ?? const TextStyle(fontSize: 24))
+          .copyWith(fontWeight: FontWeight.bold, color: onCard),
+      questionIndexTextStyle:
+          (textTheme.bodySmall ?? const TextStyle()).copyWith(color: onCard.withOpacity(0.7)),
+      questionTextStyle: (textTheme.titleMedium ??
+              const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+          .copyWith(fontWeight: FontWeight.bold, color: onCard),
+      optionTextStyle: (textTheme.bodyMedium ??
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))
+          .copyWith(color: onCard),
+      selectedChipTextStyle: (textTheme.bodyMedium ??
+              const TextStyle(fontWeight: FontWeight.w600))
+          .copyWith(color: scheme.onPrimary, fontWeight: FontWeight.w600),
       selectedChipBackgroundColor: scheme.primary,
     );
   }
