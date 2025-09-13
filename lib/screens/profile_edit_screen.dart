@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -70,6 +71,77 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         .showSnackBar(const SnackBar(content: Text('Profil enregistré')));
   }
 
+  void _showChangePasswordDialog() {
+    final oldController = TextEditingController();
+    final newController = TextEditingController();
+    final outerContext = context;
+    showDialog(
+      context: outerContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Changer le mot de passe'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldController,
+                decoration:
+                    const InputDecoration(labelText: 'Ancien mot de passe'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: newController,
+                decoration:
+                    const InputDecoration(labelText: 'Nouveau mot de passe'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null || user.email == null) {
+                  Navigator.of(dialogContext).pop();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
+                      const SnackBar(content: Text('Utilisateur non connecté')));
+                  return;
+                }
+                try {
+                  final cred = EmailAuthProvider.credential(
+                    email: user.email!,
+                    password: oldController.text,
+                  );
+                  await user.reauthenticateWithCredential(cred);
+                  await user.updatePassword(newController.text);
+                  Navigator.of(dialogContext).pop();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
+                      const SnackBar(content: Text('Mot de passe mis à jour')));
+                } on FirebaseAuthException catch (e) {
+                  Navigator.of(dialogContext).pop();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
+                    SnackBar(
+                      content: Text(e.message ??
+                          'Erreur lors du changement de mot de passe'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirmer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,6 +189,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ElevatedButton(
                 onPressed: _save,
                 child: const Text('Enregistrer'),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _showChangePasswordDialog,
+                child: const Text('Changer le mot de passe'),
               ),
             ],
           ),
