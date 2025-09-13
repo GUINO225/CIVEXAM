@@ -1,7 +1,12 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
+import '../services/user_profile_service.dart';
+import '../models/user_profile.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,7 +16,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final _profileService = UserProfileService();
   LeaderboardEntry? _entry;
+  UserProfile? _profile;
   int? _rank;
   bool _loading = true;
 
@@ -38,18 +45,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       entry = await service.entryForUser(uid);
     }
+    var profile = await _profileService.loadProfile(uid);
+    profile ??= UserProfile(
+        firstName: '',
+        lastName: '',
+        nickname: entry?.name ?? '',
+        profession: '',
+        photoUrl: '');
     if (!mounted) return;
     setState(() {
       _entry = entry;
+      _profile = profile;
       _rank = rank;
       _loading = false;
     });
   }
 
+  Future<void> _editName() async {
+    final controller = TextEditingController(text: _profile?.nickname ?? '');
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Modifier le nom'),
+        content: TextField(controller: controller),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    if (newName != null && newName.trim().isNotEmpty) {
+      final profile = UserProfile(
+          firstName: _profile?.firstName ?? '',
+          lastName: _profile?.lastName ?? '',
+          nickname: newName.trim(),
+          profession: _profile?.profession ?? '',
+          photoUrl: _profile?.photoUrl ?? '');
+      await _profileService.saveProfile(profile);
+      if (!mounted) return;
+      await _load();
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Galerie'),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Caméra'),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
+        ],
+      ),
+    );
+    if (source == null) return;
+
+    final file = await picker.pickImage(source: source, maxWidth: 600);
+    if (file == null) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final ref = FirebaseStorage.instance.ref('profiles/$uid.jpg');
+    await ref.putFile(File(file.path));
+    final url = await ref.getDownloadURL();
+
+    final profile = UserProfile(
+        firstName: _profile?.firstName ?? '',
+        lastName: _profile?.lastName ?? '',
+        nickname: _profile?.nickname ?? '',
+        profession: _profile?.profession ?? '',
+        photoUrl: url);
+    await _profileService.saveProfile(profile);
+    if (!mounted) return;
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mon dashboard')),
+      appBar: AppBar(
+        title: const Text('Mon dashboard'),
+        actions: [
+          IconButton(
+              onPressed: _pickPhoto,
+              icon: const Icon(Icons.camera_alt),
+              tooltip: 'Changer la photo'),
+          IconButton(
+              onPressed: _editName,
+              icon: const Icon(Icons.edit),
+              tooltip: 'Modifier le nom'),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _entry == null
@@ -59,8 +159,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Nom : ${_entry!.name}',
-                          style: Theme.of(context).textTheme.titleLarge),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage:
+                                _profile?.photoUrl.isNotEmpty == true
+                                    ? NetworkImage(_profile!.photoUrl)
+                                    : null,
+                            child: _profile?.photoUrl.isNotEmpty == true
+                                ? null
+                                : const Icon(Icons.person),
+                          ),
+                          Expanded(
+                              child: Text(
+                                  'Pseudo : ${_profile?.nickname ?? ''}',
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Prénom : ${_profile?.firstName ?? ''}'),
+                      Text('Nom : ${_profile?.lastName ?? ''}'),
+                      Text('Profession : ${_profile?.profession ?? ''}'),
                       const SizedBox(height: 8),
                       Text(
                           'Score : ${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
