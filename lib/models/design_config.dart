@@ -42,7 +42,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'navyCyanAmber',
+    this.bgPaletteName = 'civFlag',
     this.waveEnabled = true,
     this.bgGradient = true,
     this.darkMode = false,
@@ -115,7 +115,7 @@ class DesignConfig {
     final double tileSize = _toDouble(map['tileIconSize'], svgSize);
 
     return DesignConfig(
-      bgPaletteName: map['bgPaletteName'] ?? 'sereneBlue',
+      bgPaletteName: map['bgPaletteName'] ?? 'civFlag',
       waveEnabled: _toBool(map, 'waveEnabled', true),
       bgGradient: _toBool(map, 'bgGradient', true),
       glassBlur: _toDouble(map['glassBlur'], 18.0),
