@@ -36,4 +36,15 @@ class CompetitionService {
       return [];
     }
   }
+
+  /// Retourne un flux des meilleurs résultats (max 100 par défaut).
+  Stream<List<LeaderboardEntry>> topEntriesStream({int limit = 100}) {
+    return _col
+        .orderBy('percent', descending: true)
+        .orderBy('durationSec')
+        .limit(limit)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => LeaderboardEntry.fromJson(d.data())).toList());
+  }
 }
