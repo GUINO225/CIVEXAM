@@ -69,10 +69,7 @@ List<Question> _filterQuestions(List<Question> all, String subject, String chapt
   };
   final s = subjectAliases[s0] ?? s0;
   final c = chapterAliases[c0] ?? c0;
-  final exact = all.where((q) => _norm(q.subject) == s && _norm(q.chapter) == c).toList(growable: false);
-  if (exact.isNotEmpty) return exact;
-  final bySubject = all.where((q) => _norm(q.subject) == s).toList(growable: false);
-  return bySubject;
+  return QuestionLoader.bySubjectChapter(all, subject: s, chapter: c);
 }
 
 class ExamSection {

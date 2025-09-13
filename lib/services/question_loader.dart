@@ -135,15 +135,19 @@ class QuestionLoader {
   // Helpers de filtrage
   // ----------------------
 
-  /// Filtre par matière/chapter (valeurs pleines). Renvoie une nouvelle liste.
-  static List<Question> whereSubjectChapter(
+  /// Filtre par matière et module. Si aucun module ne correspond, renvoie
+  /// toutes les questions de la matière.
+  static List<Question> bySubjectChapter(
     List<Question> all, {
     required String subject,
     required String chapter,
   }) {
     final s = _norm(subject);
     final c = _norm(chapter);
-    return all.where((q) => _norm(q.subject) == s && _norm(q.chapter) == c).toList(growable: false);
+    final exact =
+        all.where((q) => _norm(q.subject) == s && _norm(q.chapter) == c).toList(growable: false);
+    if (exact.isNotEmpty) return exact;
+    return all.where((q) => _norm(q.subject) == s).toList(growable: false);
   }
 
   /// Filtre par texte « value » à l'intérieur de l'intitulé + matière + chapitre.
