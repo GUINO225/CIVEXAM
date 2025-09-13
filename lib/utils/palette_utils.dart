@@ -136,7 +136,7 @@ List<Color> pastelColors(String name, {bool darkMode = false}) {
     case 'royalBlueGold':
       return const [Color(0xFFFFFFFF), Color(0xFFF6F8FF)];
     case 'charcoalElectric':
-      return const [Color(0xFF0B1220), Color(0xFF0F172A)];
+      return const [Color(0xFFBFDBFE), Color(0xFFDBEAFE)];
     case 'forestSandTerracotta':
       return const [Color(0xFFFFF8F1), Color(0xFFFFFFFF)];
     case 'cobaltLimeSlate':
@@ -196,7 +196,7 @@ Color textColorForPalette(String name, {bool darkMode = false}) {
     case 'royalBlueGold':
       return const Color(0xFF0F172A);
     case 'charcoalElectric':
-      return const Color(0xFFE5E7EB);
+      return const Color(0xFF0F172A);
     case 'forestSandTerracotta':
       return const Color(0xFF1F2937);
     case 'cobaltLimeSlate':
