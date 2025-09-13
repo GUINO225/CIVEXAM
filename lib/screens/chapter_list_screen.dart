@@ -52,12 +52,13 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
   }
 
   List<Question> _filterBy(List<Question> items, {required String subject, required String chapter}) {
-    String norm(String s) => s.toLowerCase().trim();
-    final s0 = norm(subject);
-    final c0 = norm(chapter);
-    final exact = items.where((q) => norm(q.subject) == s0 && norm(q.chapter) == c0).toList(growable: false);
+    final s0 = QuestionLoader.canon(subject);
+    final c0 = QuestionLoader.canon(chapter);
+    final exact = items
+        .where((q) => QuestionLoader.canon(q.subject) == s0 && QuestionLoader.canon(q.chapter) == c0)
+        .toList(growable: false);
     if (exact.isNotEmpty) return exact;
-    return items.where((q) => norm(q.subject) == s0).toList(growable: false);
+    return items.where((q) => QuestionLoader.canon(q.subject) == s0).toList(growable: false);
   }
 
   Future<void> _start() async {
