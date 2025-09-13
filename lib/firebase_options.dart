@@ -27,18 +27,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDWgRCw51mY8n4ZiX257UlEVxG9F_1D9ac',
-    appId: '1:339452590323:web:8157ff3781f38b4b0b9f86',
-    messagingSenderId: '339452590323',
-    projectId: 'civexam-bf521',
+    apiKey: 'AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q',
+    appId: '1:522640251078:web:8157ff3781f38b4b0b9f86',
+    messagingSenderId: '522640251078',
+    projectId: 'civexam-54e17',
+    storageBucket: 'civexam-54e17.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDWgRCw51mY8n4ZiX257UlEVxG9F_1D9ac',
-    appId: '1:339452590323:android:8157ff3781f38b4b0b9f86',
-    messagingSenderId: '339452590323',
-    projectId: 'civexam-bf521',
-    storageBucket: 'civexam-bf521.firebasestorage.app',
+    apiKey: 'AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q',
+    appId: '1:522640251078:android:c59b78f08fbdde5870dfc7',
+    messagingSenderId: '522640251078',
+    projectId: 'civexam-54e17',
+    storageBucket: 'civexam-54e17.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
