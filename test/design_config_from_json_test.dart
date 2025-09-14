@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:civexam_app/models/design_config.dart';
+import 'package:civexam_pro/models/design_config.dart';
 
 void main() {
   test('fromJson ignores non-bool values', () {

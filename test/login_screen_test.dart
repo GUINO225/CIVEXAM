@@ -1,6 +1,6 @@
-import 'package:civexam_app/firebase_options.dart';
-import 'package:civexam_app/screens/login_screen.dart';
-import 'package:civexam_app/widgets/primary_button.dart';
+import 'package:civexam_pro/firebase_options.dart';
+import 'package:civexam_pro/screens/login_screen.dart';
+import 'package:civexam_pro/widgets/primary_button.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

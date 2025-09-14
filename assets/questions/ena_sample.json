@@ -1,0 +1,50 @@
+[
+  {
+    "id": "CG-CI-00",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quelle est la capitale économique de la Côte d’Ivoire ?",
+    "choices": [
+      "Yamoussoukro",
+      "Bouaké",
+      "Abidjan",
+      "San-Pédro"
+    ],
+    "answerIndex": 2,
+    "explanation": "Abidjan est la capitale économique du pays."
+  },
+  {
+    "id": "DC-IP-00",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "Quel organe assure la fonction législative ?",
+    "choices": [
+      "Le gouvernement",
+      "Le parlement",
+      "Le conseil constitutionnel",
+      "Le président"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le parlement exerce le pouvoir législatif."
+  },
+  {
+    "id": "AN-BP-00",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Combien font 2 + 2 ?",
+    "choices": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answerIndex": 1,
+    "explanation": "2 + 2 = 4."
+  }
+]
