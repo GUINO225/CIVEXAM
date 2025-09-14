@@ -10,6 +10,7 @@
 // -----------------------------------------------------------------------------
 
 import 'dart:convert';
+import 'dart:developer' show log;
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -53,8 +54,7 @@ class QuestionLoader {
         if (i == 0 && out.length < ExamBlueprint.totalTarget) {
           final msg =
               'Warning: bank $path has only ${out.length} questions (expected ${ExamBlueprint.totalTarget}).';
-          // ignore: avoid_print
-          print(msg);
+          log(msg);
         }
 
         // OK
@@ -63,10 +63,9 @@ class QuestionLoader {
         return out;
       } catch (e) {
         final msg = 'Failed to load ENA questions from $path: $e';
-        // Utilise `print` pour logger aussi en production
+        // Utilise `log` pour logger aussi en production
         // et conserver le détail du chemin et de l'exception.
-        // ignore: avoid_print
-        print(msg);
+        log(msg);
         errors.add(msg);
         // on passe au fichier suivant
       }
