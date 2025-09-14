@@ -12,8 +12,19 @@ class Chapter {
   const Chapter(this.name);
 }
 
-/// Liste dynamique des matières ENA (remplie à partir du JSON).
-List<Subject> subjectsENA = const <Subject>[];
+/// Liste des matières ENA.
+///
+/// Par défaut, elle contient les six modules officiels avec un chapitre
+/// initial chacun. Cette liste peut ensuite être reconstruite dynamiquement
+/// via [buildSubjectsENA] lorsque les questions sont chargées depuis le JSON.
+List<Subject> subjectsENA = const <Subject>[
+  Subject('Culture Générale', [Chapter("Côte d'Ivoire")]),
+  Subject('Droit Constitutionnel', [Chapter('Institutions & principes')]),
+  Subject('Problèmes Économiques & Sociaux', [Chapter('Notions clés')]),
+  Subject('Aptitude Numérique', [Chapter('Bases & proportionnalité')]),
+  Subject('Aptitude Verbale', [Chapter('Vocabulaire & règles')]),
+  Subject('Organisation & Logique', [Chapter('Classements & déductions')]),
+];
 
 String _canon(String s) {
   return removeDiacritics(s)
