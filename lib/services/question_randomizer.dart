@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 import 'dart:math';
 import '../models/question.dart';
+import 'question_history_store.dart';
 
 final _rng = Random();
 
@@ -37,10 +38,15 @@ Question shuffleChoices(Question q, {Random? rng}) {
 
 /// Sélectionne jusqu'à `take` questions **au hasard**, puis mélange l'ordre
 /// des questions et des choix.
-List<Question> pickAndShuffle(List<Question> pool, int take, {Random? rng}) {
+Future<List<Question>> pickAndShuffle(List<Question> pool, int take, {Random? rng}) async {
   final r = rng ?? _rng;
   if (pool.isEmpty) return const <Question>[];
-  final copy = List<Question>.from(pool)..shuffle(r);
+
+  // Remove questions already seen according to the history store.
+  final history = await QuestionHistoryStore.load();
+  final filtered = pool.where((q) => !history.contains(q.id)).toList();
+
+  final copy = List<Question>.from(filtered)..shuffle(r);
   final n = take <= copy.length ? take : copy.length;
   final selected = copy.take(n).map((q) => shuffleChoices(q, rng: r)).toList();
   return selected;
