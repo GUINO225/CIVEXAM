@@ -5,6 +5,7 @@ import '../services/question_loader.dart';
 import '../services/history_store.dart';
 import '../models/exam_history_entry.dart';
 import '../services/question_randomizer.dart';
+import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
@@ -172,9 +173,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     abandoned = false;
     final perQ = secondsPerQuestion(_difficulty);
 
+    await QuestionHistoryStore.clear();
+
     for (final sec in sections) {
       final pool = _filterQuestions(all, sec.subject, sec.chapter);
-      final qs = pickAndShuffle(pool, sec.targetCount);
+      final qs = await pickAndShuffle(pool, sec.targetCount);
+      await QuestionHistoryStore.addAll(qs.map((q) => q.id));
 
       // Choisir la durée en fonction de la difficulté
       final Duration effDuration;
