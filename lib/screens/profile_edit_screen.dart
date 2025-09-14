@@ -9,6 +9,7 @@ import '../models/leaderboard_entry.dart';
 import '../services/user_profile_service.dart';
 import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
+import 'dashboard_screen.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -132,7 +133,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
 
     if (!mounted) return;
-    Navigator.pop(context, true);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      (route) => false,
+    );
   }
 
   void _showChangePasswordDialog() {
