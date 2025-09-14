@@ -1,4 +1,5 @@
 // lib/widgets/leaderboard_save_dialog.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -82,8 +83,8 @@ Future<void> showSaveScoreDialog({
                   onPressed: () async {
                     try {
                       await profileService.saveProfile(toSave);
-                    } catch (e) {
-                      debugPrint('Retry saving profile failed: $e');
+                    } catch (e, st) {
+                      debugPrint('Failed to save profile: $e\n$st');
                     }
                   },
                 ),
