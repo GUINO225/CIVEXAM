@@ -12,6 +12,10 @@ class SubjectListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      subjectsENA.length == _subjectItems.length,
+      'subjectsENA and _subjectItems should have the same length',
+    );
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
