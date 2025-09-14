@@ -10,7 +10,7 @@ flutter_native_splash:
   ios: false
   web: false
 
-# Assurez-vous aussi d'avoir les assets ci-dessous dans la section flutter:
-# flutter:
-#   assets:
-#     - assets/images/logo_splash_square.png
+flutter:
+  assets:
+    - assets/images/logo_splash_square.png
+    - assets/questions/ena_sample.json
