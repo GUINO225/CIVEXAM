@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:civexam_app/models/question.dart';
-import 'package:civexam_app/services/question_randomizer.dart';
-import 'package:civexam_app/services/question_history_store.dart';
+import 'package:civexam_pro/models/question.dart';
+import 'package:civexam_pro/services/question_randomizer.dart';
+import 'package:civexam_pro/services/question_history_store.dart';
 
 void main() {
   test('returns at least 10 questions when pool has enough items', () async {
