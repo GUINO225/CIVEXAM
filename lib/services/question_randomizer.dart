@@ -38,18 +38,45 @@ Question shuffleChoices(Question q, {Random? rng}) {
 
 /// Sélectionne jusqu'à `take` questions **au hasard**, puis mélange l'ordre
 /// des questions et des choix.
-Future<List<Question>> pickAndShuffle(List<Question> pool, int take, {Random? rng}) async {
+///
+/// Lorsque [dedupeByQuestion] est `true`, les doublons basés sur le texte de la
+/// question sont éliminés, y compris ceux déjà rencontrés lors de sessions
+/// précédentes.
+Future<List<Question>> pickAndShuffle(
+  List<Question> pool,
+  int take, {
+  Random? rng,
+  bool dedupeByQuestion = false,
+}) async {
   final r = rng ?? _rng;
   if (pool.isEmpty) return const <Question>[];
 
   // Remove questions already seen according to the history store.
   final history = await QuestionHistoryStore.load();
 
-  // Deduplicate by question id while filtering out history entries.
-  final seen = <String>{};
-  final filtered = pool
-      .where((q) => !history.contains(q.id) && seen.add(q.id))
-      .toList();
+  // When dedupeByQuestion is enabled, compute the set of question texts that
+  // have already been seen in previous sessions.
+  final historyTexts = dedupeByQuestion
+      ? pool
+          .where((q) => history.contains(q.id))
+          .map((q) => q.question)
+          .toSet()
+      : <String>{};
+
+  // Deduplicate by question id (and optionally by question text) while
+  // filtering out history entries.
+  final seenIds = <String>{};
+  final seenQuestions = <String>{};
+  final filtered = <Question>[];
+  for (final q in pool) {
+    if (history.contains(q.id)) continue;
+    if (!seenIds.add(q.id)) continue;
+    if (dedupeByQuestion) {
+      if (historyTexts.contains(q.question)) continue;
+      if (!seenQuestions.add(q.question)) continue;
+    }
+    filtered.add(q);
+  }
 
   final copy = List<Question>.from(filtered)..shuffle(r);
   final n = take <= copy.length ? take : copy.length;
