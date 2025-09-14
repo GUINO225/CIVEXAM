@@ -34,43 +34,12 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         _questionCount,
         dedupeByQuestion: true,
       );
-      if (selected.length < _questionCount) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Historique épuisé — ${selected.length}/'
-                '$_questionCount questions disponibles.'),
-            action: SnackBarAction(
-              label: 'Réinitialiser',
-              onPressed: () => QuestionHistoryStore.clear(),
-            ),
-          ),
-        );
-        if (selected.isEmpty) {
-          return;
-        }
-        final proceed = await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Commencer ?'),
-            content:
-                Text('Commencer avec ${selected.length} questions ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(_, false),
-                child: const Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(_, true),
-                child: const Text('Continuer'),
-              ),
-            ],
-          ),
-        );
-        if (proceed != true) {
-          return;
-        }
+
+      final proceed = await _handleShortDraw(selected, _questionCount);
+      if (!proceed) {
+        return;
       }
+
       await QuestionHistoryStore.addAll(selected.map((q) => q.id));
 
       final totalSeconds = _perQuestionSeconds * selected.length;
@@ -116,7 +85,8 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         );
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success ? 'Tentative enregistrée — Validé.' : 'Tentative enregistrée — Échoué.')),
+          SnackBar(
+              content: Text(success ? 'Tentative enregistrée — Validé.' : 'Tentative enregistrée — Échoué.')),
         );
       } else {
         // Abandon
@@ -146,6 +116,65 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<bool> _handleShortDraw(List<Question> selected, int requested) async {
+    if (selected.length >= requested) {
+      return true;
+    }
+    if (!mounted) {
+      return false;
+    }
+    if (selected.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Historique épuisé'),
+          content: const Text(
+              'Toutes les questions ont déjà été vues. Réinitialiser l\'historique pour recommencer.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(_, null),
+              child: const Text('Fermer'),
+            ),
+            TextButton(
+              onPressed: () {
+                QuestionHistoryStore.clear();
+                Navigator.pop(_, null);
+              },
+              child: const Text('Réinitialiser'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Commencer ?'),
+        content: Text('Vous avez déjà vu la plupart des questions — '
+            '${selected.length}/$requested disponibles.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(_, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              QuestionHistoryStore.clear();
+              Navigator.pop(_, false);
+            },
+            child: const Text('Réinitialiser'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(_, true),
+            child: const Text('Continuer'),
+          ),
+        ],
+      ),
+    );
+    return proceed == true;
   }
 
   @override
