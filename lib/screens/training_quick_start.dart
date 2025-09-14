@@ -34,6 +34,19 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         _questionCount,
         dedupeByQuestion: true,
       );
+      if (selected.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Toutes les questions ont été vues.'),
+            action: SnackBarAction(
+              label: 'Réinitialiser',
+              onPressed: () => QuestionHistoryStore.clear(),
+            ),
+          ),
+        );
+        return;
+      }
       await QuestionHistoryStore.addAll(selected.map((q) => q.id));
 
       final totalSeconds = _perQuestionSeconds * _questionCount;

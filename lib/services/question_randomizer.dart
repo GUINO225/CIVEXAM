@@ -42,6 +42,12 @@ Question shuffleChoices(Question q, {Random? rng}) {
 /// Lorsque [dedupeByQuestion] est `true`, les doublons basés sur le texte de la
 /// question sont éliminés, y compris ceux déjà rencontrés lors de sessions
 /// précédentes.
+///
+/// > **Remarque** : si la déduplication aboutit à une liste vide alors que
+/// > `pool` contient encore des éléments, l'historique est effacé et la
+/// > fonction est rappelée avec `dedupeByQuestion: false`. Les modes
+/// > consommateurs doivent donc prévoir qu'un réemploi de questions peut
+/// > intervenir.
 Future<List<Question>> pickAndShuffle(
   List<Question> pool,
   int take, {
@@ -76,6 +82,11 @@ Future<List<Question>> pickAndShuffle(
       if (!seenQuestions.add(q.question)) continue;
     }
     filtered.add(q);
+  }
+
+  if (dedupeByQuestion && filtered.isEmpty && pool.isNotEmpty) {
+    await QuestionHistoryStore.clear();
+    return pickAndShuffle(pool, take, rng: r, dedupeByQuestion: false);
   }
 
   final copy = List<Question>.from(filtered)..shuffle(r);
