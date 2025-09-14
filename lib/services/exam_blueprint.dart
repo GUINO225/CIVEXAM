@@ -5,8 +5,11 @@
 /// On répartit par défaut 15 questions *par épreuve* (4 x 15 = 60).
 /// Ajuste facilement ci-dessous si besoin.
 class ExamBlueprint {
-  static const int totalTarget = 60; // total visé
-  static const int perSection = 15;  // 15 par épreuve (4 épreuves)
+  // 15 questions par épreuve (4 épreuves)
+  static const int perSection = 15;
+
+  // total visé (4 x 15 = 60)
+  static const int totalTarget = perSection * 4;
 
   // Si tu veux un autre format (ex: 20 par section => 80 total), modifie ici.
   static const int cultureGenerale = perSection;
