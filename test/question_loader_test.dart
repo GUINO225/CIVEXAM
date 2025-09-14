@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:civexam_app/models/question.dart';
 import 'package:civexam_app/services/question_loader.dart';
 import 'package:civexam_app/services/question_randomizer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,8 @@ void main() {
     await expectLater(QuestionLoader.loadENA(), throwsException);
   });
 
-  test('pickAndShuffle is deterministic with injected Random', () {
+  test('pickAndShuffle is deterministic with injected Random', () async {
+    SharedPreferences.setMockInitialValues({});
     final pool = [
       const Question(
         id: 'Q1',
@@ -100,8 +102,8 @@ void main() {
     final r1 = Random(1);
     final r2 = Random(1);
 
-    final res1 = pickAndShuffle(pool, 3, rng: r1);
-    final res2 = pickAndShuffle(pool, 3, rng: r2);
+    final res1 = await pickAndShuffle(pool, 3, rng: r1);
+    final res2 = await pickAndShuffle(pool, 3, rng: r2);
 
     expect(res1.map((q) => q.id).toList(), res2.map((q) => q.id).toList());
     expect(res1.first.choices, res2.first.choices);
