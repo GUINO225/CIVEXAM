@@ -42,11 +42,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _goToLogin(String message) {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    // Show the message before navigating so it remains visible afterwards.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 
