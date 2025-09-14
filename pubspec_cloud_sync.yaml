@@ -2,3 +2,7 @@ dependencies:
   firebase_core: ^3.4.0
   firebase_auth: ^5.2.0
   cloud_firestore: ^5.4.0
+
+flutter:
+  assets:
+    - assets/questions/ena_sample.json

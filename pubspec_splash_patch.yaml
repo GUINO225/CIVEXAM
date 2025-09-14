@@ -12,3 +12,7 @@ flutter_native_splash:
   android: true
   ios: false
   web: false
+
+flutter:
+  assets:
+    - assets/questions/ena_sample.json
