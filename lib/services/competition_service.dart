@@ -1,5 +1,7 @@
 // lib/services/competition_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+
 import '../models/leaderboard_entry.dart';
 
 /// Service Firestore pour le mode Compétition.
@@ -32,7 +34,9 @@ class CompetitionService {
       return snap.docs
           .map((d) => LeaderboardEntry.fromJson(d.data()))
           .toList();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('topEntries failed: limit=$limit, error: $e');
+      debugPrintStack(stackTrace: st);
       return [];
     }
   }
@@ -43,7 +47,9 @@ class CompetitionService {
       final doc = await _col.doc(userId).get();
       if (!doc.exists) return null;
       return LeaderboardEntry.fromJson(doc.data()!);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('entryForUser failed: userId=$userId, error: $e');
+      debugPrintStack(stackTrace: st);
       return null;
     }
   }
