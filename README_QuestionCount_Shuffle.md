@@ -22,4 +22,4 @@
 
 ## Notes
 - Si la banque ne contient pas assez de questions pour une matière, l’épreuve prendra **autant que possible** (sans planter).
-- Tu peux régler le seuil de réussite dans `MultiExamFlowScreen` via `PASS_MIN_WEIGHTED`.
+- Tu peux régler le seuil de réussite dans `MultiExamFlowScreen` via `PASS_MIN_WEIGHTED` (valeur par défaut `1` pour exiger un score positif).
