@@ -44,7 +44,12 @@ Future<List<Question>> pickAndShuffle(List<Question> pool, int take, {Random? rn
 
   // Remove questions already seen according to the history store.
   final history = await QuestionHistoryStore.load();
-  final filtered = pool.where((q) => !history.contains(q.id)).toList();
+
+  // Deduplicate by question id while filtering out history entries.
+  final seen = <String>{};
+  final filtered = pool
+      .where((q) => !history.contains(q.id) && seen.add(q.id))
+      .toList();
 
   final copy = List<Question>.from(filtered)..shuffle(r);
   final n = take <= copy.length ? take : copy.length;
