@@ -233,7 +233,6 @@ class _PlayScreenState extends State<PlayScreen> {
             MaterialPageRoute(
               builder: (_) => CompetitionScreen(
                 questions: selected,
-                drawCount: selected.length,
                 timePerQuestion: 5,
                 startTime: DateTime.now(),
               ),
