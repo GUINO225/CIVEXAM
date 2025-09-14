@@ -10,3 +10,8 @@ flutter_native_splash:
   android: true
   ios: false
   web: false
+
+flutter:
+  assets:
+    - assets/images/logo_splash_square.png
+    - assets/questions/ena_sample.json
