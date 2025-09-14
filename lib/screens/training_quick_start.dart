@@ -19,11 +19,11 @@ class TrainingQuickStartScreen extends StatefulWidget {
 
 class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
   int _perQuestionSeconds = 10; // 5..10s/question via UI
-  int _questionCount = 10;
+  int _questionCount = 10; // default number of questions
   bool _loading = false;
 
   final List<int> _secondOptions = const [5, 6, 7, 8, 9, 10];
-  final List<int> _countOptions = const [5, 10, 15, 20];
+  final List<int> _countOptions = const [5, 10, 15, 20]; // allowed question counts
 
   Future<void> _start() async {
     setState(() => _loading = true);
