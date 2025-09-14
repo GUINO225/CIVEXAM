@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
 import 'exam_blueprint.dart';
+import '../data/ena_taxonomy.dart';
 
 String _norm(String s) {
   final base = removeDiacritics(s)
@@ -29,8 +30,12 @@ String _norm(String s) {
 
 class QuestionLoader {
   static String canon(String s) => _norm(s);
+  static List<Question>? _cache;
+
   /// Tente de charger la banque principale puis, en fallback, un échantillon.
   static Future<List<Question>> loadENA() async {
+    if (_cache != null) return _cache!;
+
     final paths = <String>[
       'assets/questions/civexam_questions_ena_core.json', // principal
       'assets/questions/ena_sample.json', // fallback
@@ -53,6 +58,8 @@ class QuestionLoader {
         }
 
         // OK
+        buildSubjectsENA(out);
+        _cache = out;
         return out;
       } catch (e) {
         final msg = 'Failed to load ENA questions from $path: $e';
