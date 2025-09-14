@@ -84,13 +84,14 @@ Future<List<Question>> pickAndShuffle(
     filtered.add(q);
   }
 
-  // If filtering removed too many questions while the pool still contains
-  // enough items, clear history and retry without history/deduplication to
-  // ensure at least `take` questions are returned.
-  if (filtered.length < take && pool.length >= take &&
-      (history.isNotEmpty || dedupeByQuestion)) {
-    await QuestionHistoryStore.clear();
-    return pickAndShuffle(pool, take, rng: r, dedupeByQuestion: false);
+  // After filtering, if fewer than `take` questions remain while the original
+  // pool still has more items, clear the history and retry without
+  // de-duplication to obtain at least `take` questions.
+  if (filtered.length < take && pool.length > filtered.length) {
+    if (history.isNotEmpty || dedupeByQuestion) {
+      await QuestionHistoryStore.clear();
+      return pickAndShuffle(pool, take, rng: r, dedupeByQuestion: false);
+    }
   }
 
   final copy = List<Question>.from(filtered)..shuffle(r);
