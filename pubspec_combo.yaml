@@ -31,9 +31,9 @@ flutter_icons:
   adaptive_icon_foreground: "assets/images/logo_icon_square.png"
   min_sdk_android: 21
 
-# N'oubliez pas d'énumérer les assets :
-# flutter:
-#   uses-material-design: true
-#   assets:
-#     - assets/images/logo_splash_square.png
-#     - assets/images/logo_icon_square.png
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo_splash_square.png
+    - assets/images/logo_icon_square.png
+    - assets/questions/ena_sample.json
