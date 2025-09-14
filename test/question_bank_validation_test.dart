@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:civexam_pro/data/ena_taxonomy.dart';
+import 'package:civexam_pro/services/question_loader.dart';
 
 void main() {
   test('all questions have valid subject/chapter and no duplicates', () async {
+    await QuestionLoader.loadENA();
     // Prefer the full bank, but fall back to the sample when absent.
     final candidates = [
       'assets/questions/civexam_questions_ena_core.json',
