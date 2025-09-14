@@ -213,7 +213,11 @@ class _PlayScreenState extends State<PlayScreen> {
       case 6:
         try {
           final all = await QuestionLoader.loadENA();
-          final selected = await pickAndShuffle(all, 60);
+          final selected = await pickAndShuffle(
+            all,
+            60,
+            dedupeByQuestion: true,
+          );
           await QuestionHistoryStore.addAll(selected.map((q) => q.id));
           if (!mounted) return;
           Navigator.push(
