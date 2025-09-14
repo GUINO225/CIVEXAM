@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import '../widgets/leaderboard_save_dialog.dart';
 
 class LeaderboardHooks {
-  static Future<void> saveTraining({
+  static Future<void> _save({
     required BuildContext context,
+    required String mode,
     String subject = '',
     String chapter = '',
     required int total,
@@ -17,7 +18,7 @@ class LeaderboardHooks {
     final pct = percent ?? (total == 0 ? 0.0 : (correct / total) * 100.0);
     await showSaveScoreDialog(
       context: context,
-      mode: 'training',
+      mode: mode,
       subject: subject,
       chapter: chapter,
       total: total,
@@ -26,6 +27,31 @@ class LeaderboardHooks {
       blank: blank,
       durationSec: durationSec,
       percent: pct,
+    );
+  }
+
+  static Future<void> saveTraining({
+    required BuildContext context,
+    String subject = '',
+    String chapter = '',
+    required int total,
+    required int correct,
+    required int wrong,
+    required int blank,
+    required int durationSec,
+    double? percent,
+  }) async {
+    await _save(
+      context: context,
+      mode: 'training',
+      subject: subject,
+      chapter: chapter,
+      total: total,
+      correct: correct,
+      wrong: wrong,
+      blank: blank,
+      durationSec: durationSec,
+      percent: percent,
     );
   }
 
@@ -38,18 +64,15 @@ class LeaderboardHooks {
     required int durationSec,
     double? percent,
   }) async {
-    final pct = percent ?? (total == 0 ? 0.0 : (correct / total) * 100.0);
-    await showSaveScoreDialog(
+    await _save(
       context: context,
       mode: 'concours',
-      subject: '',
-      chapter: '',
       total: total,
       correct: correct,
       wrong: wrong,
       blank: blank,
       durationSec: durationSec,
-      percent: pct,
+      percent: percent,
     );
   }
 
@@ -62,18 +85,15 @@ class LeaderboardHooks {
     required int durationSec,
     double? percent,
   }) async {
-    final pct = percent ?? (total == 0 ? 0.0 : (correct / total) * 100.0);
-    await showSaveScoreDialog(
+    await _save(
       context: context,
       mode: 'competition',
-      subject: '',
-      chapter: '',
       total: total,
       correct: correct,
       wrong: wrong,
       blank: blank,
       durationSec: durationSec,
-      percent: pct,
+      percent: percent,
     );
   }
 }
