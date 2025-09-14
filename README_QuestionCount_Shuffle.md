@@ -2,8 +2,8 @@
 
 ## Ce que fait ce patch
 - **Fix "bonnes réponses toujours en 1ère position"** : chaque question mélange ses **choix** et met à jour `answerIndex`.
-- **Nombre de questions identique au format ENA (60 total)** : configuration centrale (`ExamBlueprint`) avec **15 par épreuve** (4 épreuves = 60).
-  - Ajustable facilement (ex. 20 par épreuve => 80 total).
+- **Nombre de questions identique au format ENA (80 total)** : configuration centrale (`ExamBlueprint`) avec **20 par épreuve** (4 épreuves = 80).
+  - Ajustable facilement (ex. 25 par épreuve => 100 total).
 - Mélange **aléatoire** de l'ordre des questions **et** des choix à chaque session.
 
 ## Fichiers
