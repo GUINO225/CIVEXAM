@@ -29,7 +29,11 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     setState(() => _loading = true);
     try {
       final List<Question> all = await QuestionLoader.loadENA();
-      final List<Question> selected = await pickAndShuffle(all, _questionCount);
+      final List<Question> selected = await pickAndShuffle(
+        all,
+        _questionCount,
+        dedupeByQuestion: true,
+      );
       await QuestionHistoryStore.addAll(selected.map((q) => q.id));
 
       final totalSeconds = _perQuestionSeconds * _questionCount;

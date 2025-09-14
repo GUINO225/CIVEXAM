@@ -177,7 +177,11 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
     for (final sec in sections) {
       final pool = _filterQuestions(all, sec.subject, sec.chapter);
-      final qs = await pickAndShuffle(pool, sec.targetCount);
+      final qs = await pickAndShuffle(
+        pool,
+        sec.targetCount,
+        dedupeByQuestion: true,
+      );
       await QuestionHistoryStore.addAll(qs.map((q) => q.id));
 
       // Choisir la durée en fonction de la difficulté
