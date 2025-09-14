@@ -40,9 +40,11 @@ void main() {
     // Build a synthetic bank with more than enough questions for each subject.
     final subjects = [
       'Culture Générale',
+      'Droit Constitutionnel',
+      'Problèmes Économiques & Sociaux',
+      'Aptitude Numérique',
       'Aptitude Verbale',
       'Organisation & Logique',
-      'Aptitude Numérique',
     ];
 
     final data = <Map<String, dynamic>>[];
