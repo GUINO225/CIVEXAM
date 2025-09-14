@@ -24,7 +24,15 @@ Future<void> showSaveScoreDialog({
 
     // Charge le profil pour récupérer le pseudonyme
     final profileService = UserProfileService();
-    final profile = uid.isEmpty ? null : await profileService.loadProfile(uid);
+    UserProfile? profile;
+    if (uid.isNotEmpty) {
+      try {
+        profile = await profileService.loadProfile(uid);
+      } catch (e, st) {
+        debugPrint('Failed to load profile for $uid: $e\n$st');
+        profile = null;
+      }
+    }
     String nickname = profile?.nickname ?? '';
 
     // Demande le pseudonyme si absent
@@ -62,7 +70,27 @@ Future<void> showSaveScoreDialog({
         );
         try {
           await profileService.saveProfile(toSave);
-        } catch (_) {}
+        } catch (e, st) {
+          debugPrint('Error saving profile: $e\n$st');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                    "Échec de l'enregistrement du pseudonyme. Réessayez."),
+                action: SnackBarAction(
+                  label: 'Réessayer',
+                  onPressed: () async {
+                    try {
+                      await profileService.saveProfile(toSave);
+                    } catch (e) {
+                      debugPrint('Retry saving profile failed: $e');
+                    }
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
     }
 
@@ -136,9 +164,14 @@ Future<void> showSaveScoreDialog({
   final user = FirebaseAuth.instance.currentUser;
   String savedName = 'Joueur';
   if (user != null) {
-    final profile = await UserProfileService().loadProfile(user.uid);
-    savedName = profile?.nickname ?? 'Joueur';
-    await prefs.setString('nickname', savedName);
+    try {
+      final profile = await UserProfileService().loadProfile(user.uid);
+      savedName = profile?.nickname ?? 'Joueur';
+      await prefs.setString('nickname', savedName);
+    } catch (e, st) {
+      debugPrint('Failed to load profile for ${user.uid}: $e\n$st');
+      savedName = 'Joueur';
+    }
   } else {
     savedName = prefs.getString('nickname') ?? 'Joueur';
   }

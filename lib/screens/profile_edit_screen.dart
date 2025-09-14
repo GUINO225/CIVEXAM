@@ -45,8 +45,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _pseudoController.text = prefs.getString('nickname') ?? '';
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
-      final profile = await _profileService.loadProfile(uid);
-      _pseudoController.text = profile?.nickname ?? _pseudoController.text;
+      try {
+        final profile = await _profileService.loadProfile(uid);
+        _pseudoController.text = profile?.nickname ?? _pseudoController.text;
+      } catch (e, st) {
+        debugPrint('Failed to load profile: $e\n$st');
+      }
     }
     _initialPseudo = _pseudoController.text;
   }
