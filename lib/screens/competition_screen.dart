@@ -9,9 +9,6 @@ class CompetitionScreen extends StatefulWidget {
   /// List of questions drawn for the competition.
   final List<Question> questions;
 
-  /// Number of questions in this session.
-  final int drawCount;
-
   /// Time allowed for each question (seconds).
   final int timePerQuestion;
 
@@ -36,7 +33,6 @@ class CompetitionScreen extends StatefulWidget {
   CompetitionScreen({
     super.key,
     required this.questions,
-    this.drawCount = 60,
     this.timePerQuestion = 5,
     this.currentIndex = 0,
     this.correctCount = 0,
@@ -154,7 +150,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     const SizedBox(height: 16),
                       // Question number within the current session.
                       Text(
-                        'Question ${widget.currentIndex + 1}/${widget.drawCount}',
+                        'Question ${widget.currentIndex + 1}/${widget.questions.length}',
                         style: theme.questionIndexTextStyle,
                       ),
                       const SizedBox(height: 4),
@@ -172,7 +168,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     const SizedBox(height: 12),
                     // Progress bar for overall quiz progression.
                     LinearProgressIndicator(
-                      value: (widget.currentIndex + 1) / widget.drawCount,
+                      value: (widget.currentIndex + 1) / widget.questions.length,
                       color: theme.progressBarColor,
                       backgroundColor:
                           theme.progressBarColor.withOpacity(0.3),
@@ -256,14 +252,13 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     final int totalWrong = widget.wrongCount + (isWrong ? 1 : 0);
     final int totalBlank = widget.blankCount + (isBlank ? 1 : 0);
 
-    if (widget.currentIndex + 1 < widget.drawCount) {
+    if (widget.currentIndex + 1 < widget.questions.length) {
       // Continue to the next question by replacing the current screen.
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => CompetitionScreen(
             questions: widget.questions,
-            drawCount: widget.drawCount,
             timePerQuestion: widget.timePerQuestion,
             currentIndex: widget.currentIndex + 1,
             correctCount: totalCorrect,
@@ -282,7 +277,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         context,
         MaterialPageRoute(
           builder: (_) => CompetitionResultScreen(
-            total: widget.drawCount,
+            total: widget.questions.length,
             correct: totalCorrect,
             wrong: totalWrong,
             blank: totalBlank,
