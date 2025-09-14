@@ -21,6 +21,7 @@ import 'competition_screen.dart';
 import 'login_screen.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
+import '../services/question_history_store.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -212,7 +213,8 @@ class _PlayScreenState extends State<PlayScreen> {
       case 6:
         try {
           final all = await QuestionLoader.loadENA();
-          final selected = pickAndShuffle(all, 20);
+          final selected = await pickAndShuffle(all, 20);
+          await QuestionHistoryStore.addAll(selected.map((q) => q.id));
           if (!mounted) return;
           Navigator.push(
             context,
