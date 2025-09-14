@@ -182,6 +182,19 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         sec.targetCount,
         dedupeByQuestion: true,
       );
+      if (qs.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Toutes les questions ont été vues.'),
+            action: SnackBarAction(
+              label: 'Réinitialiser',
+              onPressed: () => QuestionHistoryStore.clear(),
+            ),
+          ),
+        );
+        return;
+      }
       await QuestionHistoryStore.addAll(qs.map((q) => q.id));
 
       // Choisir la durée en fonction de la difficulté
