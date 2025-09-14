@@ -1070,6 +1070,134 @@
     "explanation": "Le port d’Abidjan est le principal port ivoirien."
   },
   {
+    "id": "CG-CI-18",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "Point culminant de la Côte d’Ivoire ?",
+    "choices": [
+      "Mont Nimba",
+      "Mont Péko",
+      "Mont Tonkoui",
+      "Mont Korhogo"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Mont Nimba culmine à plus de 1 700 m à l’ouest."
+  },
+  {
+    "id": "CG-CI-19",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "Où se situe la basilique Notre-Dame de la Paix ?",
+    "choices": [
+      "Abidjan",
+      "Yamoussoukro",
+      "Bouaké",
+      "Man"
+    ],
+    "answerIndex": 1,
+    "explanation": "Elle se trouve à Yamoussoukro."
+  },
+  {
+    "id": "CG-CI-20",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel pays colonisa la Côte d’Ivoire ?",
+    "choices": [
+      "France",
+      "Royaume-Uni",
+      "Espagne",
+      "Portugal"
+    ],
+    "answerIndex": 0,
+    "explanation": "La Côte d’Ivoire fut une colonie française."
+  },
+  {
+    "id": "CG-CI-21",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Climat prédominant de la Côte d’Ivoire ?",
+    "choices": [
+      "Tropical",
+      "Désertique",
+      "Polaire",
+      "Tempéré"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le pays connaît un climat tropical."
+  },
+  {
+    "id": "CG-CI-22",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 2,
+    "question": "Combien de districts autonomes compte la Côte d’Ivoire ?",
+    "choices": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answerIndex": 1,
+    "explanation": "Abidjan et Yamoussoukro sont des districts autonomes."
+  },
+  {
+    "id": "CG-CI-23",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel pays partage une frontière à l’ouest ?",
+    "choices": [
+      "Libéria",
+      "Ghana",
+      "Nigeria",
+      "Niger"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Liberia borde l’ouest ivoirien."
+  },
+  {
+    "id": "CG-CI-24",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 3,
+    "question": "En quelle année la capitale politique a-t-elle été transférée à Yamoussoukro ?",
+    "choices": [
+      "1975",
+      "1983",
+      "1990",
+      "2000"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le transfert officiel a eu lieu en 1983."
+  },
+  {
+    "id": "CG-CI-25",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Nom de l’aéroport international principal ?",
+    "choices": [
+      "Blaise Diagne",
+      "Félix Houphouët-Boigny",
+      "Léopold Sédar Senghor",
+      "Gnassingbé Eyadéma"
+    ],
+    "answerIndex": 1,
+    "explanation": "L’aéroport d’Abidjan porte le nom Félix Houphouët-Boigny."
+  },
+  {
     "id": "DC-11",
     "concours": "ENA",
     "subject": "Droit Constitutionnel",
