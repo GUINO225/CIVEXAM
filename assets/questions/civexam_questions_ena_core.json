@@ -956,5 +956,645 @@
     ],
     "answerIndex": 1,
     "explanation": "Chevauchement 10–11 → 2 salles requises."
+  },
+  {
+    "id": "CG-CI-11",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Date d’indépendance de la Côte d’Ivoire ?",
+    "choices": [
+      "1957",
+      "1960",
+      "1963",
+      "1970"
+    ],
+    "answerIndex": 1,
+    "explanation": "La Côte d’Ivoire accède à l’indépendance en 1960."
+  },
+  {
+    "id": "CG-CI-12",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Première capitale de la Côte d’Ivoire ?",
+    "choices": [
+      "Grand-Bassam",
+      "Yamoussoukro",
+      "Abidjan",
+      "Korhogo"
+    ],
+    "answerIndex": 0,
+    "explanation": "La première capitale fut Grand-Bassam."
+  },
+  {
+    "id": "CG-CI-13",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Le cacao représente environ quelle part des exportations ivoiriennes ?",
+    "choices": [
+      "10%",
+      "30%",
+      "40%",
+      "50%"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le cacao constitue près de 40% des exportations."
+  },
+  {
+    "id": "CG-CI-14",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel est l’hymne national de la Côte d’Ivoire ?",
+    "choices": [
+      "L’Abidjanaise",
+      "La Marseillaise",
+      "L’Aurore",
+      "La Fraternité"
+    ],
+    "answerIndex": 0,
+    "explanation": "L’hymne national est L’Abidjanaise."
+  },
+  {
+    "id": "CG-CI-15",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quelle est la langue officielle de la Côte d’Ivoire ?",
+    "choices": [
+      "Dioula",
+      "Baoulé",
+      "Français",
+      "Anglais"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le français est la langue officielle."
+  },
+  {
+    "id": "CG-CI-16",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Qui fut le premier président de la République ?",
+    "choices": [
+      "Laurent Gbagbo",
+      "Alassane Ouattara",
+      "Félix Houphouët-Boigny",
+      "Henri Konan Bédié"
+    ],
+    "answerIndex": 2,
+    "explanation": "Félix Houphouët-Boigny fut le premier président."
+  },
+  {
+    "id": "CG-CI-17",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Côte d’Ivoire",
+    "difficulty": 1,
+    "question": "Quel est le plus grand port du pays ?",
+    "choices": [
+      "San-Pédro",
+      "Abidjan",
+      "Sassandra",
+      "Grand-Bassam"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le port d’Abidjan est le principal port ivoirien."
+  },
+  {
+    "id": "DC-11",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Combien de pouvoirs sont traditionnellement distingués dans l’État ?",
+    "choices": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answerIndex": 1,
+    "explanation": "Séparation classique des trois pouvoirs."
+  },
+  {
+    "id": "DC-12",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Qui nomme le Premier Ministre en Côte d’Ivoire ?",
+    "choices": [
+      "Le Président",
+      "L’Assemblée nationale",
+      "Le Conseil constitutionnel",
+      "Le Sénat"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Président nomme le Premier Ministre."
+  },
+  {
+    "id": "DC-13",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Durée du mandat présidentiel selon la Constitution de 2016 ?",
+    "choices": [
+      "4 ans",
+      "5 ans",
+      "6 ans",
+      "7 ans"
+    ],
+    "answerIndex": 1,
+    "explanation": "La Constitution fixe un mandat de 5 ans."
+  },
+  {
+    "id": "DC-14",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Le pouvoir législatif ivoirien est exercé par :",
+    "choices": [
+      "L’Assemblée nationale seule",
+      "Le Sénat seul",
+      "Le Parlement (Assemblée + Sénat)",
+      "Le Gouvernement"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le Parlement regroupe Assemblée nationale et Sénat."
+  },
+  {
+    "id": "DC-15",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Organe chargé du contrôle de constitutionnalité ?",
+    "choices": [
+      "Conseil d’État",
+      "Cour Suprême",
+      "Conseil Constitutionnel",
+      "Haute Cour"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le Conseil Constitutionnel contrôle la constitutionnalité."
+  },
+  {
+    "id": "DC-16",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Qui assure l’intérim du Président en cas de vacance ?",
+    "choices": [
+      "Le Premier Ministre",
+      "Le Vice-président",
+      "Le Président du Sénat",
+      "Le Président de l’Assemblée"
+    ],
+    "answerIndex": 1,
+    "explanation": "La Constitution confie l’intérim au Vice-président."
+  },
+  {
+    "id": "DC-17",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "La souveraineté nationale appartient au :",
+    "choices": [
+      "Peuple",
+      "Président",
+      "Parlement",
+      "Armée"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le peuple est détenteur de la souveraineté."
+  },
+  {
+    "id": "PES-11",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le chômage correspond à :",
+    "choices": [
+      "L’absence de main-d’œuvre",
+      "La situation de personnes sans emploi cherchant un travail",
+      "La hausse des prix",
+      "Un surplus d’exportation"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le chômage touche les personnes sans emploi en recherche."
+  },
+  {
+    "id": "PES-12",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le PIB mesure :",
+    "choices": [
+      "La production totale d’un pays",
+      "La population totale",
+      "Les dépenses de l’État",
+      "Le commerce extérieur"
+    ],
+    "answerIndex": 0,
+    "explanation": "PIB = valeur des biens et services produits."
+  },
+  {
+    "id": "PES-13",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Balance commerciale positive signifie :",
+    "choices": [
+      "Importations > exportations",
+      "Exportations > importations",
+      "Déficit budgétaire",
+      "Croissance nulle"
+    ],
+    "answerIndex": 1,
+    "explanation": "Les exportations dépassent les importations."
+  },
+  {
+    "id": "PES-14",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "La microéconomie étudie :",
+    "choices": [
+      "Le comportement des agents individuels",
+      "Les phénomènes globaux",
+      "Le climat",
+      "La sociologie"
+    ],
+    "answerIndex": 0,
+    "explanation": "Elle s’intéresse aux agents individuels."
+  },
+  {
+    "id": "PES-15",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le franc CFA est arrimé à :",
+    "choices": [
+      "Le dollar",
+      "Le yen",
+      "L’euro",
+      "La livre"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le FCFA est arrimé à l’euro."
+  },
+  {
+    "id": "PES-16",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Organisation chargée de la stabilité financière mondiale :",
+    "choices": [
+      "FMI",
+      "ONU",
+      "UE",
+      "UA"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le FMI veille à la stabilité financière internationale."
+  },
+  {
+    "id": "PES-17",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le taux de natalité correspond :",
+    "choices": [
+      "Au nombre de naissances pour 1000 habitants",
+      "Au taux d’alphabétisation",
+      "À la proportion de jeunes",
+      "À la migration nette"
+    ],
+    "answerIndex": 0,
+    "explanation": "Il mesure les naissances pour 1000 habitants."
+  },
+  {
+    "id": "NUM-11",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "30% de 250 = ?",
+    "choices": [
+      "75",
+      "80",
+      "60",
+      "90"
+    ],
+    "answerIndex": 0,
+    "explanation": "0,30 × 250 = 75."
+  },
+  {
+    "id": "NUM-12",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Prix initial si 20% de réduction donne 12000 FCFA :",
+    "choices": [
+      "15000",
+      "14400",
+      "10000",
+      "16000"
+    ],
+    "answerIndex": 0,
+    "explanation": "12000 / 0,8 = 15000."
+  },
+  {
+    "id": "NUM-13",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "8 × 7 = ?",
+    "choices": [
+      "54",
+      "56",
+      "48",
+      "64"
+    ],
+    "answerIndex": 1,
+    "explanation": "Produit : 56."
+  },
+  {
+    "id": "NUM-14",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "2^5 = ?",
+    "choices": [
+      "10",
+      "25",
+      "32",
+      "64"
+    ],
+    "answerIndex": 2,
+    "explanation": "2^5 = 32."
+  },
+  {
+    "id": "NUM-15",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Si x + 3 = 10, alors x = ?",
+    "choices": [
+      "13",
+      "7",
+      "-3",
+      "3"
+    ],
+    "answerIndex": 1,
+    "explanation": "x = 10 - 3 = 7."
+  },
+  {
+    "id": "NUM-16",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Moyenne de 4, 8 et 12 :",
+    "choices": [
+      "6",
+      "8",
+      "9",
+      "10"
+    ],
+    "answerIndex": 1,
+    "explanation": "(4+8+12)/3 = 8."
+  },
+  {
+    "id": "NUM-17",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Vitesse moyenne : 150 km en 3 h = ?",
+    "choices": [
+      "50 km/h",
+      "60 km/h",
+      "45 km/h",
+      "55 km/h"
+    ],
+    "answerIndex": 0,
+    "explanation": "150/3 = 50 km/h."
+  },
+  {
+    "id": "VERB-11",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Synonyme de « déférence » :",
+    "choices": [
+      "Respect",
+      "Mépris",
+      "Arrogance",
+      "Négligence"
+    ],
+    "answerIndex": 0,
+    "explanation": "Déférence signifie respect."
+  },
+  {
+    "id": "VERB-12",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Antonyme de « austère » :",
+    "choices": [
+      "Rigoureux",
+      "Somptueux",
+      "Sévère",
+      "Sobre"
+    ],
+    "answerIndex": 1,
+    "explanation": "Somptueux est l’antonyme d’austère."
+  },
+  {
+    "id": "VERB-13",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Complétez : Ils ________ leurs devoirs hier.",
+    "choices": [
+      "ont finis",
+      "ont fini",
+      "ont finies",
+      "ont finissent"
+    ],
+    "answerIndex": 1,
+    "explanation": "Participe passé invariable : ils ont fini."
+  },
+  {
+    "id": "VERB-14",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Féminin de « menteur » :",
+    "choices": [
+      "menteuse",
+      "menteure",
+      "mentrice",
+      "menteur"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le féminin est menteuse."
+  },
+  {
+    "id": "VERB-15",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Parmi ces mots, lequel est un adjectif ?",
+    "choices": [
+      "Rapidement",
+      "Beauté",
+      "Courage",
+      "Rapide"
+    ],
+    "answerIndex": 3,
+    "explanation": "Rapide est un adjectif."
+  },
+  {
+    "id": "VERB-16",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Synonyme de « périple » :",
+    "choices": [
+      "Voyage",
+      "Accident",
+      "Repos",
+      "Calme"
+    ],
+    "answerIndex": 0,
+    "explanation": "Périple signifie voyage."
+  },
+  {
+    "id": "ORG-11",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Si A ≥ B et B ≥ C, alors :",
+    "choices": [
+      "A ≥ C",
+      "C ≥ A",
+      "A = C",
+      "Impossible"
+    ],
+    "answerIndex": 0,
+    "explanation": "La relation est transitive : A ≥ C."
+  },
+  {
+    "id": "ORG-12",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Intrus : 2, 4, 8, 10",
+    "choices": [
+      "2",
+      "4",
+      "8",
+      "10"
+    ],
+    "answerIndex": 3,
+    "explanation": "10 n’est pas une puissance de 2."
+  },
+  {
+    "id": "ORG-13",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Paul est 5e du début et 4e de la fin. Nombre de personnes ?",
+    "choices": [
+      "7",
+      "8",
+      "9",
+      "10"
+    ],
+    "answerIndex": 1,
+    "explanation": "5 + 4 - 1 = 8 personnes."
+  },
+  {
+    "id": "ORG-14",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Si toutes les roses sont des fleurs et certaines fleurs se fanent vite, alors :",
+    "choices": [
+      "Toutes les roses se fanent vite",
+      "Certaines roses se fanent vite",
+      "Aucune rose ne se fane vite",
+      "Aucune conclusion"
+    ],
+    "answerIndex": 3,
+    "explanation": "On ne peut rien conclure sur les roses."
+  },
+  {
+    "id": "ORG-15",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Suite logique : 3, 6, 12, 24, ?",
+    "choices": [
+      "48",
+      "36",
+      "30",
+      "42"
+    ],
+    "answerIndex": 0,
+    "explanation": "Chaque terme est doublé."
+  },
+  {
+    "id": "ORG-16",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Prochain motif : AB, BC, CD, ?",
+    "choices": [
+      "DE",
+      "CE",
+      "AD",
+      "DD"
+    ],
+    "answerIndex": 0,
+    "explanation": "Décalage de lettres → DE."
   }
 ]
