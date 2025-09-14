@@ -110,7 +110,10 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
-  static const int PASS_MIN_WEIGHTED = 0;
+  /// Minimum weighted score required to pass the exam.
+  /// A strictly positive value ensures that a non‑zero score is needed
+  /// to succeed.
+  static const int PASS_MIN_WEIGHTED = 1;
 
   @override
   void initState() {
