@@ -212,24 +212,48 @@ class _PlayScreenState extends State<PlayScreen> {
         break;
       case 6:
         try {
+          const int desiredCount = 60;
           final all = await QuestionLoader.loadENA();
           final selected = await pickAndShuffle(
             all,
-            60,
+            desiredCount,
             dedupeByQuestion: true,
           );
-          if (selected.isEmpty) {
+          if (selected.length < desiredCount) {
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Toutes les questions ont été vues.'),
+                content: Text('Historique épuisé — ${selected.length}/'
+                    '$desiredCount questions disponibles.'),
                 action: SnackBarAction(
                   label: 'Réinitialiser',
                   onPressed: () => QuestionHistoryStore.clear(),
                 ),
               ),
             );
-            return;
+            if (selected.isEmpty) {
+              return;
+            }
+            final proceed = await showDialog<bool>(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text('Commencer ?'),
+                content: Text('Commencer avec ${selected.length} questions ?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(_, false),
+                    child: const Text('Annuler'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(_, true),
+                    child: const Text('Continuer'),
+                  ),
+                ],
+              ),
+            );
+            if (proceed != true) {
+              return;
+            }
           }
           await QuestionHistoryStore.addAll(selected.map((q) => q.id));
           if (!mounted) return;
