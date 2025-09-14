@@ -47,7 +47,7 @@ class QuestionLoader {
 
         if (i == 0 && out.length < ExamBlueprint.totalTarget) {
           final msg =
-              'Bank $path has only ${out.length} questions (< ${ExamBlueprint.totalTarget})';
+              'Warning: bank $path has only ${out.length} questions (expected ${ExamBlueprint.totalTarget}); trying fallback.';
           // ignore: avoid_print
           print(msg);
           errors.add(msg);
