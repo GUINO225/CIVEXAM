@@ -72,7 +72,11 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
       );
       return;
     }
-    final selected = await pickAndShuffle(_pool, _questionCount);
+    final selected = await pickAndShuffle(
+      _pool,
+      _questionCount,
+      dedupeByQuestion: true,
+    );
     await QuestionHistoryStore.addAll(selected.map((q) => q.id));
     final totalSeconds = _perQuestionSeconds * selected.length;
 
