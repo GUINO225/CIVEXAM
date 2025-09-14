@@ -177,9 +177,30 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
     for (final sec in sections) {
       final pool = _filterQuestions(all, sec.subject, sec.chapter);
+      var takeCount = sec.targetCount;
+      if (pool.length < sec.targetCount) {
+        if (!mounted) return;
+        final reason = await ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+                content: Text(
+                    'Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
+                action: SnackBarAction(
+                  label: 'Continuer',
+                  onPressed: () {},
+                ),
+              ),
+            )
+            .closed;
+        if (!mounted) return;
+        if (reason != SnackBarClosedReason.action) {
+          return;
+        }
+        takeCount = pool.length;
+      }
       final qs = await pickAndShuffle(
         pool,
-        sec.targetCount,
+        takeCount,
         dedupeByQuestion: true,
       );
       if (qs.isEmpty) {
