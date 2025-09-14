@@ -3,6 +3,7 @@ import '../services/question_loader.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../services/question_randomizer.dart';
+import '../services/question_history_store.dart';
 import '../models/training_history_entry.dart';
 import '../services/training_history_store.dart';
 import 'exam_full_screen.dart';
@@ -28,7 +29,8 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     setState(() => _loading = true);
     try {
       final List<Question> all = await QuestionLoader.loadENA();
-      final List<Question> selected = pickAndShuffle(all, _questionCount);
+      final List<Question> selected = await pickAndShuffle(all, _questionCount);
+      await QuestionHistoryStore.addAll(selected.map((q) => q.id));
 
       final totalSeconds = _perQuestionSeconds * _questionCount;
       final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
