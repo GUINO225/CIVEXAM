@@ -14,6 +14,7 @@ import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/question.dart';
+import 'exam_blueprint.dart';
 
 String _norm(String s) {
   final base = removeDiacritics(s)
@@ -32,23 +33,33 @@ class QuestionLoader {
   static Future<List<Question>> loadENA() async {
     final paths = <String>[
       'assets/questions/civexam_questions_ena_core.json', // principal
-      'assets/questions/ena_sample.json',                 // fallback
+      'assets/questions/ena_sample.json', // fallback
     ];
 
     final errors = <String>[];
 
-    for (final path in paths) {
+    for (int i = 0; i < paths.length; i++) {
+      final path = paths[i];
       try {
         final raw = await rootBundle.loadString(path);
         final out = await compute(_parseQuestions, raw);
-        if (out.isNotEmpty) {
-          // OK
-          return out;
+        if (out.isEmpty) continue;
+
+        if (i == 0 && out.length < ExamBlueprint.totalTarget) {
+          final msg =
+              'Bank $path has only ${out.length} questions (< ${ExamBlueprint.totalTarget})';
+          // ignore: avoid_print
+          print(msg);
+          errors.add(msg);
+          continue; // try next bank
         }
+
+        // OK
+        return out;
       } catch (e) {
         final msg = 'Failed to load ENA questions from $path: $e';
         // Utilise `print` pour logger aussi en production
-        // et conserver le détail du chemin et de l\'exception.
+        // et conserver le détail du chemin et de l'exception.
         // ignore: avoid_print
         print(msg);
         errors.add(msg);
@@ -57,7 +68,7 @@ class QuestionLoader {
     }
 
     throw Exception(
-      'Aucune banque de questions ENA n\'a pu être chargée. Détails: ${errors.join(' ; ')}',
+      'Aucune banque de questions ENA n'a pu être chargée. Détails: ${errors.join(' ; ')}',
     );
   }
 

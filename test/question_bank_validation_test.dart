@@ -6,8 +6,24 @@ import 'package:civexam_app/data/ena_taxonomy.dart';
 
 void main() {
   test('all questions have valid subject/chapter and no duplicates', () async {
-    final file = File('assets/questions/civexam_questions_ena_core.json');
-    final raw = await file.readAsString();
+    // Prefer the full bank, but fall back to the sample when absent.
+    final candidates = [
+      'assets/questions/civexam_questions_ena_core.json',
+      'assets/questions/ena_sample.json',
+    ];
+
+    File? file;
+    for (final path in candidates) {
+      final f = File(path);
+      if (await f.exists()) {
+        file = f;
+        break;
+      }
+    }
+
+    expect(file, isNotNull, reason: 'No question bank JSON found');
+
+    final raw = await file!.readAsString();
     final data = json.decode(raw);
     expect(data, isA<List>(), reason: 'JSON root should be a list');
 
