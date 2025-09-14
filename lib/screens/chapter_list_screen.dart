@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
+import '../services/question_history_store.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../models/training_history_entry.dart';
@@ -71,7 +72,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
       );
       return;
     }
-    final selected = pickAndShuffle(_pool, _questionCount);
+    final selected = await pickAndShuffle(_pool, _questionCount);
+    await QuestionHistoryStore.addAll(selected.map((q) => q.id));
     final totalSeconds = _perQuestionSeconds * selected.length;
 
     final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
