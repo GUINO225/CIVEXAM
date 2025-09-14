@@ -1,6 +1,6 @@
 {
-    "name": "civexam_app",
-    "short_name": "civexam_app",
+    "name": "civexam_pro",
+    "short_name": "civexam_pro",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:civexam_app/screens/official_intro_screen.dart';
-import 'package:civexam_app/screens/multi_exam_flow.dart';
+import 'package:civexam_pro/screens/official_intro_screen.dart';
+import 'package:civexam_pro/screens/multi_exam_flow.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();

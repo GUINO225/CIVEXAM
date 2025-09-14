@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:civexam_app/firebase_options.dart';
-import 'package:civexam_app/services/auth_service.dart';
+import 'package:civexam_pro/firebase_options.dart';
+import 'package:civexam_pro/services/auth_service.dart';
 
 void main() {
   setUpAll(() async {

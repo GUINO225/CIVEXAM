@@ -6,10 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:civexam_app/services/question_loader.dart';
-import 'package:civexam_app/services/question_randomizer.dart';
-import 'package:civexam_app/services/question_history_store.dart';
-import 'package:civexam_app/services/exam_blueprint.dart';
+import 'package:civexam_pro/services/question_loader.dart';
+import 'package:civexam_pro/services/question_randomizer.dart';
+import 'package:civexam_pro/services/question_history_store.dart';
+import 'package:civexam_pro/services/exam_blueprint.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
