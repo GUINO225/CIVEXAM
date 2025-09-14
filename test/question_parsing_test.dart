@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:civexam_app/models/question.dart';
+import 'package:civexam_pro/models/question.dart';
 
 void main() {
   test('Question parsing works', () {
