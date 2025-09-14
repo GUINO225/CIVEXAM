@@ -68,7 +68,7 @@ class QuestionLoader {
     }
 
     throw Exception(
-      'Aucune banque de questions ENA n'a pu être chargée. Détails: ${errors.join(' ; ')}',
+      "Aucune banque de questions ENA n'a pu être chargée. Détails: ${errors.join(' ; ')}",
     );
   }
 
