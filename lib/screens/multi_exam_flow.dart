@@ -7,6 +7,7 @@ import '../models/exam_history_entry.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
+import '../data/ena_taxonomy.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -114,39 +115,26 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   @override
   void initState() {
     super.initState();
+
+    final counts = {
+      'Culture Générale': ExamBlueprint.cultureGenerale,
+      'Droit Constitutionnel': ExamBlueprint.droitConstitutionnel,
+      'Problèmes Économiques & Sociaux': ExamBlueprint.problemesEconomiquesSociaux,
+      'Aptitude Numérique': ExamBlueprint.aptitudeNumerique,
+      'Aptitude Verbale': ExamBlueprint.aptitudeVerbale,
+      'Organisation & Logique': ExamBlueprint.organisationLogique,
+    };
+
     sections = [
-      ExamSection(
-        title: 'Culture Générale',
-        subject: 'Culture Générale',
-        chapter: 'Côte d’Ivoire',
-        duration: const Duration(minutes: 60),
-        scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
-        targetCount: ExamBlueprint.cultureGenerale,
-      ),
-      ExamSection(
-        title: 'Aptitude Verbale',
-        subject: 'Aptitude Verbale',
-        chapter: 'Vocabulaire & règles',
-        duration: const Duration(minutes: 60),
-        scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
-        targetCount: ExamBlueprint.aptitudeVerbale,
-      ),
-      ExamSection(
-        title: 'Organisation & Logique',
-        subject: 'Organisation & Logique',
-        chapter: 'Classements & déductions',
-        duration: const Duration(minutes: 60),
-        scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
-        targetCount: ExamBlueprint.organisationLogique,
-      ),
-      ExamSection(
-        title: 'Aptitude Numérique',
-        subject: 'Aptitude Numérique',
-        chapter: 'Bases & proportionnalité',
-        duration: const Duration(minutes: 60),
-        scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
-        targetCount: ExamBlueprint.aptitudeNumerique,
-      ),
+      for (final subj in subjectsENA)
+        ExamSection(
+          title: subj.name,
+          subject: subj.name,
+          chapter: subj.chapters.first.name,
+          duration: const Duration(minutes: 60),
+          scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
+          targetCount: counts[subj.name] ?? ExamBlueprint.perSection,
+        ),
     ];
     _loadAll();
   }
@@ -350,12 +338,16 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     switch (title) {
       case 'Culture Générale':
         return Icons.public;
+      case 'Droit Constitutionnel':
+        return Icons.account_balance;
+      case 'Problèmes Économiques & Sociaux':
+        return Icons.bar_chart;
+      case 'Aptitude Numérique':
+        return Icons.calculate;
       case 'Aptitude Verbale':
         return Icons.menu_book_outlined;
       case 'Organisation & Logique':
         return Icons.extension;
-      case 'Aptitude Numérique':
-        return Icons.calculate;
       default:
         return Icons.help_outline;
     }
