@@ -46,7 +46,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       entry = await service.entryForUser(uid);
     }
-    var profile = await _profileService.loadProfile(uid);
+    UserProfile? profile;
+    try {
+      profile = await _profileService.loadProfile(uid);
+    } catch (e, st) {
+      debugPrint('Failed to load profile for $uid: $e\n$st');
+      profile = null;
+    }
     profile ??= UserProfile(
         firstName: '',
         lastName: '',
