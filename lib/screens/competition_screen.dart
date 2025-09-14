@@ -256,8 +256,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
       // Continue to the next question by replacing the current screen.
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => CompetitionScreen(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (_, animation, secondaryAnimation) => CompetitionScreen(
             questions: widget.questions,
             timePerQuestion: widget.timePerQuestion,
             currentIndex: widget.currentIndex + 1,
@@ -267,6 +268,15 @@ class _CompetitionScreenState extends State<CompetitionScreen>
             startTime: widget.startTime,
             theme: widget.theme,
           ),
+          transitionsBuilder: (_, animation, secondaryAnimation, child) {
+            final offsetAnimation = animation.drive(
+              Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ),
+            );
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
         ),
       );
     } else {
@@ -275,8 +285,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
           DateTime.now().difference(widget.startTime).inSeconds;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => CompetitionResultScreen(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (_, animation, secondaryAnimation) =>
+              CompetitionResultScreen(
             total: widget.questions.length,
             correct: totalCorrect,
             wrong: totalWrong,
@@ -284,6 +296,15 @@ class _CompetitionScreenState extends State<CompetitionScreen>
             durationSec: durationSec,
             theme: widget.theme,
           ),
+          transitionsBuilder: (_, animation, secondaryAnimation, child) {
+            final offsetAnimation = animation.drive(
+              Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ),
+            );
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
         ),
       );
     }
