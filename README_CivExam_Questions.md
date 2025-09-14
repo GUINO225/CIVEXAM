@@ -1,6 +1,6 @@
 # Banque de questions CivExam — ENA
 
-Ce fichier contient une banque de **100 QCM** (≈16–17 par matière) couvrant les 6 modules ENA :
+Ce fichier contient une banque de **150 QCM** (25 par matière) couvrant les 6 modules ENA :
 - Culture Générale (Côte d’Ivoire)
 - Droit Constitutionnel (Institutions & principes)
 - Problèmes Économiques & Sociaux (Notions clés)
