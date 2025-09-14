@@ -1,14 +1,14 @@
 /// Exam blueprint for ENA-like preselection
 /// Frequently observed public info indicates 4 QCM tests, 60 minutes each
 /// (Culture Générale, Aptitude Verbale, Organisation & Logique, Aptitude Numérique).
-/// Nombre de questions : certains formats mentionnent **80 questions au total**.
-/// On répartit par défaut 20 questions *par épreuve* (4 x 20 = 80).
+/// Nombre de questions : le concours officiel comporte **100 questions au total**.
+/// On répartit donc 25 questions *par épreuve* (4 × 25 = 100).
 /// Ajuste facilement ci-dessous si besoin.
 class ExamBlueprint {
-  // 20 questions par épreuve (4 épreuves)
-  static const int perSection = 20;
+  // 25 questions par épreuve (4 épreuves)
+  static const int perSection = 25;
 
-  // total visé (4 x 20 = 80)
+  // total visé (4 x 25 = 100)
   static const int totalTarget = perSection * 4;
 
   // Si tu veux un autre format, modifie ici.
