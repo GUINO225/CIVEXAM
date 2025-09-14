@@ -22,6 +22,7 @@ import 'login_screen.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
+import '../models/question.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -219,42 +220,12 @@ class _PlayScreenState extends State<PlayScreen> {
             desiredCount,
             dedupeByQuestion: true,
           );
-          if (selected.length < desiredCount) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Historique épuisé — ${selected.length}/'
-                    '$desiredCount questions disponibles.'),
-                action: SnackBarAction(
-                  label: 'Réinitialiser',
-                  onPressed: () => QuestionHistoryStore.clear(),
-                ),
-              ),
-            );
-            if (selected.isEmpty) {
-              return;
-            }
-            final proceed = await showDialog<bool>(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text('Commencer ?'),
-                content: Text('Commencer avec ${selected.length} questions ?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(_, false),
-                    child: const Text('Annuler'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(_, true),
-                    child: const Text('Continuer'),
-                  ),
-                ],
-              ),
-            );
-            if (proceed != true) {
-              return;
-            }
+
+          final proceed = await _handleShortDraw(selected, desiredCount);
+          if (!proceed) {
+            return;
           }
+
           await QuestionHistoryStore.addAll(selected.map((q) => q.id));
           if (!mounted) return;
           Navigator.push(
@@ -284,6 +255,65 @@ class _PlayScreenState extends State<PlayScreen> {
         assert(false, 'Unexpected index: $index');
         break;
     }
+  }
+
+  Future<bool> _handleShortDraw(List<Question> selected, int requested) async {
+    if (selected.length >= requested) {
+      return true;
+    }
+    if (!mounted) {
+      return false;
+    }
+    if (selected.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Historique épuisé'),
+          content: const Text(
+              'Toutes les questions ont déjà été vues. Réinitialiser l\'historique pour recommencer.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(_, null),
+              child: const Text('Fermer'),
+            ),
+            TextButton(
+              onPressed: () {
+                QuestionHistoryStore.clear();
+                Navigator.pop(_, null);
+              },
+              child: const Text('Réinitialiser'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Commencer ?'),
+        content: Text('Vous avez déjà vu la plupart des questions — '
+            '${selected.length}/$requested disponibles.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(_, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              QuestionHistoryStore.clear();
+              Navigator.pop(_, false);
+            },
+            child: const Text('Réinitialiser'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(_, true),
+            child: const Text('Continuer'),
+          ),
+        ],
+      ),
+    );
+    return proceed == true;
   }
 }
 
