@@ -161,5 +161,36 @@ void main() {
 
     expect(find.text('Questions dispo pour ce module : 2'), findsOneWidget);
   });
+
+  testWidgets('ChapterListScreen shows message when no questions match module', (tester) async {
+    final questionsJson = jsonEncode([
+      {
+        'id': 'Q1',
+        'concours': 'ENA',
+        'subject': 'Droit Constitutionnel',
+        'chapter': 'Institutions',
+        'difficulty': 1,
+        'question': 'Q1?',
+        'choices': ['A', 'B'],
+        'answerIndex': 0,
+      }
+    ]);
+
+    mockAssets({
+      'assets/questions/civexam_questions_ena_core.json': questionsJson,
+    });
+
+    await tester.pumpWidget(const MaterialApp(
+      home: ChapterListScreen(
+        subjectName: 'Droit Constitutionnel',
+        chapterName: 'Institutions & principes',
+      ),
+    ));
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Questions dispo pour ce module : 0'), findsOneWidget);
+    expect(find.text('Aucune question pour ce module'), findsOneWidget);
+  });
 }
 
