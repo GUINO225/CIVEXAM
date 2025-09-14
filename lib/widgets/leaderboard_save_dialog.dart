@@ -62,7 +62,27 @@ Future<void> showSaveScoreDialog({
         );
         try {
           await profileService.saveProfile(toSave);
-        } catch (_) {}
+        } catch (e, st) {
+          debugPrint('Error saving profile: $e\n$st');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                    "Échec de l'enregistrement du pseudonyme. Réessayez."),
+                action: SnackBarAction(
+                  label: 'Réessayer',
+                  onPressed: () async {
+                    try {
+                      await profileService.saveProfile(toSave);
+                    } catch (e) {
+                      debugPrint('Retry saving profile failed: $e');
+                    }
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
     }
 
