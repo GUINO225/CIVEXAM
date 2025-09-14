@@ -1,6 +1,7 @@
 // lib/services/user_profile_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_profile.dart';
 
 /// Service Firestore pour le profil utilisateur.
@@ -14,8 +15,9 @@ class UserProfileService {
       final data = doc.data();
       if (data == null) return null;
       return UserProfile.fromJson(data);
-    } catch (_) {
-      return null;
+    } catch (e, st) {
+      debugPrint('Error loading profile for $uid: $e\n$st');
+      rethrow;
     }
   }
 
