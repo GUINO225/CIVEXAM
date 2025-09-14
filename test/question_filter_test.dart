@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:civexam_app/models/question.dart';
-import 'package:civexam_app/services/question_loader.dart';
-import 'package:civexam_app/screens/chapter_list_screen.dart';
+import 'package:civexam_pro/models/question.dart';
+import 'package:civexam_pro/services/question_loader.dart';
+import 'package:civexam_pro/screens/chapter_list_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {

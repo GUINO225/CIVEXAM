@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:civexam_app/data/ena_taxonomy.dart';
+import 'package:civexam_pro/data/ena_taxonomy.dart';
 
 void main() {
   test('all questions have valid subject/chapter and no duplicates', () async {
