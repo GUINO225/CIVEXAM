@@ -36,7 +36,7 @@ class CompetitionScreen extends StatefulWidget {
   CompetitionScreen({
     super.key,
     required this.questions,
-    this.drawCount = 20,
+    this.drawCount = 60,
     this.timePerQuestion = 5,
     this.currentIndex = 0,
     this.correctCount = 0,
@@ -152,13 +152,19 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Question number within the current session.
-                    Text(
-                      'Question ${widget.currentIndex + 1}/${widget.drawCount}',
-                      style: theme.questionIndexTextStyle,
-                    ),
-                    const SizedBox(height: 8),
-                    // Actual question text.
+                      // Question number within the current session.
+                      Text(
+                        'Question ${widget.currentIndex + 1}/${widget.drawCount}',
+                        style: theme.questionIndexTextStyle,
+                      ),
+                      const SizedBox(height: 4),
+                      // Rubric/subject of the current question.
+                      Text(
+                        'Rubrique : ${_currentQuestion.subject}',
+                        style: theme.questionIndexTextStyle,
+                      ),
+                      const SizedBox(height: 8),
+                      // Actual question text.
                     Text(
                       _cleanQuestion(_currentQuestion.question),
                       style: theme.questionTextStyle,
