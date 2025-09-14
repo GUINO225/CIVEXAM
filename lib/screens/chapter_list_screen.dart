@@ -42,6 +42,11 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         _pool = pool;
         _loading = false;
       });
+      if (pool.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aucune question pour ce module')),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -54,16 +59,16 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
   List<Question> _filterBy(List<Question> items, {required String subject, required String chapter}) {
     final s0 = QuestionLoader.canon(subject);
     final c0 = QuestionLoader.canon(chapter);
-    final exact = items
+    return items
         .where((q) => QuestionLoader.canon(q.subject) == s0 && QuestionLoader.canon(q.chapter) == c0)
         .toList(growable: false);
-    if (exact.isNotEmpty) return exact;
-    return items.where((q) => QuestionLoader.canon(q.subject) == s0).toList(growable: false);
   }
 
   Future<void> _start() async {
     if (_pool.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucune question disponible pour ce module.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune question pour ce module')),
+      );
       return;
     }
     final selected = pickAndShuffle(_pool, _questionCount);
