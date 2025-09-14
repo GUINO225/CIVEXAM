@@ -1724,5 +1724,677 @@
     ],
     "answerIndex": 0,
     "explanation": "Décalage de lettres → DE."
+  },
+  {
+    "id": "DC-18",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "Quel organe veille à la constitutionnalité des lois en Côte d’Ivoire ?",
+    "choices": [
+      "Conseil Constitutionnel",
+      "Conseil d'État",
+      "Cour de Cassation",
+      "Haute Cour de Justice"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Conseil Constitutionnel contrôle la conformité des lois à la Constitution."
+  },
+  {
+    "id": "DC-19",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "La durée du mandat présidentiel en Côte d’Ivoire est de :",
+    "choices": [
+      "4 ans",
+      "5 ans",
+      "6 ans",
+      "7 ans"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le mandat présidentiel dure cinq ans renouvelable."
+  },
+  {
+    "id": "DC-20",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "Qui nomme le Premier ministre ?",
+    "choices": [
+      "Le Président de la République",
+      "L’Assemblée Nationale",
+      "Le Conseil Constitutionnel",
+      "Le Sénat"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Président nomme le Premier ministre."
+  },
+  {
+    "id": "DC-21",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Quel organe examine en premier les projets de loi ordinaires ?",
+    "choices": [
+      "L’Assemblée Nationale",
+      "Le Sénat",
+      "Le Conseil Économique et Social",
+      "La Cour Suprême"
+    ],
+    "answerIndex": 0,
+    "explanation": "Les projets de loi sont d'abord examinés par l’Assemblée Nationale."
+  },
+  {
+    "id": "DC-22",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "En cas d’empêchement du Président, qui assure l’intérim ?",
+    "choices": [
+      "Le Premier ministre",
+      "Le Président du Sénat",
+      "Le Vice-Président",
+      "Le Président de l’Assemblée Nationale"
+    ],
+    "answerIndex": 2,
+    "explanation": "La Constitution prévoit l’intérim par le Vice-Président."
+  },
+  {
+    "id": "DC-23",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 2,
+    "question": "Quel organe juge le Président pour haute trahison ?",
+    "choices": [
+      "La Cour Suprême",
+      "La Haute Cour de Justice",
+      "Le Sénat",
+      "Le Conseil Constitutionnel"
+    ],
+    "answerIndex": 1,
+    "explanation": "La Haute Cour de Justice est compétente pour juger le Président."
+  },
+  {
+    "id": "DC-24",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "Le principe qui attribue la fonction législative au Parlement et l’exécutif au Gouvernement est :",
+    "choices": [
+      "La souveraineté nationale",
+      "La séparation des pouvoirs",
+      "La démocratie participative",
+      "La décentralisation"
+    ],
+    "answerIndex": 1,
+    "explanation": "Il s’agit de la séparation des pouvoirs."
+  },
+  {
+    "id": "DC-25",
+    "concours": "ENA",
+    "subject": "Droit Constitutionnel",
+    "chapter": "Institutions & principes",
+    "difficulty": 1,
+    "question": "Le Président de la République est élu au suffrage :",
+    "choices": [
+      "Universel direct",
+      "Universel indirect",
+      "Restreint",
+      "Censitaire"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Président est élu au suffrage universel direct."
+  },
+  {
+    "id": "PES-18",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 1,
+    "question": "Le PIB mesure :",
+    "choices": [
+      "La population totale",
+      "La valeur des biens et services produits",
+      "Le revenu moyen des ménages",
+      "Le niveau d'éducation"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le PIB correspond à la richesse produite sur une période."
+  },
+  {
+    "id": "PES-19",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 1,
+    "question": "L’inflation est :",
+    "choices": [
+      "La hausse générale des prix",
+      "La baisse des salaires",
+      "La diminution de la population",
+      "L’augmentation des importations"
+    ],
+    "answerIndex": 0,
+    "explanation": "L’inflation correspond à une augmentation durable des prix."
+  },
+  {
+    "id": "PES-20",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Le taux de chômage représente :",
+    "choices": [
+      "Le nombre total d’habitants",
+      "La part des chômeurs dans la population active",
+      "Le coût de la vie",
+      "Le taux de croissance"
+    ],
+    "answerIndex": 1,
+    "explanation": "Il s’agit du pourcentage de la population active sans emploi."
+  },
+  {
+    "id": "PES-21",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Quelle organisation régule le commerce mondial ?",
+    "choices": [
+      "Le FMI",
+      "La Banque mondiale",
+      "L’OMC",
+      "L’ONU"
+    ],
+    "answerIndex": 2,
+    "explanation": "L’Organisation Mondiale du Commerce régule les échanges."
+  },
+  {
+    "id": "PES-22",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 1,
+    "question": "Le microcrédit vise principalement à :",
+    "choices": [
+      "Financer les grands projets",
+      "Accorder de petits prêts aux entrepreneurs",
+      "Soutenir les banques commerciales",
+      "Réduire les impôts"
+    ],
+    "answerIndex": 1,
+    "explanation": "Le microcrédit fournit de faibles montants aux petits entrepreneurs."
+  },
+  {
+    "id": "PES-23",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 1,
+    "question": "Quel indicateur mesure le développement humain ?",
+    "choices": [
+      "Le PIB",
+      "L’IDH",
+      "Le taux d’alphabétisation",
+      "Le solde commercial"
+    ],
+    "answerIndex": 1,
+    "explanation": "L’Indice de Développement Humain (IDH) combine santé, éducation et revenu."
+  },
+  {
+    "id": "PES-24",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Les \"remittances\" désignent :",
+    "choices": [
+      "Les exportations agricoles",
+      "Les transferts d'argent des migrants",
+      "Les dépenses publiques",
+      "Les aides humanitaires"
+    ],
+    "answerIndex": 1,
+    "explanation": "Les remittances sont des envois d'argent vers le pays d'origine."
+  },
+  {
+    "id": "PES-25",
+    "concours": "ENA",
+    "subject": "Problèmes Économiques & Sociaux",
+    "chapter": "Notions clés",
+    "difficulty": 2,
+    "question": "Une politique visant à réduire le déficit budgétaire est appelée :",
+    "choices": [
+      "Relance",
+      "Austérité",
+      "Protectionnisme",
+      "Dévaluation"
+    ],
+    "answerIndex": 1,
+    "explanation": "L’austérité consiste à diminuer les dépenses publiques pour réduire le déficit."
+  },
+  {
+    "id": "NUM-18",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "15 % de 200 vaut :",
+    "choices": [
+      "20",
+      "25",
+      "30",
+      "35"
+    ],
+    "answerIndex": 2,
+    "explanation": "0,15 × 200 = 30."
+  },
+  {
+    "id": "NUM-19",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Résoudre 3x + 5 = 20. x = ?",
+    "choices": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answerIndex": 2,
+    "explanation": "3×5 + 5 = 20, donc x = 5."
+  },
+  {
+    "id": "NUM-20",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Une voiture parcourt 120 km en 2 h. Sa vitesse moyenne est :",
+    "choices": [
+      "40 km/h",
+      "50 km/h",
+      "60 km/h",
+      "80 km/h"
+    ],
+    "answerIndex": 2,
+    "explanation": "120 ÷ 2 = 60 km/h."
+  },
+  {
+    "id": "NUM-21",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 2,
+    "question": "2/3 + 3/4 = ?",
+    "choices": [
+      "17/12",
+      "5/7",
+      "23/12",
+      "1/2"
+    ],
+    "answerIndex": 0,
+    "explanation": "2/3 + 3/4 = 8/12 + 9/12 = 17/12."
+  },
+  {
+    "id": "NUM-22",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "La racine carrée de 81 est :",
+    "choices": [
+      "7",
+      "8",
+      "9",
+      "10"
+    ],
+    "answerIndex": 2,
+    "explanation": "9 × 9 = 81."
+  },
+  {
+    "id": "NUM-23",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "Suite arithmétique : 4, 7, 10, 13, ?",
+    "choices": [
+      "15",
+      "16",
+      "17",
+      "18"
+    ],
+    "answerIndex": 1,
+    "explanation": "On ajoute 3 à chaque terme : 13 + 3 = 16."
+  },
+  {
+    "id": "NUM-24",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "0,75 équivaut à la fraction :",
+    "choices": [
+      "1/2",
+      "2/3",
+      "3/4",
+      "4/5"
+    ],
+    "answerIndex": 2,
+    "explanation": "0,75 = 3/4."
+  },
+  {
+    "id": "NUM-25",
+    "concours": "ENA",
+    "subject": "Aptitude Numérique",
+    "chapter": "Bases & proportionnalité",
+    "difficulty": 1,
+    "question": "9² = ?",
+    "choices": [
+      "72",
+      "81",
+      "90",
+      "99"
+    ],
+    "answerIndex": 1,
+    "explanation": "9 × 9 = 81."
+  },
+  {
+    "id": "VERB-17",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 1,
+    "question": "Synonyme de « hâter » :",
+    "choices": [
+      "Accélérer",
+      "Ralentir",
+      "Annuler",
+      "Retarder"
+    ],
+    "answerIndex": 0,
+    "explanation": "Hâter signifie accélérer."
+  },
+  {
+    "id": "VERB-18",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 1,
+    "question": "Antonyme de « transparent » :",
+    "choices": [
+      "Limpide",
+      "Clair",
+      "Opaque",
+      "Pur"
+    ],
+    "answerIndex": 2,
+    "explanation": "Le contraire de transparent est opaque."
+  },
+  {
+    "id": "VERB-19",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 1,
+    "question": "Quel mot est un adjectif ?",
+    "choices": [
+      "Vitesse",
+      "Rapide",
+      "Rapidité",
+      "Rapidement"
+    ],
+    "answerIndex": 1,
+    "explanation": "Rapide est un adjectif."
+  },
+  {
+    "id": "VERB-20",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 1,
+    "question": "Le féminin de « acteur » est :",
+    "choices": [
+      "Actrice",
+      "Acteure",
+      "Acteuse",
+      "Actora"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le féminin correct est actrice."
+  },
+  {
+    "id": "VERB-21",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 1,
+    "question": "Quel est le pluriel de « cheval » ?",
+    "choices": [
+      "Chevals",
+      "Chevaux",
+      "Chevalles",
+      "Chevalx"
+    ],
+    "answerIndex": 1,
+    "explanation": "Au pluriel, cheval devient chevaux."
+  },
+  {
+    "id": "VERB-22",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "La nature du mot « rapidement » est :",
+    "choices": [
+      "Nom",
+      "Verbe",
+      "Adjectif",
+      "Adverbe"
+    ],
+    "answerIndex": 3,
+    "explanation": "Rapidement est un adverbe."
+  },
+  {
+    "id": "VERB-23",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Synonyme de « courroux » :",
+    "choices": [
+      "Joie",
+      "Colère",
+      "Paix",
+      "Sérénité"
+    ],
+    "answerIndex": 1,
+    "explanation": "Courroux signifie colère."
+  },
+  {
+    "id": "VERB-24",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Quel mot est homophone de « verre » ?",
+    "choices": [
+      "Vert",
+      "Vers",
+      "Vair",
+      "Tous"
+    ],
+    "answerIndex": 3,
+    "explanation": "Verre, vert, vers et vair sont homophones en français."
+  },
+  {
+    "id": "VERB-25",
+    "concours": "ENA",
+    "subject": "Aptitude Verbale",
+    "chapter": "Vocabulaire & règles",
+    "difficulty": 2,
+    "question": "Antonyme de « abondant » :",
+    "choices": [
+      "Rare",
+      "Fécond",
+      "Riche",
+      "Pléthorique"
+    ],
+    "answerIndex": 0,
+    "explanation": "Rare est l'antonyme d'abondant."
+  },
+  {
+    "id": "ORG-17",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Suite : 2, 5, 10, 17, 26, ?",
+    "choices": [
+      "35",
+      "37",
+      "39",
+      "41"
+    ],
+    "answerIndex": 1,
+    "explanation": "Les écarts sont 3,5,7,9 → prochain écart 11 : 26+11=37."
+  },
+  {
+    "id": "ORG-18",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 1,
+    "question": "Si A est avant B et B avant C dans un classement, qui est premier ?",
+    "choices": [
+      "A",
+      "B",
+      "C",
+      "Impossible à déterminer"
+    ],
+    "answerIndex": 0,
+    "explanation": "A précède B et C, il est donc premier."
+  },
+  {
+    "id": "ORG-19",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Dans un groupe de 6 personnes, combien de poignées de main uniques peuvent être échangées ?",
+    "choices": [
+      "10",
+      "12",
+      "15",
+      "20"
+    ],
+    "answerIndex": 2,
+    "explanation": "n(n-1)/2 = 6×5/2 = 15 poignées de main."
+  },
+  {
+    "id": "ORG-20",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Tous les avocats sont juristes. Tous les juristes ont étudié le droit. Que peut-on conclure ?",
+    "choices": [
+      "Tous les avocats ont étudié le droit",
+      "Tous les juristes sont avocats",
+      "Certains avocats n'ont pas étudié le droit",
+      "Aucune conclusion"
+    ],
+    "answerIndex": 0,
+    "explanation": "Si tous les avocats sont juristes et que tous les juristes ont étudié le droit, alors tous les avocats ont étudié le droit."
+  },
+  {
+    "id": "ORG-21",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 1,
+    "question": "Quel mot ne fait pas partie du groupe ?",
+    "choices": [
+      "Pomme",
+      "Banane",
+      "Tomate",
+      "Orange"
+    ],
+    "answerIndex": 2,
+    "explanation": "La tomate est un fruit botanique mais souvent classée comme légume."
+  },
+  {
+    "id": "ORG-22",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 1,
+    "question": "Aujourd’hui est mardi. Quel jour sera dans 9 jours ?",
+    "choices": [
+      "Jeudi",
+      "Vendredi",
+      "Samedi",
+      "Dimanche"
+    ],
+    "answerIndex": 0,
+    "explanation": "9 jours plus tard : 9 mod 7 = 2 → mardi + 2 = jeudi."
+  },
+  {
+    "id": "ORG-23",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 2,
+    "question": "Suite de lettres : B, E, H, K, ?",
+    "choices": [
+      "M",
+      "N",
+      "O",
+      "P"
+    ],
+    "answerIndex": 1,
+    "explanation": "On ajoute 3 lettres à chaque fois : B(+3)=E, E(+3)=H, H(+3)=K, K(+3)=N."
+  },
+  {
+    "id": "ORG-24",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 1,
+    "question": "Marie a trois frères. Chaque frère a une seule sœur. Combien d’enfants compte la fratrie ?",
+    "choices": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answerIndex": 1,
+    "explanation": "Marie est l’unique sœur des trois frères : 4 enfants."
+  },
+  {
+    "id": "ORG-25",
+    "concours": "ENA",
+    "subject": "Organisation & Logique",
+    "chapter": "Classements & déductions",
+    "difficulty": 1,
+    "question": "Dans un code où A=1, B=3, C=5, quelle valeur correspond à D ?",
+    "choices": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "answerIndex": 1,
+    "explanation": "La suite augmente de 2 : D = 7."
   }
 ]
