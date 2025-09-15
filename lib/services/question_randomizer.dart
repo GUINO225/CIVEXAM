@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../models/question.dart';
 import 'question_history_store.dart';
 
-final _rng = Random();
+  final _rng = Random();
 
 /// Retourne une **copie** de la question avec les choix mélangés
 /// et un `answerIndex` recalculé.
@@ -64,7 +64,7 @@ Future<List<Question>> pickAndShuffle(
   // Prepare data for the isolate.
   final args = _PickAndShuffleArgs(
     pool: pool.map((q) => q.toMap()).toList(),
-    history: history.toList(),
+    history: history,
     take: take,
     dedupeByQuestion: dedupeByQuestion,
     rngSeed: r.nextInt(1 << 32),
@@ -90,7 +90,7 @@ Future<List<Question>> pickAndShuffle(
 
 class _PickAndShuffleArgs {
   final List<Map<String, dynamic>> pool;
-  final List<String> history;
+  final Iterable<String> history;
   final int take;
   final bool dedupeByQuestion;
   final int rngSeed;
@@ -105,7 +105,7 @@ class _PickAndShuffleArgs {
 
   Map<String, dynamic> toMap() => {
         'pool': pool,
-        'history': history,
+        'history': history.toList(),
         'take': take,
         'dedupeByQuestion': dedupeByQuestion,
         'rngSeed': rngSeed,
