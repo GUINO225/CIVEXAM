@@ -117,8 +117,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         bytes,
         SettableMetadata(contentType: 'image/jpeg'),
       );
-    } else if (!kIsWeb) {
-      await ref.putFile(io.File(file.path));
+    }
+    if (!kIsWeb) {
+      await ref.putFile(io.File(file.path) as dynamic);
     }
     final url = await ref.getDownloadURL();
 
@@ -163,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!kIsWeb) {
       final file = io.File(photoUrl);
       if (file.existsSync()) {
-        return FileImage(file);
+        return FileImage(file as dynamic);
       }
     }
     final base64Data = _extractBase64(photoUrl);
