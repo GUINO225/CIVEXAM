@@ -164,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!kIsWeb) {
       final file = io.File(photoUrl);
       if (file.existsSync()) {
-        return FileImage(file);
+        return FileImage(file as dynamic);
       }
     }
     final base64Data = _extractBase64(photoUrl);
