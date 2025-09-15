@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../models/design_config.dart';
 import '../services/auth_service.dart';
 import '../services/design_bus.dart';
@@ -138,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             FontAwesomeIcons.google,
                             color: Color(0xFF4285F4),
                           ),
-                    label: const Text('Continuer avec Google'),
+                    label: const Text('Se connecter avec Google'),
                   ),
                   const SizedBox(height: 12),
                   if (_unverifiedUser != null)
@@ -170,11 +169,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _unverifiedUser = null;
     });
     try {
-      if (!kIsWeb) {
-        try {
-          await GoogleSignIn().signOut();
-        } catch (_) {}
-      }
       final credential = await _auth.signInWithGoogle();
       if (!mounted) return;
       if (credential.user == null) {
