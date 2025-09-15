@@ -7,6 +7,7 @@ import 'package:civexam_pro/utils/io_stub.dart'
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
@@ -92,9 +93,43 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     super.dispose();
   }
 
+  bool _isImagePickerSupported() {
+    if (kIsWeb) {
+      return false;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  void _showImagePickerUnavailableMessage() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("La sélection d'image n'est pas disponible sur cette plateforme."),
+      ),
+    );
+  }
+
   Future<void> _pickImage() async {
+    if (!_isImagePickerSupported()) {
+      _showImagePickerUnavailableMessage();
+      return;
+    }
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+    XFile? picked;
+    try {
+      picked = await picker.pickImage(source: ImageSource.gallery);
+    } on MissingPluginException catch (e, st) {
+      debugPrint('Image picker plugin missing: $e\n$st');
+      _showImagePickerUnavailableMessage();
+      return;
+    }
     if (picked != null) {
       if (kIsWeb) {
         final bytes = await picked.readAsBytes();
