@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// Exception thrown for authentication failures with a user-friendly message.
 class AuthException implements Exception {
@@ -14,6 +15,7 @@ class AuthException implements Exception {
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<UserCredential> signInWithEmail(String email, String password) async {
     try {
@@ -46,11 +48,52 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      if (!kIsWeb) {
+        try {
+          await _googleSignIn.signOut();
+        } catch (_) {}
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Sign out failed: $e');
       }
       throw AuthException("Échec de la déconnexion");
+    }
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        provider.setCustomParameters({'prompt': 'select_account'});
+        return await _auth.signInWithPopup(provider);
+      }
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        throw AuthException('Connexion Google annulée');
+      }
+      final authentication = await account.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: authentication.accessToken,
+        idToken: authentication.idToken,
+      );
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'popup-closed-by-user') {
+        throw AuthException('Connexion Google annulée');
+      }
+      if (e.code == 'account-exists-with-different-credential') {
+        throw AuthException(
+            'Un compte existe déjà avec un autre fournisseur de connexion');
+      }
+      throw AuthException(_messageFromCode(e.code, e.message));
+    } on AuthException {
+      rethrow;
+    } catch (_) {
+      throw AuthException('Connexion Google impossible');
     }
   }
 
