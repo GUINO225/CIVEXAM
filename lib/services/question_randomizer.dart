@@ -64,7 +64,7 @@ Future<List<Question>> pickAndShuffle(
   // Prepare data for the isolate.
   final args = _PickAndShuffleArgs(
     pool: pool.map((q) => q.toMap()).toList(),
-    history: history.toList(),
+    history: history.toList(growable: false),
     take: take,
     dedupeByQuestion: dedupeByQuestion,
     rngSeed: r.nextInt(1 << 32),
