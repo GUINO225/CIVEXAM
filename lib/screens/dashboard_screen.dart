@@ -1,6 +1,11 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'dart:io'
+    if (dart.library.html) 'package:civexam_pro/utils/io_stub.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/leaderboard_entry.dart';
@@ -106,7 +111,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (uid == null) return;
 
     final ref = FirebaseStorage.instance.ref('profiles/$uid.jpg');
-    await ref.putFile(File(file.path));
+    if (kIsWeb) {
+      final Uint8List bytes = await file.readAsBytes();
+      await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+    } else {
+      await ref.putFile(File(file.path));
+    }
     final url = await ref.getDownloadURL();
 
     final profile = UserProfile(
@@ -118,6 +131,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await _profileService.saveProfile(profile);
     if (!mounted) return;
     await _load();
+  }
+
+  Widget _buildAvatar() {
+    final image = _resolveAvatar();
+    return CircleAvatar(
+      radius: 30,
+      backgroundImage: image,
+      child: image != null ? null : const Icon(Icons.person),
+    );
+  }
+
+  ImageProvider? _resolveAvatar() {
+    final photoUrl = _profile?.photoUrl;
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return null;
+    }
+    if (kIsWeb) {
+      if (photoUrl.startsWith('http')) {
+        return NetworkImage(photoUrl);
+      }
+      final base64Data = _extractBase64(photoUrl);
+      if (base64Data != null) {
+        return MemoryImage(base64Decode(base64Data));
+      }
+      return null;
+    }
+    if (photoUrl.startsWith('http')) {
+      return NetworkImage(photoUrl);
+    }
+    final file = File(photoUrl);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    final base64Data = _extractBase64(photoUrl);
+    if (base64Data != null) {
+      return MemoryImage(base64Decode(base64Data));
+    }
+    return null;
+  }
+
+  String? _extractBase64(String input) {
+    if (input.startsWith('data:image')) {
+      final commaIndex = input.indexOf(',');
+      if (commaIndex != -1) {
+        return input.substring(commaIndex + 1);
+      }
+    }
+    if (input.startsWith('base64:')) {
+      return input.substring('base64:'.length);
+    }
+    return null;
   }
 
   @override
@@ -147,15 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundImage: _profile?.photoUrl.isNotEmpty == true
-                              ? NetworkImage(_profile!.photoUrl)
-                              : null,
-                          child: _profile?.photoUrl.isNotEmpty == true
-                              ? null
-                              : const Icon(Icons.person),
-                        ),
+                        _buildAvatar(),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
