@@ -3,6 +3,7 @@
 // Outils de tirage/mélange de questions. Préserve tous les champs obligatoires.
 // -----------------------------------------------------------------------------
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import '../models/question.dart';
 import 'question_history_store.dart';
 
@@ -60,47 +61,24 @@ Future<List<Question>> pickAndShuffle(
   // Remove questions already seen according to the history store.
   final history = await QuestionHistoryStore.load();
 
-  // When dedupeByQuestion is enabled, compute the set of question texts that
-  // have already been seen in previous sessions.
-  final historyTexts = dedupeByQuestion
-      ? pool
-          .where((q) => history.contains(q.id))
-          .map((q) => q.question)
-          .toSet()
-      : <String>{};
+  // Prepare data for the isolate.
+  final args = _PickAndShuffleArgs(
+    pool: pool.map((q) => q.toMap()).toList(),
+    history: history,
+    take: take,
+    dedupeByQuestion: dedupeByQuestion,
+    rngSeed: r.nextInt(1 << 32),
+  );
 
-  // Deduplicate by question id (and optionally by question text) while
-  // filtering out history entries.
-  final seenIds = <String>{};
-  final seenQuestions = <String>{};
-  final filtered = <Question>[];
-  for (final q in pool) {
-    if (history.contains(q.id)) continue;
-    if (!seenIds.add(q.id)) continue;
-    if (dedupeByQuestion) {
-      if (historyTexts.contains(q.question)) continue;
-      if (!seenQuestions.add(q.question)) continue;
-    }
-    filtered.add(q);
-  }
+  final result = await compute(_pickAndShuffleIsolate, args.toMap());
 
-  // After filtering, if fewer than `take` questions remain while the original
-  // pool still has more items, clear the history and retry without
-  // de-duplication to obtain at least `take` questions.
-  if (filtered.length < take && pool.length > filtered.length) {
-    if (history.isNotEmpty || dedupeByQuestion) {
-      await QuestionHistoryStore.clear();
-      return pickAndShuffle(pool, take, rng: r, dedupeByQuestion: false);
-    }
-  }
+  final selectedMaps = List<Map<String, dynamic>>.from(
+      (result['selected'] as List).map((e) => Map<String, dynamic>.from(e)));
+  final selected =
+      selectedMaps.map((m) => Question.fromMap(m)).toList(growable: false);
+  final needsRetry = result['needsRetry'] as bool;
 
-  final copy = List<Question>.from(filtered)..shuffle(r);
-  final n = take <= copy.length ? take : copy.length;
-  final selected = copy.take(n).map((q) => shuffleChoices(q, rng: r)).toList();
-
-  // If deduplication yields too few questions, clear the history and retry
-  // without deduplication to ensure enough items are returned.
-  if (dedupeByQuestion && selected.length < take) {
+  if (needsRetry) {
     await QuestionHistoryStore.clear();
     final retry =
         await pickAndShuffle(pool, take, rng: r, dedupeByQuestion: false);
@@ -108,4 +86,88 @@ Future<List<Question>> pickAndShuffle(
   }
 
   return selected;
+}
+
+class _PickAndShuffleArgs {
+  final List<Map<String, dynamic>> pool;
+  final List<String> history;
+  final int take;
+  final bool dedupeByQuestion;
+  final int rngSeed;
+
+  const _PickAndShuffleArgs({
+    required this.pool,
+    required this.history,
+    required this.take,
+    required this.dedupeByQuestion,
+    required this.rngSeed,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'pool': pool,
+        'history': history,
+        'take': take,
+        'dedupeByQuestion': dedupeByQuestion,
+        'rngSeed': rngSeed,
+      };
+
+  factory _PickAndShuffleArgs.fromMap(Map<String, dynamic> map) {
+    return _PickAndShuffleArgs(
+      pool: List<Map<String, dynamic>>.from(
+          (map['pool'] as List).map((e) => Map<String, dynamic>.from(e))),
+      history: List<String>.from(map['history'] as List),
+      take: map['take'] as int,
+      dedupeByQuestion: map['dedupeByQuestion'] as bool,
+      rngSeed: map['rngSeed'] as int,
+    );
+  }
+}
+
+Map<String, dynamic> _pickAndShuffleIsolate(Map<String, dynamic> argsMap) {
+  final args = _PickAndShuffleArgs.fromMap(argsMap);
+  final pool =
+      args.pool.map((m) => Question.fromMap(m)).toList(growable: false);
+  final history = args.history.toSet();
+
+  final r = Random(args.rngSeed);
+
+  final historyTexts = args.dedupeByQuestion
+      ? pool
+          .where((q) => history.contains(q.id))
+          .map((q) => q.question)
+          .toSet()
+      : <String>{};
+
+  final seenIds = <String>{};
+  final seenQuestions = <String>{};
+  final filtered = <Question>[];
+  for (final q in pool) {
+    if (history.contains(q.id)) continue;
+    if (!seenIds.add(q.id)) continue;
+    if (args.dedupeByQuestion) {
+      if (historyTexts.contains(q.question)) continue;
+      if (!seenQuestions.add(q.question)) continue;
+    }
+    filtered.add(q);
+  }
+
+  var needsRetry = false;
+  if (filtered.length < args.take && pool.length > filtered.length) {
+    if (history.isNotEmpty || args.dedupeByQuestion) {
+      needsRetry = true;
+    }
+  }
+
+  final copy = List<Question>.from(filtered)..shuffle(r);
+  final n = args.take <= copy.length ? args.take : copy.length;
+  final selected = copy.take(n).map((q) => shuffleChoices(q, rng: r)).toList();
+
+  if (args.dedupeByQuestion && selected.length < args.take) {
+    needsRetry = true;
+  }
+
+  return {
+    'selected': selected.map((q) => q.toMap()).toList(),
+    'needsRetry': needsRetry,
+  };
 }

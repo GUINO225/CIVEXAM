@@ -29,11 +29,18 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     setState(() => _loading = true);
     try {
       final List<Question> all = await QuestionLoader.loadENA();
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
       final List<Question> selected = await pickAndShuffle(
         all,
         _questionCount,
         dedupeByQuestion: true,
       );
+      if (mounted) Navigator.pop(context);
 
       final proceed = await _handleShortDraw(selected, _questionCount);
       if (!proceed) {
@@ -109,12 +116,15 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         );
       }
     } catch (e) {
+      if (mounted) Navigator.pop(context);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec du lancement de l\'entraînement : $e')),
       );
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

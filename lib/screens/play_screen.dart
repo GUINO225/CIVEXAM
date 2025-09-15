@@ -215,11 +215,18 @@ class _PlayScreenState extends State<PlayScreen> {
         try {
           const int desiredCount = 60;
           final all = await QuestionLoader.loadENA();
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
           final selected = await pickAndShuffle(
             all,
             desiredCount,
             dedupeByQuestion: true,
           );
+          if (mounted) Navigator.pop(context);
 
           final proceed = await _handleShortDraw(selected, desiredCount);
           if (!proceed) {
@@ -239,6 +246,7 @@ class _PlayScreenState extends State<PlayScreen> {
             ),
           );
         } catch (e) {
+          if (mounted) Navigator.pop(context);
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
