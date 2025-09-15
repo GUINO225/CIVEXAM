@@ -77,7 +77,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      if (!kIsWeb && Platform.isAndroid) {
+        FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      }
       _checkEmulator();
       _pageController = PageController();
     }
@@ -103,7 +105,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.disable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      if (!kIsWeb && Platform.isAndroid) {
+        FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      }
     }
     _pageController?.dispose();
     super.dispose();
