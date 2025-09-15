@@ -249,7 +249,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                           ),
                         ),
                       )
-                    : const SizedBox.shrink(),
+                    : SizedBox(
+                        key: const ValueKey<String>(
+                            'selected-chip-placeholder'),
+                        height: chipMinHeight,
+                      ),
               ),
               const SizedBox(height: 24),
               // Answer options list.
