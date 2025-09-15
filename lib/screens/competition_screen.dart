@@ -255,7 +255,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               // Answer options list.
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: List.generate(_currentQuestion.choices.length, (i) {
                     final bool isSelected = _selected == i;
                     final bool isHighlighted = _highlighted == i;
@@ -271,9 +271,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                         : isHighlighted
                             ? Color.alphaBlend(highlightOverlay, baseColor)
                             : baseColor;
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Container(
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 400),
                         child: AnimatedScale(
                           scale: isHighlighted ? 0.97 : 1.0,
                           duration: const Duration(milliseconds: 140),
@@ -316,7 +318,8 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                 child: Text(
                                   _currentQuestion.choices[i],
                                   textAlign: TextAlign.center,
-                                  style: theme.optionTextStyle,
+                                  style: theme.optionTextStyle
+                                      .copyWith(fontSize: 18),
                                 ),
                               ),
                             ),
