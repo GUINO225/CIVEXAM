@@ -10,44 +10,66 @@ import 'widgets/design_background.dart';
 import 'models/design_config.dart';
 import 'screens/splash_screen.dart';
 
-Future<void> main() async {
-  await runZonedGuarded<Future<void>>(() async {
-    try {
-      WidgetsFlutterBinding.ensureInitialized();
-      await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
-      final cfg = await DesignPrefs.load();
-      DesignBus.push(cfg);
-      runApp(const CivExamApp());
-    } catch (e, st) {
-      debugPrint('App initialization failed: $e\n$st');
-      runApp(ErrorApp(error: e));
-    }
-  }, (error, stack) {
-    debugPrint('Uncaught async error: $error\n$stack');
-  });
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () => runApp(const CivExamApp()),
+    (error, stack) {
+      debugPrint('Uncaught async error: $error\n$stack');
+    },
+  );
 }
 
-class ErrorApp extends StatelessWidget {
-  const ErrorApp({super.key, this.error});
+class CivExamApp extends StatefulWidget {
+  const CivExamApp({super.key});
 
-  final Object? error;
+  @override
+  State<CivExamApp> createState() => _CivExamAppState();
+}
+
+class _CivExamAppState extends State<CivExamApp> {
+  late final Future<void> _initialization;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialization = _initializeAsync();
+  }
+
+  Future<void> _initializeAsync() async {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      final cfg = await DesignPrefs.load();
+      DesignBus.push(cfg);
+    } catch (error, stackTrace) {
+      debugPrint('App initialization failed: $error\n$stackTrace');
+      rethrow;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Une erreur est survenue: $error'),
-        ),
-      ),
+    return FutureBuilder<void>(
+      future: _initialization,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return ErrorApp(error: snapshot.error);
+        }
+
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const LoadingApp();
+        }
+
+        return const _CivExamConfiguredApp();
+      },
     );
   }
 }
 
-class CivExamApp extends StatelessWidget {
-  const CivExamApp({super.key});
+class _CivExamConfiguredApp extends StatelessWidget {
+  const _CivExamConfiguredApp();
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +85,58 @@ class CivExamApp extends StatelessWidget {
           home: const SplashScreen(),
         );
       },
+    );
+  }
+}
+
+class LoadingApp extends StatelessWidget {
+  const LoadingApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Chargement en cours...'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  const ErrorApp({super.key, this.error});
+
+  final Object? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              const SizedBox(height: 16),
+              const Text('Une erreur est survenue lors du démarrage.'),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text('$error'),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
