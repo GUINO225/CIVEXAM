@@ -202,54 +202,58 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               ),
               const SizedBox(height: 24),
               // Chip displaying the selected answer when user taps an option.
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                switchInCurve: Curves.easeOutBack,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  final curved = CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                    reverseCurve: Curves.easeInCubic,
-                  );
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.1),
-                        end: Offset.zero,
-                      ).animate(curved),
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
-                        child: child,
+              SizedBox(
+                height: chipMinHeight,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.easeOutBack,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) {
+                    final curved = CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                      reverseCurve: Curves.easeInCubic,
+                    );
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.1),
+                          end: Offset.zero,
+                        ).animate(curved),
+                        child: ScaleTransition(
+                          scale:
+                              Tween<double>(begin: 0.92, end: 1).animate(curved),
+                          child: child,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: _selected >= 0
-                    ? AnimatedAlign(
-                        key: ValueKey<int>(_selected),
-                        alignment: Alignment.center,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOutCubic,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: theme.selectedChipBackgroundColor,
-                            borderRadius: BorderRadius.circular(
-                              theme.selectedChipRadius,
+                    );
+                  },
+                  child: _selected >= 0
+                      ? AnimatedAlign(
+                          key: ValueKey<int>(_selected),
+                          alignment: Alignment.center,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: theme.selectedChipBackgroundColor,
+                              borderRadius: BorderRadius.circular(
+                                theme.selectedChipRadius,
+                              ),
+                            ),
+                            constraints:
+                                BoxConstraints(minHeight: chipMinHeight),
+                            child: Text(
+                              _currentQuestion.choices[_selected],
+                              style: theme.selectedChipTextStyle,
                             ),
                           ),
-                          constraints:
-                              BoxConstraints(minHeight: chipMinHeight),
-                          child: Text(
-                            _currentQuestion.choices[_selected],
-                            style: theme.selectedChipTextStyle,
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                        )
+                      : SizedBox(height: chipMinHeight),
+                ),
               ),
               const SizedBox(height: 24),
               // Answer options list.
