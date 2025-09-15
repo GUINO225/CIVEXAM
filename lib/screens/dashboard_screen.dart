@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'dart:io'
-    if (dart.library.html) 'package:civexam_pro/utils/io_stub.dart';
+import 'package:civexam_pro/utils/io_stub.dart'
+    if (dart.library.io) 'dart:io' as io;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -117,8 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         bytes,
         SettableMetadata(contentType: 'image/jpeg'),
       );
-    } else {
-      await ref.putFile(File(file.path));
+    } else if (!kIsWeb) {
+      await ref.putFile(io.File(file.path));
     }
     final url = await ref.getDownloadURL();
 
@@ -160,9 +160,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (photoUrl.startsWith('http')) {
       return NetworkImage(photoUrl);
     }
-    final file = File(photoUrl);
-    if (file.existsSync()) {
-      return FileImage(file);
+    if (!kIsWeb) {
+      final file = io.File(photoUrl);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
     }
     final base64Data = _extractBase64(photoUrl);
     if (base64Data != null) {
