@@ -150,10 +150,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
       return null;
     }
-    if (!kIsWeb && _avatarPath != null && _avatarPath!.isNotEmpty) {
-      final file = io.File(_avatarPath!);
-      if (file.existsSync()) {
-        return FileImage(file);
+    if (!kIsWeb) {
+      if (_avatarPath != null && _avatarPath!.isNotEmpty) {
+        final file = io.File(_avatarPath!);
+        if (file.existsSync()) {
+          return FileImage(file as dynamic);
+        }
       }
     }
     if (_photoUrl != null && _photoUrl!.isNotEmpty) {
@@ -167,7 +169,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (!kIsWeb) {
         final file = io.File(_photoUrl!);
         if (file.existsSync()) {
-          return FileImage(file);
+          return FileImage(file as dynamic);
         }
       }
     }
