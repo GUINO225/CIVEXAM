@@ -130,23 +130,25 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _showImagePickerUnavailableMessage();
       return;
     }
-    if (picked != null) {
-      if (kIsWeb) {
-        final bytes = await picked.readAsBytes();
-        if (!mounted) return;
-        setState(() {
-          _avatarBytes = bytes;
-          _avatarPath = null;
-          _photoUrl = null;
-        });
-      } else {
-        if (!mounted) return;
-        setState(() {
-          _avatarPath = picked.path;
-          _avatarBytes = null;
-          _photoUrl = null;
-        });
-      }
+    if (picked == null) {
+      return;
+    }
+    if (kIsWeb) {
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _avatarBytes = bytes;
+        _avatarPath = null;
+        _photoUrl = null;
+      });
+    } else {
+      final avatarPath = picked.path;
+      if (!mounted) return;
+      setState(() {
+        _avatarPath = avatarPath;
+        _avatarBytes = null;
+        _photoUrl = null;
+      });
     }
   }
 
