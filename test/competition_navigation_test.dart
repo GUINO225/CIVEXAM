@@ -42,5 +42,41 @@ void main() {
       }
     }
   });
+
+  testWidgets('Selecting an option does not shift the answer list vertically',
+      (tester) async {
+    final questions = [
+      Question(
+        id: 'q0',
+        concours: 'ENA',
+        subject: 'Sujet',
+        chapter: 'Chap',
+        difficulty: 1,
+        question: 'Question',
+        choices: const ['Option 1', 'Option 2'],
+        answerIndex: 0,
+      ),
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: CompetitionScreen(
+        questions: questions,
+        timePerQuestion: 5,
+        startTime: DateTime.now(),
+      ),
+    ));
+
+    await tester.pumpAndSettle();
+
+    final Finder firstOptionFinder = find.text('Option 1').last;
+    final double initialTop = tester.getTopLeft(firstOptionFinder).dy;
+
+    await tester.tap(firstOptionFinder);
+    await tester.pumpAndSettle();
+
+    final double afterSelectionTop = tester.getTopLeft(firstOptionFinder).dy;
+
+    expect(afterSelectionTop, closeTo(initialTop, 0.1));
+  });
 }
 
