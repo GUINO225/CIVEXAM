@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, debugPrintStack, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -69,6 +69,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   int _exitCount = 0;
   bool _wasPaused = false;
 
+  bool _secureFlagSupported = true;
+  bool _secureFlagActive = false;
+
   @override
   void initState() {
     super.initState();
@@ -77,8 +80,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      if (!kIsWeb && Platform.isAndroid) {
-        FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      if (mounted && !kIsWeb && Platform.isAndroid) {
+        unawaited(_enableSecureFlag());
       }
       _checkEmulator();
       _pageController = PageController();
@@ -105,12 +108,55 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.disable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      if (!kIsWeb && Platform.isAndroid) {
-        FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      if (mounted && !kIsWeb && Platform.isAndroid) {
+        unawaited(_disableSecureFlag());
       }
     }
     _pageController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _enableSecureFlag() async {
+    if (!mounted || kIsWeb || !Platform.isAndroid || !_secureFlagSupported) {
+      return;
+    }
+    try {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      _secureFlagActive = true;
+    } on MissingPluginException catch (error, stackTrace) {
+      _handleMissingPlugin('addFlags', error, stackTrace);
+    } catch (error, stackTrace) {
+      _logWindowManagerError('addFlags', error, stackTrace);
+    }
+  }
+
+  Future<void> _disableSecureFlag() async {
+    if (!mounted || kIsWeb || !Platform.isAndroid || !_secureFlagActive) {
+      return;
+    }
+    try {
+      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    } on MissingPluginException catch (error, stackTrace) {
+      _handleMissingPlugin('clearFlags', error, stackTrace);
+    } catch (error, stackTrace) {
+      _logWindowManagerError('clearFlags', error, stackTrace);
+    } finally {
+      _secureFlagActive = false;
+    }
+  }
+
+  void _handleMissingPlugin(
+      String operation, MissingPluginException error, StackTrace stackTrace) {
+    _secureFlagSupported = false;
+    _secureFlagActive = false;
+    debugPrint('FlutterWindowManager $operation not available: ${error.message}');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  void _logWindowManagerError(
+      String operation, Object error, StackTrace stackTrace) {
+    debugPrint('FlutterWindowManager $operation failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
 
   void _startTimer() {
