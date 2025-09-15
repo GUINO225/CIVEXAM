@@ -242,8 +242,17 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                 value: c,
                 groupValue: answers[i],
                 onChanged: _submitted ? null : (v) => _onAnswer(i, v!),
-                title: Text(item.choices[c]),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                contentPadding: EdgeInsets.zero,
+                title: Center(
+                  child: Text(
+                    item.choices[c],
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                        ) ??
+                        const TextStyle(fontSize: 18),
+                  ),
+                ),
               ),
           ],
         ),
