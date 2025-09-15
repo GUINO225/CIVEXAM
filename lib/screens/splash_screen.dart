@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'login_screen.dart';
 import 'play_screen.dart';
+import '../services/question_loader.dart';
 
 /// Initial splash screen showing the app logo before navigating to login.
 class SplashScreen extends StatefulWidget {
@@ -23,18 +24,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigate() async {
     try {
-      final User? user = await FirebaseAuth.instance
+      final userFuture = FirebaseAuth.instance
           .authStateChanges()
           .first
           .timeout(const Duration(seconds: 5));
+      await Future.wait([
+        QuestionLoader.loadENA(),
+        userFuture,
+      ]);
       if (!mounted) return;
+      final user = await userFuture;
       final next = user == null ? const LoginScreen() : const PlayScreen();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => next),
       );
     } on TimeoutException {
-      _goToLogin(
-          'La connexion a expiré. Veuillez vous reconnecter.');
+      _goToLogin('La connexion a expiré. Veuillez vous reconnecter.');
     } catch (_) {
       _goToLogin('Connexion impossible. Veuillez vous reconnecter.');
     }
