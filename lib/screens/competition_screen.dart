@@ -98,6 +98,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
     final TextStyle resolvedChipTextStyle =
         DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
@@ -105,6 +106,8 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         (resolvedChipTextStyle.fontSize ?? 16) *
                 (resolvedChipTextStyle.height ?? 1.0) +
             16;
+    final double topCardHeight =
+        (mediaQuery.size.height * 0.3).clamp(240.0, 320.0) as double;
     return Scaffold(
       // Global background color comes from the theme.
       backgroundColor: theme.backgroundColor,
@@ -114,49 +117,52 @@ class _CompetitionScreenState extends State<CompetitionScreen>
           child: Column(
             children: [
               // Top card displaying the timer, question text and progress bar.
-              Container(
+              SizedBox(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.questionCardColor,
-                  borderRadius:
-                      BorderRadius.circular(theme.questionCardRadius),
-                  boxShadow: theme.questionCardShadow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Countdown circle.
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.timerContainerColor,
-                          borderRadius:
-                              BorderRadius.circular(theme.timerContainerRadius),
-                          boxShadow: theme.timerContainerShadow,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: theme.timerSize,
-                              height: theme.timerSize,
-                              child: CircularProgressIndicator(
-                                value: _controller.value,
-                                strokeWidth: theme.timerStrokeWidth,
-                                color: theme.timerColor,
+                height: topCardHeight,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.questionCardColor,
+                    borderRadius:
+                        BorderRadius.circular(theme.questionCardRadius),
+                    boxShadow: theme.questionCardShadow,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Countdown circle.
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.timerContainerColor,
+                            borderRadius: BorderRadius.circular(
+                                theme.timerContainerRadius),
+                            boxShadow: theme.timerContainerShadow,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: theme.timerSize,
+                                height: theme.timerSize,
+                                child: CircularProgressIndicator(
+                                  value: _controller.value,
+                                  strokeWidth: theme.timerStrokeWidth,
+                                  color: theme.timerColor,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '$_remainingSeconds',
-                              style: theme.timerTextStyle,
-                            ),
-                          ],
+                              Text(
+                                '$_remainingSeconds',
+                                style: theme.timerTextStyle,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Question number within the current session.
                       Text(
                         'Question ${widget.currentIndex + 1}/${widget.questions.length}',
@@ -170,19 +176,28 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       ),
                       const SizedBox(height: 8),
                       // Actual question text.
-                    Text(
-                      _cleanQuestion(_currentQuestion.question),
-                      style: theme.questionTextStyle,
-                    ),
-                    const SizedBox(height: 12),
-                    // Progress bar for overall quiz progression.
-                    LinearProgressIndicator(
-                      value: (widget.currentIndex + 1) / widget.questions.length,
-                      color: theme.progressBarColor,
-                      backgroundColor:
-                          theme.progressBarColor.withOpacity(0.3),
-                    ),
-                  ],
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            _cleanQuestion(_currentQuestion.question),
+                            style: theme.questionTextStyle,
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Progress bar for overall quiz progression.
+                      LinearProgressIndicator(
+                        value:
+                            (widget.currentIndex + 1) / widget.questions.length,
+                        color: theme.progressBarColor,
+                        backgroundColor:
+                            theme.progressBarColor.withOpacity(0.3),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
