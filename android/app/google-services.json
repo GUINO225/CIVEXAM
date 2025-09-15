@@ -16,6 +16,13 @@
         {
           "client_id": "522640251078-des4gu7sc12sfq7dfkpfonaklevpr50j.apps.googleusercontent.com",
           "client_type": 3
+        },
+        {
+          "client_id": "522640251078-des4gu7sc12sfq7dfkpfonaklevpr50j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.civexam_pro"
+          }
         }
       ],
       "api_key": [

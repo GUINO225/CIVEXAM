@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>CLIENT_ID</key>
+<string>522640251078-rtj679r8biudv9ri3v77ne8lh6j0eth0.apps.googleusercontent.com</string>
+<key>REVERSED_CLIENT_ID</key>
+<string>com.googleusercontent.apps.522640251078-rtj679r8biudv9ri3v77ne8lh6j0eth0</string>
+<key>API_KEY</key>
+<string>AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q</string>
+<key>GCM_SENDER_ID</key>
+<string>522640251078</string>
+<key>PLIST_VERSION</key>
+<string>1</string>
+<key>BUNDLE_ID</key>
+<string>com.company.civexam</string>
+<key>PROJECT_ID</key>
+<string>civexam-54e17</string>
+<key>STORAGE_BUCKET</key>
+<string>civexam-54e17.firebasestorage.app</string>
+<key>IS_ADS_ENABLED</key>
+<false/>
+<key>IS_ANALYTICS_ENABLED</key>
+<false/>
+<key>IS_APPINVITE_ENABLED</key>
+<true/>
+<key>IS_GCM_ENABLED</key>
+<true/>
+<key>IS_SIGNIN_ENABLED</key>
+<true/>
+<key>GOOGLE_APP_ID</key>
+<string>1:522640251078:ios:c59b78f08fbdde5870dfc7</string>
+<key>DATABASE_URL</key>
+<string></string>
+</dict>
+</plist>
