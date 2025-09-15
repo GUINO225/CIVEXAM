@@ -1,26 +1,43 @@
 {
   "project_info": {
-    "project_number": "339452590323",
-    "project_id": "civexam-bf521",
-    "storage_bucket": "civexam-bf521.firebasestorage.app"
+    "project_number": "522640251078",
+    "project_id": "civexam-54e17",
+    "storage_bucket": "civexam-54e17.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:339452590323:android:8157ff3781f38b4b0b9f86",
+        "mobilesdk_app_id": "1:522640251078:android:c59b78f08fbdde5870dfc7",
         "android_client_info": {
-          "package_name": "com.example.civexam_app"
+          "package_name": "com.company.civexam_pro"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "522640251078-des4gu7sc12sfq7dfkpfonaklevpr50j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDWgRCw51mY8n4ZiX257UlEVxG9F_1D9ac"
+          "current_key": "AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "522640251078-des4gu7sc12sfq7dfkpfonaklevpr50j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "522640251078-rtj679r8biudv9ri3v77ne8lh6j0eth0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.company.civexam"
+              }
+            }
+          ]
         }
       }
     }
