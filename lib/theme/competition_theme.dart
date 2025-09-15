@@ -88,7 +88,7 @@ class CompetitionTheme {
       fontWeight: FontWeight.w600,
     ),
     this.selectedChipBackgroundColor = Colors.pinkAccent,
-    this.selectedChipRadius = 20.0,
+    this.selectedChipRadius = 24.0,
   });
 
   /// Builds a [CompetitionTheme] that matches the global [ThemeData].
