@@ -1,9 +1,14 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'dart:io'
+    if (dart.library.html) 'package:civexam_pro/utils/io_stub.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_profile.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/user_profile_service.dart';
@@ -26,6 +31,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _professionController = TextEditingController();
   final _profileService = UserProfileService();
   String? _avatarPath;
+  Uint8List? _avatarBytes;
+  String? _photoUrl;
   String? _initialPseudo;
 
   @override
@@ -39,19 +46,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _firstNameController.text = prefs.getString('first_name') ?? '';
     _lastNameController.text = prefs.getString('last_name') ?? '';
     _professionController.text = prefs.getString('profession') ?? '';
-    setState(() {
-      _avatarPath = prefs.getString('avatar_path');
-    });
+    final storedPath = prefs.getString('avatar_path');
+    Uint8List? storedBytes;
+    if (kIsWeb) {
+      final encoded = prefs.getString('avatar_bytes');
+      if (encoded != null && encoded.isNotEmpty) {
+        try {
+          storedBytes = base64Decode(encoded);
+        } catch (e, st) {
+          debugPrint('Failed to decode stored avatar bytes: $e\n$st');
+        }
+      }
+    }
     _pseudoController.text = prefs.getString('nickname') ?? '';
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    String? storedPhotoUrl;
     if (uid != null) {
       try {
         final profile = await _profileService.loadProfile(uid);
-        _pseudoController.text = profile?.nickname ?? _pseudoController.text;
+        if (profile != null) {
+          if (profile.nickname.isNotEmpty) {
+            _pseudoController.text = profile.nickname;
+          }
+          storedPhotoUrl = profile.photoUrl;
+        }
       } catch (e, st) {
         debugPrint('Failed to load profile: $e\n$st');
       }
     }
+    if (!mounted) return;
+    setState(() {
+      _avatarPath = storedPath;
+      _avatarBytes = storedBytes;
+      _photoUrl = storedPhotoUrl;
+    });
     _initialPseudo = _pseudoController.text;
   }
 
@@ -68,10 +96,93 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() {
-        _avatarPath = picked.path;
-      });
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        if (!mounted) return;
+        setState(() {
+          _avatarBytes = bytes;
+          _avatarPath = null;
+          _photoUrl = null;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _avatarPath = picked.path;
+          _avatarBytes = null;
+          _photoUrl = null;
+        });
+      }
     }
+  }
+
+  String _buildPhotoUrlForStorage() {
+    if (_avatarBytes != null) {
+      return 'base64:${base64Encode(_avatarBytes!)}';
+    }
+    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
+      return _avatarPath!;
+    }
+    return _photoUrl ?? '';
+  }
+
+  Widget _buildAvatarCircle() {
+    final image = _currentAvatarImage();
+    return CircleAvatar(
+      radius: 50,
+      backgroundImage: image,
+      child: image != null ? null : const Icon(Icons.person, size: 50),
+    );
+  }
+
+  ImageProvider? _currentAvatarImage() {
+    if (_avatarBytes != null) {
+      return MemoryImage(_avatarBytes!);
+    }
+    if (kIsWeb) {
+      if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+        if (_photoUrl!.startsWith('http')) {
+          return NetworkImage(_photoUrl!);
+        }
+        final base64Data = _extractBase64(_photoUrl!);
+        if (base64Data != null) {
+          return MemoryImage(base64Decode(base64Data));
+        }
+      }
+      return null;
+    }
+    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
+      final file = File(_avatarPath!);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      if (_photoUrl!.startsWith('http')) {
+        return NetworkImage(_photoUrl!);
+      }
+      final base64Data = _extractBase64(_photoUrl!);
+      if (base64Data != null) {
+        return MemoryImage(base64Decode(base64Data));
+      }
+      final file = File(_photoUrl!);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    return null;
+  }
+
+  String? _extractBase64(String input) {
+    if (input.startsWith('data:image')) {
+      final commaIndex = input.indexOf(',');
+      if (commaIndex != -1) {
+        return input.substring(commaIndex + 1);
+      }
+    }
+    if (input.startsWith('base64:')) {
+      return input.substring('base64:'.length);
+    }
+    return null;
   }
 
   Future<void> _save() async {
@@ -81,15 +192,25 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await prefs.setString('last_name', _lastNameController.text);
     await prefs.setString('profession', _professionController.text);
     await prefs.setString('nickname', _pseudoController.text);
-    if (_avatarPath != null) {
-      await prefs.setString('avatar_path', _avatarPath!);
+    if (kIsWeb) {
+      if (_avatarBytes != null) {
+        await prefs.setString('avatar_bytes', base64Encode(_avatarBytes!));
+      } else {
+        await prefs.remove('avatar_bytes');
+      }
+    } else {
+      if (_avatarPath != null && _avatarPath!.isNotEmpty) {
+        await prefs.setString('avatar_path', _avatarPath!);
+      } else {
+        await prefs.remove('avatar_path');
+      }
     }
     final profile = UserProfile(
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
       nickname: _pseudoController.text,
       profession: _professionController.text,
-      photoUrl: _avatarPath ?? '',
+      photoUrl: _buildPhotoUrlForStorage(),
     );
     await _profileService.saveProfile(profile);
 
@@ -227,14 +348,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               Center(
                 child: InkWell(
                   onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage:
-                        _avatarPath != null ? FileImage(File(_avatarPath!)) : null,
-                    child: _avatarPath == null
-                        ? const Icon(Icons.person, size: 50)
-                        : null,
-                  ),
+                  child: _buildAvatarCircle(),
                 ),
               ),
               const SizedBox(height: 24),
