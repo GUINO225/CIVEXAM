@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// Exception thrown for authentication failures with a user-friendly message.
 class AuthException implements Exception {
@@ -43,9 +44,39 @@ class AuthService {
     }
   }
 
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        throw AuthException('Connexion Google annulée');
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_messageFromCode(e.code, e.message));
+    } catch (e) {
+      if (e is AuthException) {
+        rethrow;
+      }
+      if (kDebugMode) {
+        print('Google sign in failed: $e');
+      }
+      throw AuthException('Connexion Google échouée');
+    }
+  }
+
   Future<void> signOut() async {
     try {
-      await _auth.signOut();
+      await Future.wait([
+        GoogleSignIn().signOut(),
+        _auth.signOut(),
+      ]);
     } catch (e) {
       if (kDebugMode) {
         print('Sign out failed: $e');
