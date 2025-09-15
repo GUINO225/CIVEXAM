@@ -20,19 +20,29 @@ Future<void> showSaveScoreDialog({
   // Mode compétition : utilise automatiquement l'utilisateur connecté
   if (mode == 'competition') {
     final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid ?? '';
-    String name = user?.displayName ?? user?.email ?? 'Joueur';
+    if (user == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Veuillez vous connecter pour enregistrer votre score.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final uid = user.uid;
+    String name = user.displayName ?? user.email ?? 'Joueur';
 
     // Charge le profil pour récupérer le pseudonyme
     final profileService = UserProfileService();
     UserProfile? profile;
-    if (uid.isNotEmpty) {
-      try {
-        profile = await profileService.loadProfile(uid);
-      } catch (e, st) {
-        debugPrint('Failed to load profile for $uid: $e\n$st');
-        profile = null;
-      }
+    try {
+      profile = await profileService.loadProfile(uid);
+    } catch (e, st) {
+      debugPrint('Failed to load profile for $uid: $e\n$st');
+      profile = null;
     }
     String nickname = profile?.nickname ?? '';
 
