@@ -33,6 +33,45 @@ class PlayScreen extends StatefulWidget {
 class _PlayScreenState extends State<PlayScreen> {
   final _auth = AuthService();
   bool _signingOut = false;
+  late final List<_MenuItem> _items;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = [
+      _MenuItem("S'entraîner", Icons.play_circle_fill_rounded, 'mintTurquoise', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()));
+      }),
+      _MenuItem('Concours ENA', Icons.school_rounded, 'violetRose', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
+      }),
+      _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const SubjectListScreen()));
+      }),
+      _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
+      }),
+      _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
+      }),
+      _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink', () {
+        showDialog(
+          context: context,
+          builder: (_) => const AlertDialog(
+            title: Text('Comment ça marche ?'),
+            content: Text('• Entraînement : 5–10 s par question.\n• Concours ENA : difficulté = timing.\n• Par matière : révise par modules.\n• Historique : suis tes progrès.'),
+          ),
+        );
+      }),
+      _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen', () {
+        _startCompetition();
+      }),
+      _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet', () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
+      }),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DesignConfig>(
@@ -171,7 +210,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           useMono: cfg.useMono,
                           monoColor: cfg.monoColor,
                           textColor: textColor,
-                          onTap: () => _navigate(context, i),
+                          onTap: item.onTap,
                         );
                       },
                     ),
@@ -185,74 +224,40 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  Future<void> _navigate(BuildContext context, int index) async {
-    switch (index) {
-      case 0:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()));
-        break;
-      case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
-        break;
-      case 2:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const SubjectListScreen()));
-        break;
-      case 3:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
-        break;
-      case 4:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
-        break;
-      case 5:
-        await showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(
-            title: Text('Comment ça marche ?'),
-            content: Text('• Entraînement : 5–10 s par question.\n• Concours ENA : difficulté = timing.\n• Par matière : révise par modules.\n• Historique : suis tes progrès.'),
+  Future<void> _startCompetition() async {
+    try {
+      const int desiredCount = 60;
+      final all = await QuestionLoader.loadENA();
+      final selected = await pickAndShuffle(
+        all,
+        desiredCount,
+        dedupeByQuestion: true,
+      );
+
+      final proceed = await _handleShortDraw(selected, desiredCount);
+      if (!proceed) {
+        return;
+      }
+
+      await QuestionHistoryStore.addAll(selected.map((q) => q.id));
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CompetitionScreen(
+            questions: selected,
+            timePerQuestion: 5,
+            startTime: DateTime.now(),
           ),
-        );
-        break;
-      case 6:
-        try {
-          const int desiredCount = 60;
-          final all = await QuestionLoader.loadENA();
-          final selected = await pickAndShuffle(
-            all,
-            desiredCount,
-            dedupeByQuestion: true,
-          );
-
-          final proceed = await _handleShortDraw(selected, desiredCount);
-          if (!proceed) {
-            return;
-          }
-
-          await QuestionHistoryStore.addAll(selected.map((q) => q.id));
-          if (!mounted) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => CompetitionScreen(
-                questions: selected,
-                timePerQuestion: 5,
-                startTime: DateTime.now(),
-              ),
-            ),
-          );
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Unable to load question bank: $e'),
-            ),
-          );
-        }
-        break;
-      case 7:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-        break;
-      default:
-        assert(false, 'Unexpected index: $index');
-        break;
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to load question bank: $e'),
+        ),
+      );
     }
   }
 
@@ -355,16 +360,6 @@ class _MenuItem {
   final String title;
   final IconData icon;
   final String palette;
-  const _MenuItem(this.title, this.icon, this.palette);
+  final VoidCallback onTap;
+  const _MenuItem(this.title, this.icon, this.palette, this.onTap);
 }
-
-const _items = <_MenuItem>[
-  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded, 'mintTurquoise'),
-  _MenuItem('Concours ENA', Icons.school_rounded, 'violetRose'),
-  _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue'),
-  _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
-  _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow'),
-  _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),
-  _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen'),
-  _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet'),
-];
