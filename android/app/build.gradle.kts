@@ -54,3 +54,7 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("androidx.emoji2:emoji2:1.5.0")
+}
