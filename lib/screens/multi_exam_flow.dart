@@ -189,11 +189,21 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         }
         takeCount = pool.length;
       }
-      final qs = await pickAndShuffle(
-        pool,
-        takeCount,
-        dedupeByQuestion: true,
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
       );
+      List<Question> qs;
+      try {
+        qs = await pickAndShuffle(
+          pool,
+          takeCount,
+          dedupeByQuestion: true,
+        );
+      } finally {
+        if (mounted) Navigator.pop(context);
+      }
       if (qs.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

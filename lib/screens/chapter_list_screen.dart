@@ -72,11 +72,21 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
       );
       return;
     }
-    final selected = await pickAndShuffle(
-      _pool,
-      _questionCount,
-      dedupeByQuestion: true,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
+    List<Question> selected;
+    try {
+      selected = await pickAndShuffle(
+        _pool,
+        _questionCount,
+        dedupeByQuestion: true,
+      );
+    } finally {
+      if (mounted) Navigator.pop(context);
+    }
     if (selected.length < _questionCount) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
