@@ -178,19 +178,41 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               ),
               const SizedBox(height: 24),
               // Chip displaying the selected answer when user taps an option.
-              if (_selected >= 0)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: theme.selectedChipBackgroundColor,
-                    borderRadius: BorderRadius.circular(theme.selectedChipRadius),
+              SizedBox(
+                height: 48,
+                width: double.infinity,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  switchInCurve: Curves.easeIn,
+                  switchOutCurve: Curves.easeOut,
+                  layoutBuilder: (currentChild, previousChildren) => Stack(
+                    alignment: Alignment.centerLeft,
+                    children: <Widget>[
+                      ...previousChildren,
+                      if (currentChild != null) currentChild,
+                    ],
                   ),
-                  child: Text(
-                    _currentQuestion.choices[_selected],
-                    style: theme.selectedChipTextStyle,
-                  ),
+                  child: _selected >= 0
+                      ? Align(
+                          key: ValueKey<int>(_selected),
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: theme.selectedChipBackgroundColor,
+                              borderRadius: BorderRadius.circular(
+                                  theme.selectedChipRadius),
+                            ),
+                            child: Text(
+                              _currentQuestion.choices[_selected],
+                              style: theme.selectedChipTextStyle,
+                            ),
+                          ),
+                        )
+                      : const SizedBox(key: ValueKey<String>('placeholder')),
                 ),
+              ),
               const SizedBox(height: 24),
               // Answer options list.
               ...List.generate(_currentQuestion.choices.length, (i) {
