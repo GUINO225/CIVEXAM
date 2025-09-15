@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/design_config.dart';
 import '../services/auth_service.dart';
 import '../services/design_bus.dart';
@@ -22,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLogin = true;
   String? _error;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   User? _unverifiedUser;
 
   @override
@@ -38,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
+        final isBusy = _isLoading || _isGoogleLoading;
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar:
@@ -107,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(_error!, style: errorStyle),
                   const SizedBox(height: 12),
                   PrimaryButton(
-                    onPressed: _isLoading ? null : _submit,
+                    onPressed: isBusy ? null : _submit,
                     child: _isLoading
                         ? const SizedBox(
                             width: 24,
@@ -116,6 +121,26 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : Text(_isLogin ? 'Connexion' : 'Inscription'),
                   ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: isBusy ? null : _signInWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    icon: _isGoogleLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            FontAwesomeIcons.google,
+                            color: Color(0xFF4285F4),
+                          ),
+                    label: const Text('Continuer avec Google'),
+                  ),
+                  const SizedBox(height: 12),
                   if (_unverifiedUser != null)
                     TextButton(
                       onPressed: _resendVerificationEmail,
@@ -136,6 +161,41 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       },
     );
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _error = null;
+      _isGoogleLoading = true;
+      _unverifiedUser = null;
+    });
+    try {
+      if (!kIsWeb) {
+        try {
+          await GoogleSignIn().signOut();
+        } catch (_) {}
+      }
+      final credential = await _auth.signInWithGoogle();
+      if (!mounted) return;
+      if (credential.user == null) {
+        setState(() => _error = 'Connexion Google impossible');
+        return;
+      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PlayScreen()),
+      );
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Une erreur inattendue est survenue');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
+    }
   }
 
   Future<void> _submit() async {
