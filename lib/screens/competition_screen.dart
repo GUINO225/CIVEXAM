@@ -96,6 +96,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
+    final TextStyle resolvedChipTextStyle =
+        DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
+    final double chipMinHeight =
+        (resolvedChipTextStyle.fontSize ?? 16) *
+                (resolvedChipTextStyle.height ?? 1.0) +
+            16;
     return Scaffold(
       // Global background color comes from the theme.
       backgroundColor: theme.backgroundColor,
@@ -178,19 +184,29 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               ),
               const SizedBox(height: 24),
               // Chip displaying the selected answer when user taps an option.
-              if (_selected >= 0)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: theme.selectedChipBackgroundColor,
-                    borderRadius: BorderRadius.circular(theme.selectedChipRadius),
-                  ),
-                  child: Text(
-                    _currentQuestion.choices[_selected],
-                    style: theme.selectedChipTextStyle,
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _selected >= 0 ? 1 : 0,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: theme.selectedChipBackgroundColor,
+                      borderRadius:
+                          BorderRadius.circular(theme.selectedChipRadius),
+                    ),
+                    constraints: BoxConstraints(minHeight: chipMinHeight),
+                    child: Text(
+                      _selected >= 0
+                          ? _currentQuestion.choices[_selected]
+                          : '',
+                      style: theme.selectedChipTextStyle,
+                    ),
                   ),
                 ),
+              ),
               const SizedBox(height: 24),
               // Answer options list.
               ...List.generate(_currentQuestion.choices.length, (i) {
