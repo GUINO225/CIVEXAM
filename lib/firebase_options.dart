@@ -43,11 +43,14 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: '',
-    appId: '',
-    messagingSenderId: '',
-    projectId: '',
-    iosBundleId: '',
+    apiKey: 'AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q',
+    appId: '1:522640251078:ios:c59b78f08fbdde5870dfc7',
+    messagingSenderId: '522640251078',
+    projectId: 'civexam-54e17',
+    storageBucket: 'civexam-54e17.firebasestorage.app',
+    iosClientId:
+        '522640251078-rtj679r8biudv9ri3v77ne8lh6j0eth0.apps.googleusercontent.com',
+    iosBundleId: 'com.company.civexam',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
