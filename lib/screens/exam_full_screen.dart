@@ -1,7 +1,11 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show debugPrint, debugPrintStack, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show
+        TargetPlatform,
+        debugPrint,
+        debugPrintStack,
+        defaultTargetPlatform,
+        kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -80,7 +84,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      if (mounted && !kIsWeb && Platform.isAndroid) {
+      if (mounted && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         unawaited(_enableSecureFlag());
       }
       _checkEmulator();
@@ -108,7 +112,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       WakelockPlus.disable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      if (mounted && !kIsWeb && Platform.isAndroid) {
+      if (mounted && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         unawaited(_disableSecureFlag());
       }
     }
@@ -117,7 +121,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   }
 
   Future<void> _enableSecureFlag() async {
-    if (!mounted || kIsWeb || !Platform.isAndroid || !_secureFlagSupported) {
+    if (!mounted || kIsWeb || defaultTargetPlatform != TargetPlatform.android || !_secureFlagSupported) {
       return;
     }
     try {
@@ -131,7 +135,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   }
 
   Future<void> _disableSecureFlag() async {
-    if (!mounted || kIsWeb || !Platform.isAndroid || !_secureFlagActive) {
+    if (!mounted || kIsWeb || defaultTargetPlatform != TargetPlatform.android || !_secureFlagActive) {
       return;
     }
     try {
@@ -297,10 +301,10 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     if (kIsWeb) return;
     final info = DeviceInfoPlugin();
     bool emulator = false;
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       final android = await info.androidInfo;
       emulator = !android.isPhysicalDevice;
-    } else if (Platform.isIOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       final ios = await info.iosInfo;
       emulator = !ios.isPhysicalDevice;
     }

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
@@ -82,7 +83,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  bool _isImagePickerSupported() {
+    if (kIsWeb) {
+      return false;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  void _showImagePickerUnavailableMessage() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('La sélection de photo n\'est pas disponible sur cette plateforme.'),
+      ),
+    );
+  }
+
   Future<void> _pickPhoto() async {
+    if (!_isImagePickerSupported()) {
+      _showImagePickerUnavailableMessage();
+      return;
+    }
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -104,7 +132,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     if (source == null) return;
 
-    final file = await picker.pickImage(source: source, maxWidth: 600);
+    XFile? file;
+    try {
+      file = await picker.pickImage(source: source, maxWidth: 600);
+    } on MissingPluginException catch (e, st) {
+      debugPrint('Image picker plugin missing: $e\n$st');
+      _showImagePickerUnavailableMessage();
+      return;
+    }
     if (file == null) return;
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
