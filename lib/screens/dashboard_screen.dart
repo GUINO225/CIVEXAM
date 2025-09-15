@@ -117,8 +117,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         bytes,
         SettableMetadata(contentType: 'image/jpeg'),
       );
-    } else if (!kIsWeb) {
-      await ref.putFile(io.File(file.path));
+    }
+    if (!kIsWeb) {
+      await ref.putFile(io.File(file.path) as dynamic);
     }
     final url = await ref.getDownloadURL();
 
