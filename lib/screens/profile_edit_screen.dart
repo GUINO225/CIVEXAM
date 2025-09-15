@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'dart:io'
-    if (dart.library.html) 'package:civexam_pro/utils/io_stub.dart';
+import 'package:civexam_pro/utils/io_stub.dart'
+    if (dart.library.io) 'dart:io' as io;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -150,8 +150,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
       return null;
     }
-    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-      final file = File(_avatarPath!);
+    if (!kIsWeb && _avatarPath != null && _avatarPath!.isNotEmpty) {
+      final file = io.File(_avatarPath!);
       if (file.existsSync()) {
         return FileImage(file);
       }
@@ -164,9 +164,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (base64Data != null) {
         return MemoryImage(base64Decode(base64Data));
       }
-      final file = File(_photoUrl!);
-      if (file.existsSync()) {
-        return FileImage(file);
+      if (!kIsWeb) {
+        final file = io.File(_photoUrl!);
+        if (file.existsSync()) {
+          return FileImage(file);
+        }
       }
     }
     return null;
