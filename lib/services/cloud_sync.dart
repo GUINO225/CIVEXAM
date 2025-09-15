@@ -1,7 +1,7 @@
 
 import 'dart:async';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show debugPrint, defaultTargetPlatform, kDebugMode, kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,14 +15,13 @@ class CloudSync {
   static const String _kAllowAnonymous = 'allowAnonymousSignIn';
 
   static String _currentPlatform() {
+    if (kIsWeb) {
+      return 'web';
+    }
     try {
-      return Platform.operatingSystem;
+      return defaultTargetPlatform.name.toLowerCase();
     } catch (_) {
-      try {
-        return defaultTargetPlatform.name.toLowerCase();
-      } catch (_) {
-        return 'unknown';
-      }
+      return 'unknown';
     }
   }
 
