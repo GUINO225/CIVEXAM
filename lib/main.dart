@@ -11,9 +11,9 @@ import 'models/design_config.dart';
 import 'screens/splash_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   await runZonedGuarded<Future<void>>(() async {
     try {
+      WidgetsFlutterBinding.ensureInitialized();
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
       final cfg = await DesignPrefs.load();
