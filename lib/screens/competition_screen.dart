@@ -238,72 +238,80 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               ),
               const SizedBox(height: 24),
               // Answer options list.
-              ...List.generate(_currentQuestion.choices.length, (i) {
-                final bool isSelected = _selected == i;
-                final bool isHighlighted = _highlighted == i;
-                final borderRadius =
-                    BorderRadius.circular(theme.optionCardRadius);
-                final Color baseColor = theme.optionCardColor;
-                final Color highlightOverlay =
-                    theme.optionSelectedBorderColor.withOpacity(0.06);
-                final Color selectedOverlay =
-                    theme.optionSelectedBorderColor.withOpacity(0.12);
-                final Color resolvedColor = isSelected
-                    ? Color.alphaBlend(selectedOverlay, baseColor)
-                    : isHighlighted
-                        ? Color.alphaBlend(highlightOverlay, baseColor)
-                        : baseColor;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: AnimatedScale(
-                    scale: isHighlighted ? 0.97 : 1.0,
-                    duration: const Duration(milliseconds: 140),
-                    curve: Curves.easeOut,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: borderRadius,
-                      child: InkWell(
-                        borderRadius: borderRadius,
-                        splashColor:
-                            theme.optionSelectedBorderColor.withOpacity(0.08),
-                        highlightColor:
-                            theme.optionSelectedBorderColor.withOpacity(0.04),
-                        onHighlightChanged: (value) {
-                          if (_selected >= 0) return;
-                          setState(() {
-                            _highlighted = value ? i : -1;
-                          });
-                        },
-                        onTap:
-                            _selected >= 0 ? null : () => _onOptionTap(i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: List.generate(_currentQuestion.choices.length, (i) {
+                    final bool isSelected = _selected == i;
+                    final bool isHighlighted = _highlighted == i;
+                    final borderRadius =
+                        BorderRadius.circular(theme.optionCardRadius);
+                    final Color baseColor = theme.optionCardColor;
+                    final Color highlightOverlay =
+                        theme.optionSelectedBorderColor.withOpacity(0.06);
+                    final Color selectedOverlay =
+                        theme.optionSelectedBorderColor.withOpacity(0.12);
+                    final Color resolvedColor = isSelected
+                        ? Color.alphaBlend(selectedOverlay, baseColor)
+                        : isHighlighted
+                            ? Color.alphaBlend(highlightOverlay, baseColor)
+                            : baseColor;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: AnimatedScale(
+                          scale: isHighlighted ? 0.97 : 1.0,
+                          duration: const Duration(milliseconds: 140),
                           curve: Curves.easeOut,
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: resolvedColor,
+                          child: Material(
+                            color: Colors.transparent,
                             borderRadius: borderRadius,
-                            boxShadow: theme.optionCardShadow,
-                            border: Border.all(
-                              color: isSelected
-                                  ? theme.optionSelectedBorderColor
-                                  : Colors.transparent,
-                              width: 2,
+                            child: InkWell(
+                              borderRadius: borderRadius,
+                              splashColor: theme.optionSelectedBorderColor
+                                  .withOpacity(0.08),
+                              highlightColor: theme.optionSelectedBorderColor
+                                  .withOpacity(0.04),
+                              onHighlightChanged: (value) {
+                                if (_selected >= 0) return;
+                                setState(() {
+                                  _highlighted = value ? i : -1;
+                                });
+                              },
+                              onTap: _selected >= 0
+                                  ? null
+                                  : () => _onOptionTap(i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeOut,
+                                width: double.infinity,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                decoration: BoxDecoration(
+                                  color: resolvedColor,
+                                  borderRadius: borderRadius,
+                                  boxShadow: theme.optionCardShadow,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? theme.optionSelectedBorderColor
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  _currentQuestion.choices[i],
+                                  textAlign: TextAlign.center,
+                                  style: theme.optionTextStyle,
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            _currentQuestion.choices[i],
-                            textAlign: TextAlign.center,
-                            style: theme.optionTextStyle,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }),
-              const Spacer(),
+                    );
+                  }),
+                ),
+              ),
             ],
           ),
         ),
