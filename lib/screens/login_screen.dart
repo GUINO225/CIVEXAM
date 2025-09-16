@@ -46,13 +46,22 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.transparent,
           appBar:
               AppBar(title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF40E0D0), Color(0xFFFF69B4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -157,7 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }
