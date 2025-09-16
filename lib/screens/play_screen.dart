@@ -1,4 +1,6 @@
 // lib/screens/play_screen.dart — Live design via DesignBus + centrage tuiles + taille icône
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -233,8 +235,20 @@ class _PlayScreenState extends State<PlayScreen> {
             return;
           }
 
-          await QuestionHistoryStore.addAll(selected.map((q) => q.id));
           if (!mounted) return;
+          final messenger = ScaffoldMessenger.of(context);
+          unawaited(
+            QuestionHistoryStore.addAll(selected.map((q) => q.id)).catchError(
+              (Object error, _) {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Échec de l’enregistrement de l’historique des questions.'),
+                  ),
+                );
+              },
+            ),
+          );
           Navigator.push(
             context,
             MaterialPageRoute(

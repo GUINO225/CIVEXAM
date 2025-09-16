@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
@@ -124,7 +126,19 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         return;
       }
     }
-    await QuestionHistoryStore.addAll(selected.map((q) => q.id));
+    if (!mounted) return;
+    unawaited(
+      QuestionHistoryStore.addAll(selected.map((q) => q.id)).catchError(
+        (Object error, _) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Échec de l’enregistrement de l’historique des questions.'),
+            ),
+          );
+        },
+      ),
+    );
     final totalSeconds = _perQuestionSeconds * selected.length;
 
     final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
