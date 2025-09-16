@@ -101,6 +101,7 @@ class QuestionHistoryStore {
       if (kDebugMode) {
         debugPrint('QuestionHistoryStore.addAll failed: $e\n$st');
       }
+      rethrow;
     }
   }
 
