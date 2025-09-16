@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF40E0D0), Color(0xFFFF69B4)],
+                colors: [Color(0xFF40E0D0), Color(0xFFFF5F6D)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -60,109 +60,118 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Email requis';
-                      }
-                      final email = value.trim();
-                      final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
-                      if (!emailRegex.hasMatch(email)) {
-                        return 'Email invalide';
-                      }
-                      return null;
-                    },
+                      Image.asset(
+                        'assets/images/logo.png',
+                        height: 120,
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email requis';
+                          }
+                          final email = value.trim();
+                          final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
+                          if (!emailRegex.hasMatch(email)) {
+                            return 'Email invalide';
+                          }
+                          return null;
+                        },
+                      ),
+                      if (!_isLogin)
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(labelText: 'Nom'),
+                          validator: (value) {
+                            if (!_isLogin &&
+                                (value == null || value.trim().isEmpty)) {
+                              return 'Nom requis';
+                            }
+                            return null;
+                          },
+                        ),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration:
+                            const InputDecoration(labelText: 'Mot de passe'),
+                        keyboardType: TextInputType.visiblePassword,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        obscureText: true,
+                        validator: (value) {
+                          final pwd = value?.trim() ?? '';
+                          if (pwd.isEmpty) {
+                            return 'Mot de passe requis';
+                          }
+                          if (pwd.length < 6) {
+                            return 'Le mot de passe doit contenir au moins 6 caractères';
+                          }
+                          final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
+                          final hasDigit = RegExp(r'\d').hasMatch(pwd);
+                          if (!hasLetter || !hasDigit) {
+                            return 'Le mot de passe doit contenir des lettres et des chiffres';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      if (_error != null)
+                        Text(_error!, style: errorStyle),
+                      const SizedBox(height: 12),
+                      PrimaryButton(
+                        onPressed: isBusy ? null : _submit,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: isBusy ? null : _signInWithGoogle,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        icon: _isGoogleLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(
+                                FontAwesomeIcons.google,
+                                color: Color(0xFF4285F4),
+                              ),
+                        label: const Text('Se connecter avec Google'),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_unverifiedUser != null)
+                        TextButton(
+                          onPressed: _resendVerificationEmail,
+                          child:
+                              const Text('Renvoyer l\'email de vérification'),
+                        ),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _isLogin = !_isLogin;
+                          _unverifiedUser = null;
+                        }),
+                        child:
+                            Text(_isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
+                      )
+                    ],
                   ),
-                  if (!_isLogin)
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nom'),
-                      validator: (value) {
-                        if (!_isLogin &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'Nom requis';
-                        }
-                        return null;
-                      },
-                    ),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration:
-                        const InputDecoration(labelText: 'Mot de passe'),
-                    keyboardType: TextInputType.visiblePassword,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    obscureText: true,
-                    validator: (value) {
-                      final pwd = value?.trim() ?? '';
-                      if (pwd.isEmpty) {
-                        return 'Mot de passe requis';
-                      }
-                      if (pwd.length < 6) {
-                        return 'Le mot de passe doit contenir au moins 6 caractères';
-                      }
-                      final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
-                      final hasDigit = RegExp(r'\d').hasMatch(pwd);
-                      if (!hasLetter || !hasDigit) {
-                        return 'Le mot de passe doit contenir des lettres et des chiffres';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  if (_error != null)
-                    Text(_error!, style: errorStyle),
-                  const SizedBox(height: 12),
-                  PrimaryButton(
-                    onPressed: isBusy ? null : _submit,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_isLogin ? 'Connexion' : 'Inscription'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: isBusy ? null : _signInWithGoogle,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: _isGoogleLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(
-                            FontAwesomeIcons.google,
-                            color: Color(0xFF4285F4),
-                          ),
-                    label: const Text('Se connecter avec Google'),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_unverifiedUser != null)
-                    TextButton(
-                      onPressed: _resendVerificationEmail,
-                      child: const Text('Renvoyer l\'email de vérification'),
-                    ),
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _isLogin = !_isLogin;
-                      _unverifiedUser = null;
-                    }),
-                    child: Text(
-                        _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
-                  )
-                ],
+                ),
               ),
             ),
           ),
