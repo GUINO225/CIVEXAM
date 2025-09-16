@@ -11,6 +11,7 @@ class TrainingHistoryScreen extends StatefulWidget {
 
 class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
   List<TrainingHistoryEntry> _items = const [];
+  bool _loading = true;
 
   @override
   void initState() {
@@ -19,9 +20,15 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
   }
 
   Future<void> _load() async {
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     final list = await TrainingHistoryStore.load();
     if (!mounted) return;
-    setState(() => _items = list);
+    setState(() {
+      _items = list;
+      _loading = false;
+    });
   }
 
   Future<void> _clearAll() async {
@@ -59,9 +66,11 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
         ],
       ),
-      body: _items.isEmpty
-          ? const Center(child: Text('Aucune tentative enregistrée pour l’instant.'))
-          : ListView.builder(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _items.isEmpty
+              ? const Center(child: Text('Aucune tentative enregistrée pour l’instant.'))
+              : ListView.builder(
               itemCount: _items.length,
               itemBuilder: (context, i) {
                 final e = _items[i];
