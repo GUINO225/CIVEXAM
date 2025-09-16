@@ -1,61 +1,99 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/training_history_entry.dart';
 
 class TrainingHistoryStore {
-  static const String _key = 'trainingHistoryV2';
+  static const String _collectionName = 'trainingHistory';
+  static const String _entriesCollectionName = 'entries';
   static const int _maxItems = 100; // conservation des 100 dernières tentatives
 
   static Future<List<TrainingHistoryEntry>> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    // V2
-    final raw = prefs.getString(_key);
-    if (raw != null && raw.isNotEmpty) {
-      try {
-        return await compute(_decodeEntries, raw);
-      } catch (_) {
-        // fallthrough: tente de lire l'ancienne clé si nécessaire
-      }
+    final userDocument = _userDocument();
+    if (userDocument == null) {
+      return <TrainingHistoryEntry>[];
     }
-    // Compat: ancienne clé (si migration)
-    final legacy = prefs.getString('trainingHistoryV1');
-    if (legacy != null && legacy.isNotEmpty) {
-      try {
-        final items = await compute(_decodeEntries, legacy);
-        // Sauvegarde au nouveau format sans TTL
-        await _save(items);
-        await prefs.remove('trainingHistoryV1');
-        return items;
-      } catch (_) {}
-    }
-    return <TrainingHistoryEntry>[];
+
+    final entriesCollection =
+        userDocument.collection(_entriesCollectionName);
+    final snapshot = await entriesCollection
+        .orderBy('date', descending: true)
+        .limit(_maxItems)
+        .get();
+
+    return snapshot.docs
+        .map(
+          (doc) => TrainingHistoryEntry.fromJson(
+            _normalizeEntry(doc.data()),
+          ),
+        )
+        .toList();
   }
 
   static Future<void> add(TrainingHistoryEntry entry) async {
-    final list = await load();
-    list.insert(0, entry);
-    // Garde seulement les _maxItems plus récents
-    if (list.length > _maxItems) {
-      list.removeRange(_maxItems, list.length);
+    final userDocument = _userDocument();
+    if (userDocument == null) {
+      return;
     }
-    await _save(list);
-  }
 
-  static Future<void> _save(List<TrainingHistoryEntry> list) async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = jsonEncode(list.map((e) => e.toJson()).toList());
-    await prefs.setString(_key, data);
+    final entriesCollection = userDocument.collection(_entriesCollectionName);
+
+    await userDocument.set(
+      {
+        'uid': userDocument.id,
+        'lastEntryDate': entry.date.toIso8601String(),
+      },
+      SetOptions(merge: true),
+    );
+
+    await entriesCollection.doc().set(entry.toJson());
+
+    final snapshot = await entriesCollection
+        .orderBy('date', descending: true)
+        .get();
+
+    if (snapshot.size > _maxItems) {
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in snapshot.docs.sublist(_maxItems)) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
   }
 
   static Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    final userDocument = _userDocument();
+    if (userDocument == null) {
+      return;
+    }
+
+    final entriesCollection = userDocument.collection(_entriesCollectionName);
+    final snapshot = await entriesCollection.get();
+
+    if (snapshot.docs.isEmpty) {
+      return;
+    }
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
   }
 
-  // Décodage JSON en isolate pour ne pas bloquer l'UI.
-  static List<TrainingHistoryEntry> _decodeEntries(String raw) {
-    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-    return list.map(TrainingHistoryEntry.fromJson).toList();
+  static DocumentReference<Map<String, dynamic>>? _userDocument() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return null;
+    }
+    return FirebaseFirestore.instance.collection(_collectionName).doc(uid);
+  }
+
+  static Map<String, dynamic> _normalizeEntry(Map<String, dynamic> data) {
+    final normalized = Map<String, dynamic>.from(data);
+    final date = normalized['date'];
+    if (date is Timestamp) {
+      normalized['date'] = date.toDate().toIso8601String();
+    }
+    return normalized;
   }
 }
