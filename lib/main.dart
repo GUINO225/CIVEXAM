@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'app/theme.dart';
 import 'firebase_options.dart';
 import 'services/design_prefs.dart';
@@ -41,6 +42,8 @@ class _CivExamAppState extends State<CivExamApp> {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      FirebaseFirestore.instance.settings =
+          const Settings(persistenceEnabled: true);
       final cfg = await DesignPrefs.load();
       DesignBus.push(cfg);
     } catch (error, stackTrace) {
