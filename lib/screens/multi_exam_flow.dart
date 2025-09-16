@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
@@ -217,7 +219,20 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         );
         return;
       }
-      await QuestionHistoryStore.addAll(qs.map((q) => q.id));
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      unawaited(
+        QuestionHistoryStore.addAll(qs.map((q) => q.id)).catchError(
+          (Object error, _) {
+            if (!mounted) return;
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Échec de l’enregistrement de l’historique des questions.'),
+              ),
+            );
+          },
+        ),
+      );
 
       // Choisir la durée en fonction de la difficulté
       final Duration effDuration;
