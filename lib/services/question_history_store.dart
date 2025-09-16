@@ -242,6 +242,7 @@ class QuestionHistoryStore {
       if (kDebugMode) {
         debugPrint('QuestionHistoryStore._flushPendingToFirestore failed: $e\n$st');
       }
+      rethrow;
     }
   }
 
