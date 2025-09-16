@@ -13,6 +13,7 @@ class ExamHistoryScreen extends StatefulWidget {
 
 class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
   List<ExamHistoryEntry> _items = const [];
+  bool _loading = true;
 
   @override
   void initState() {
@@ -21,9 +22,13 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
   }
 
   Future<void> _load() async {
+    setState(() => _loading = true);
     final list = await HistoryStore.load();
     if (!mounted) return;
-    setState(() => _items = list);
+    setState(() {
+      _items = list;
+      _loading = false;
+    });
   }
 
   Future<void> _clearAll() async {
@@ -69,10 +74,12 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                 )
             ],
           ),
-          body: _items.isEmpty
-              ? const Center(
-                  child: Text('Aucun examen enregistré pour le moment.'))
-              : ListView.builder(
+          body: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _items.isEmpty
+                  ? const Center(
+                      child: Text('Aucun examen enregistré pour le moment.'))
+                  : ListView.builder(
                   itemCount: _items.length,
                   itemBuilder: (context, i) {
                     final e = _items[i];
