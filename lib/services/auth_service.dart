@@ -4,6 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'history_store.dart';
+import 'leaderboard_store.dart';
+import 'question_history_store.dart';
+import 'training_history_store.dart';
+
 /// Exception thrown for authentication failures with a user-friendly message.
 class AuthException implements Exception {
   final String message;
@@ -48,6 +53,12 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      await Future.wait([
+        HistoryStore.clear(),
+        TrainingHistoryStore.clear(),
+        QuestionHistoryStore.clear(),
+        LeaderboardStore.clear(),
+      ]);
       if (!kIsWeb) {
         try {
           await _googleSignIn.signOut();
