@@ -42,19 +42,19 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context, cfg, _) {
         final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
         final isBusy = _isLoading || _isGoogleLoading;
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar:
-              AppBar(title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF40E0D0), Color(0xFFFF5F6D)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF40E0D0), Color(0xFFFF69B4)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: Center(
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+                title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
+            body: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
@@ -175,9 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
+        );
       },
     );
   }
