@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/design_config.dart';
 import '../services/auth_service.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/primary_button.dart';
 import 'play_screen.dart';
 
@@ -40,120 +41,145 @@ class _LoginScreenState extends State<LoginScreen> {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
+        final backgroundColors =
+            pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
         final isBusy = _isLoading || _isGoogleLoading;
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar:
               AppBar(title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Email requis';
-                      }
-                      final email = value.trim();
-                      final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
-                      if (!emailRegex.hasMatch(email)) {
-                        return 'Email invalide';
-                      }
-                      return null;
-                    },
-                  ),
-                  if (!_isLogin)
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nom'),
-                      validator: (value) {
-                        if (!_isLogin &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'Nom requis';
-                        }
-                        return null;
-                      },
-                    ),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration:
-                        const InputDecoration(labelText: 'Mot de passe'),
-                    keyboardType: TextInputType.visiblePassword,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    obscureText: true,
-                    validator: (value) {
-                      final pwd = value?.trim() ?? '';
-                      if (pwd.isEmpty) {
-                        return 'Mot de passe requis';
-                      }
-                      if (pwd.length < 6) {
-                        return 'Le mot de passe doit contenir au moins 6 caractères';
-                      }
-                      final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
-                      final hasDigit = RegExp(r'\d').hasMatch(pwd);
-                      if (!hasLetter || !hasDigit) {
-                        return 'Le mot de passe doit contenir des lettres et des chiffres';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  if (_error != null)
-                    Text(_error!, style: errorStyle),
-                  const SizedBox(height: 12),
-                  PrimaryButton(
-                    onPressed: isBusy ? null : _submit,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_isLogin ? 'Connexion' : 'Inscription'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: isBusy ? null : _signInWithGoogle,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: _isGoogleLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(
-                            FontAwesomeIcons.google,
-                            color: Color(0xFF4285F4),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: cfg.bgGradient
+                  ? LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: backgroundColors,
+                    )
+                  : null,
+              color: cfg.bgGradient ? null : backgroundColors.first,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_splash.png',
+                          height: 120,
+                        ),
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email requis';
+                            }
+                            final email = value.trim();
+                            final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
+                            if (!emailRegex.hasMatch(email)) {
+                              return 'Email invalide';
+                            }
+                            return null;
+                          },
+                        ),
+                        if (!_isLogin)
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(labelText: 'Nom'),
+                            validator: (value) {
+                              if (!_isLogin &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Nom requis';
+                              }
+                              return null;
+                            },
                           ),
-                    label: const Text('Se connecter avec Google'),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_unverifiedUser != null)
-                    TextButton(
-                      onPressed: _resendVerificationEmail,
-                      child: const Text('Renvoyer l\'email de vérification'),
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration:
+                              const InputDecoration(labelText: 'Mot de passe'),
+                          keyboardType: TextInputType.visiblePassword,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          obscureText: true,
+                          validator: (value) {
+                            final pwd = value?.trim() ?? '';
+                            if (pwd.isEmpty) {
+                              return 'Mot de passe requis';
+                            }
+                            if (pwd.length < 6) {
+                              return 'Le mot de passe doit contenir au moins 6 caractères';
+                            }
+                            final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
+                            final hasDigit = RegExp(r'\d').hasMatch(pwd);
+                            if (!hasLetter || !hasDigit) {
+                              return 'Le mot de passe doit contenir des lettres et des chiffres';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        if (_error != null) Text(_error!, style: errorStyle),
+                        const SizedBox(height: 12),
+                        PrimaryButton(
+                          onPressed: isBusy ? null : _submit,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: isBusy ? null : _signInWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          icon: _isGoogleLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(
+                                  FontAwesomeIcons.google,
+                                  color: Color(0xFF4285F4),
+                                ),
+                          label: const Text('Se connecter avec Google'),
+                        ),
+                        const SizedBox(height: 12),
+                        if (_unverifiedUser != null)
+                          TextButton(
+                            onPressed: _resendVerificationEmail,
+                            child:
+                                const Text('Renvoyer l\'email de vérification'),
+                          ),
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _isLogin = !_isLogin;
+                            _unverifiedUser = null;
+                          }),
+                          child: Text(
+                              _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
+                        ),
+                      ],
                     ),
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _isLogin = !_isLogin;
-                      _unverifiedUser = null;
-                    }),
-                    child: Text(
-                        _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
-                  )
-                ],
+                  ),
+                ),
               ),
             ),
           ),
