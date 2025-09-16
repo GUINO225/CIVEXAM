@@ -1,11 +1,37 @@
 // lib/services/leaderboard_store.dart
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+
 import '../models/leaderboard_entry.dart';
 
 class LeaderboardStore {
-  static const _kKey = 'leaderboard_v1';
+  static const _collectionName = 'leaderboards';
   static const int _maxEntries = 100;
+  static const int _batchSize = 400;
+
+  static final List<LeaderboardEntry> _memoryEntries = <LeaderboardEntry>[];
+
+  static bool get _firebaseReady {
+    try {
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static CollectionReference<Map<String, dynamic>>? _collection() {
+    if (!_firebaseReady) return null;
+    return FirebaseFirestore.instance.collection(_collectionName);
+  }
+
+  static Query<Map<String, dynamic>> _orderedQuery(
+      CollectionReference<Map<String, dynamic>> col) {
+    return col
+        .orderBy('percent', descending: true)
+        .orderBy('durationSec')
+        .orderBy('dateIso', descending: true);
+  }
 
   static List<LeaderboardEntry> _sortEntries(
       List<LeaderboardEntry> entries) {
@@ -16,44 +42,105 @@ class LeaderboardStore {
       if (d != 0) return d;
       return b.dateIso.compareTo(a.dateIso);
     });
-    return entries.take(_maxEntries).toList();
+    return entries.take(_maxEntries).toList(growable: false);
   }
 
   static Future<void> add(LeaderboardEntry e) async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = prefs.getStringList(_kKey) ?? <String>[];
-    list.add(json.encode(e.toJson()));
-    final entries = <LeaderboardEntry>[];
-    for (final s in list) {
-      try {
-        entries.add(
-            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>));
-      } catch (_) {
-        // ignore invalid stored entries
+    final updated = List<LeaderboardEntry>.from(_memoryEntries)..add(e);
+    final sorted = _sortEntries(updated);
+    _memoryEntries
+      ..clear()
+      ..addAll(sorted);
+
+    final col = _collection();
+    if (col == null) return;
+    try {
+      await col.add({
+        ...e.toJson(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      await _trimExcess(col);
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('LeaderboardStore.add failed: $err\n$st');
       }
     }
-    final sorted = _sortEntries(entries);
-    final encoded = sorted.map((e) => json.encode(e.toJson())).toList();
-    await prefs.setStringList(_kKey, encoded);
   }
 
   static Future<List<LeaderboardEntry>> all() async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = prefs.getStringList(_kKey) ?? <String>[];
-    final entries = <LeaderboardEntry>[];
-    for (final s in list) {
-      try {
-        entries.add(
-            LeaderboardEntry.fromJson(json.decode(s) as Map<String, dynamic>));
-      } catch (_) {
-        // ignore invalid stored entries
-      }
+    final col = _collection();
+    if (col == null) {
+      return List<LeaderboardEntry>.from(_memoryEntries);
     }
-    return _sortEntries(entries);
+    try {
+      final snapshot = await _orderedQuery(col).limit(_maxEntries).get();
+      final entries = snapshot.docs
+          .map((doc) => LeaderboardEntry.fromJson(doc.data()))
+          .toList(growable: false);
+      _memoryEntries
+        ..clear()
+        ..addAll(entries);
+      return entries;
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('LeaderboardStore.all failed: $err\n$st');
+      }
+      return List<LeaderboardEntry>.from(_memoryEntries);
+    }
   }
 
   static Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kKey);
+    _memoryEntries.clear();
+    final col = _collection();
+    if (col == null) return;
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot;
+      do {
+        snapshot = await col.limit(_batchSize).get();
+        if (snapshot.docs.isEmpty) break;
+        final batch = FirebaseFirestore.instance.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      } while (snapshot.docs.length >= _batchSize);
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('LeaderboardStore.clear failed: $err\n$st');
+      }
+    }
+  }
+
+  static Future<void> _trimExcess(
+      CollectionReference<Map<String, dynamic>> col) async {
+    try {
+      final topSnapshot = await _orderedQuery(col).limit(_maxEntries).get();
+      if (topSnapshot.docs.length < _maxEntries ||
+          topSnapshot.docs.isEmpty) {
+        return;
+      }
+      var lastKept = topSnapshot.docs.last;
+      Query<Map<String, dynamic>> query = _orderedQuery(col)
+          .startAfterDocument(lastKept)
+          .limit(_batchSize);
+      while (true) {
+        final snapshot = await query.get();
+        if (snapshot.docs.isEmpty) break;
+        final batch = FirebaseFirestore.instance.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+        if (snapshot.docs.length < _batchSize) break;
+        lastKept = snapshot.docs.last;
+        query = _orderedQuery(col)
+            .startAfterDocument(lastKept)
+            .limit(_batchSize);
+      }
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('LeaderboardStore._trimExcess failed: $err\n$st');
+      }
+    }
   }
 }
