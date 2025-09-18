@@ -85,18 +85,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 16),
                       if (!_isLogin)
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Nom'),
-                          validator: (value) {
-                            if (!_isLogin &&
-                                (value == null || value.trim().isEmpty)) {
-                              return 'Nom requis';
-                            }
-                            return null;
-                          },
-                        ),
+                        ...[
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(labelText: 'Nom'),
+                            validator: (value) {
+                              if (!_isLogin &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Nom requis';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                       TextFormField(
                         controller: _passwordController,
                         decoration:
