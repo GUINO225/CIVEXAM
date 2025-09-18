@@ -1,63 +1,144 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import '../models/exam_history_entry.dart';
+import 'local_history_persistence.dart';
 
 class HistoryStore {
-  static const String _collectionName = 'examHistory';
-  static const String _entriesField = 'entries';
-
-  static DocumentReference<Map<String, dynamic>>? _docForCurrentUser() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return null;
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection(_collectionName)
-        .doc('summary');
-  }
+  static List<ExamHistoryEntry> _cache = <ExamHistoryEntry>[];
+  static bool _loaded = false;
+  static Future<void>? _loadingFuture;
+  static bool _listenerRegistered = false;
+  static String _activeUserKey = LocalHistoryPersistence.activeUserKey;
 
   static Future<List<ExamHistoryEntry>> load() async {
-    try {
-      final doc = _docForCurrentUser();
-      if (doc == null) return <ExamHistoryEntry>[];
-      final snapshot = await doc.get();
-      final data = snapshot.data();
-      if (data == null) return <ExamHistoryEntry>[];
-      final entries = data[_entriesField];
-      if (entries == null) return <ExamHistoryEntry>[];
-      return ExamHistoryEntry.decodeList(entries);
-    } catch (_) {
-      return <ExamHistoryEntry>[];
-    }
+    await _ensureLoaded();
+    return List<ExamHistoryEntry>.from(_cache);
   }
 
   static Future<void> add(ExamHistoryEntry entry) async {
-    final doc = _docForCurrentUser();
-    if (doc == null) return;
-    try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final snapshot = await transaction.get(doc);
-        final data = snapshot.data();
-        final currentEntries = data == null
-            ? <ExamHistoryEntry>[]
-            : ExamHistoryEntry.decodeList(data[_entriesField]);
-        currentEntries.insert(0, entry); // plus récent en premier
-        transaction.set(doc, <String, dynamic>{
-          _entriesField: ExamHistoryEntry.encodeList(currentEntries),
-        });
-      });
-    } catch (_) {
-      // Ignoré : l'ajout dans l'historique ne doit pas bloquer l'application.
+    var attempts = 0;
+    while (true) {
+      attempts++;
+      await _ensureLoaded();
+      final targetKey = _activeUserKey;
+      final updated = <ExamHistoryEntry>[entry, ..._cache];
+      if (_activeUserKey != targetKey) {
+        if (attempts >= 3) {
+          return;
+        }
+        continue;
+      }
+      _cache = updated;
+      await _persistFor(targetKey, updated);
+      return;
     }
   }
 
   static Future<void> clear() async {
-    final doc = _docForCurrentUser();
-    if (doc == null) return;
+    await _ensureLoaded();
+    final targetKey = _activeUserKey;
+    _cache = <ExamHistoryEntry>[];
     try {
-      await doc.delete();
-    } catch (_) {
-      // Ignoré.
+      await LocalHistoryPersistence.clearExamRaw(targetKey);
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('HistoryStore.clear failed: $err\n$st');
+      }
     }
   }
+
+  static Future<void> _ensureLoaded() async {
+    _ensureUserListener();
+    if (_loaded) {
+      return;
+    }
+    _loadingFuture ??= _loadFromLocal();
+    await _loadingFuture;
+  }
+
+  static void _ensureUserListener() {
+    if (_listenerRegistered) {
+      return;
+    }
+    _listenerRegistered = true;
+    LocalHistoryPersistence.ensureInitialized();
+    _activeUserKey = LocalHistoryPersistence.activeUserKey;
+    LocalHistoryPersistence.addUserChangeListener(_handleUserChanged);
+  }
+
+  static void _handleUserChanged(String newKey) {
+    _activeUserKey = newKey;
+    _cache = <ExamHistoryEntry>[];
+    _loaded = false;
+    _loadingFuture = null;
+  }
+
+  static Future<void> _loadFromLocal() async {
+    final targetKey = _activeUserKey;
+    try {
+      final raw = await LocalHistoryPersistence.loadExamRaw(targetKey);
+      final entries = <ExamHistoryEntry>[];
+      for (final item in raw) {
+        try {
+          final decoded = jsonDecode(item);
+          if (decoded is Map<String, dynamic>) {
+            entries.add(ExamHistoryEntry.fromJson(decoded));
+          } else if (decoded is Map) {
+            entries.add(
+              ExamHistoryEntry.fromJson(
+                Map<String, dynamic>.from(decoded as Map<dynamic, dynamic>),
+              ),
+            );
+          }
+        } catch (err, st) {
+          if (kDebugMode) {
+            debugPrint('HistoryStore._loadFromLocal decode failed: $err\n$st');
+          }
+        }
+      }
+      if (_activeUserKey != targetKey) {
+        return;
+      }
+      _cache = entries;
+      _loaded = true;
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('HistoryStore._loadFromLocal failed: $err\n$st');
+      }
+      if (_activeUserKey == targetKey) {
+        _cache = <ExamHistoryEntry>[];
+        _loaded = true;
+      }
+    } finally {
+      _loadingFuture = null;
+    }
+  }
+
+  static Future<void> _persistFor(
+    String userKey,
+    List<ExamHistoryEntry> entries,
+  ) async {
+    try {
+      final serialized = entries
+          .map((e) => jsonEncode(_serializeEntry(e)))
+          .toList(growable: false);
+      await LocalHistoryPersistence.saveExamRaw(userKey, serialized);
+    } catch (err, st) {
+      if (kDebugMode) {
+        debugPrint('HistoryStore._persistFor failed: $err\n$st');
+      }
+    }
+  }
+
+  static Map<String, dynamic> _serializeEntry(ExamHistoryEntry entry) => {
+        'date': entry.date.toIso8601String(),
+        'correctBySubject': entry.correctBySubject,
+        'totalBySubject': entry.totalBySubject,
+        'scoresBruts': entry.scoresBruts,
+        'scoresPonderes': entry.scoresPonderes,
+        'totalPondere': entry.totalPondere,
+        'success': entry.success,
+        'abandoned': entry.abandoned,
+      };
 }
