@@ -391,7 +391,7 @@ class _MenuItem {
 }
 
 const _items = <_MenuItem>[
-  _MenuItem('Concours ENA', Icons.school_rounded, 'violetRose'),
+  _MenuItem('Simulation concours ENA', Icons.school_rounded, 'violetRose'),
   _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue'),
   _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
   _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow'),
