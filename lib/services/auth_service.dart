@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../models/user_profile.dart';
+import 'user_profile_service.dart';
+
 /// Exception thrown for authentication failures with a user-friendly message.
 class AuthException implements Exception {
   final String message;
@@ -16,6 +19,7 @@ class AuthException implements Exception {
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final UserProfileService _userProfileService = UserProfileService();
 
   Future<UserCredential> signInWithEmail(String email, String password) async {
     try {
@@ -38,6 +42,7 @@ class AuthService {
           user.reload(),
           user.sendEmailVerification(),
         ]);
+        await _ensureUserProfile(user, fallbackName: name);
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -66,7 +71,12 @@ class AuthService {
       if (kIsWeb) {
         final provider = GoogleAuthProvider();
         provider.setCustomParameters({'prompt': 'select_account'});
-        return await _auth.signInWithPopup(provider);
+        final userCredential = await _auth.signInWithPopup(provider);
+        final user = userCredential.user;
+        if (user != null) {
+          await _ensureUserProfile(user);
+        }
+        return userCredential;
       }
       try {
         await _googleSignIn.signOut();
@@ -80,7 +90,15 @@ class AuthService {
         accessToken: authentication.accessToken,
         idToken: authentication.idToken,
       );
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user != null) {
+        await _ensureUserProfile(
+          user,
+          fallbackName: account.displayName ?? account.email,
+        );
+      }
+      return userCredential;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'popup-closed-by-user') {
         throw AuthException('Connexion Google annulée');
@@ -132,4 +150,61 @@ class AuthService {
   @visibleForTesting
   String messageFromCodeForTest(String code, [String? message]) =>
       _messageFromCode(code, message);
+
+  Future<void> _ensureUserProfile(User user, {String? fallbackName}) async {
+    try {
+      final uid = user.uid;
+      final existingProfile = await _userProfileService.loadProfile(uid);
+      if (existingProfile != null) {
+        return;
+      }
+      final resolvedName = _resolveName(user.displayName, fallbackName, user.email);
+      final names = _splitName(resolvedName);
+      final profile = UserProfile(
+        firstName: names['firstName'] ?? '',
+        lastName: names['lastName'] ?? '',
+        nickname: names['nickname'] ?? '',
+        profession: '',
+        photoUrl: '',
+      );
+      await _userProfileService.saveProfile(profile);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Profile initialization failed: $e');
+      }
+      throw AuthException("Échec de l'initialisation du profil utilisateur");
+    }
+  }
+
+  String _resolveName(String? primary, String? secondary, String? email) {
+    final first = primary?.trim();
+    if (first != null && first.isNotEmpty) {
+      return first;
+    }
+    final second = secondary?.trim();
+    if (second != null && second.isNotEmpty) {
+      return second;
+    }
+    final mail = email?.trim();
+    if (mail != null && mail.isNotEmpty) {
+      return mail;
+    }
+    return '';
+  }
+
+  Map<String, String> _splitName(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      return {'firstName': '', 'lastName': '', 'nickname': ''};
+    }
+    final parts = trimmed.split(RegExp(r'\s+'));
+    final firstName = parts.first;
+    final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final nickname = firstName.isNotEmpty ? firstName : trimmed;
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'nickname': nickname,
+    };
+  }
 }
