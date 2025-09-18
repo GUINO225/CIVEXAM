@@ -5,10 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:confetti/confetti.dart';
 import '../models/leaderboard_entry.dart';
-import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
 import '../services/user_profile_service.dart';
 import '../models/user_profile.dart';
+import '../services/leaderboard_store.dart';
+import '../services/private_scores_store.dart';
 
 Future<void> showSaveScoreDialog({
   required BuildContext context,
@@ -237,7 +238,11 @@ Future<void> showSaveScoreDialog({
       percent: percent,
       dateIso: DateTime.now().toIso8601String(),
     );
-    await LeaderboardStore.add(entry);
+    if (mode == 'training') {
+      await PrivateScoresStore.add(entry);
+    } else {
+      await LeaderboardStore.add(entry);
+    }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Score enregistré 🎉')));
