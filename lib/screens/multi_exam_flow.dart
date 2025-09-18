@@ -331,31 +331,43 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   Widget _difficultyPicker() {
     final items = ExamDifficulty.values;
+    final theme = Theme.of(context);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: items.map((d) {
         final selected = _difficulty == d;
-        IconData icon;
+        late final IconData icon;
+        late final Color accent;
         switch (d) {
           case ExamDifficulty.facile:
             icon = Icons.sentiment_satisfied_alt;
+            accent = Colors.green.shade600;
             break;
           case ExamDifficulty.normal:
             icon = Icons.sentiment_neutral;
+            accent = Colors.blue.shade600;
             break;
           case ExamDifficulty.difficile:
             icon = Icons.sentiment_dissatisfied;
+            accent = Colors.orange.shade600;
             break;
           case ExamDifficulty.expert:
             icon = Icons.bolt;
+            accent = Colors.purple.shade600;
             break;
         }
         return ChoiceChip(
-          avatar: Icon(icon, size: 18),
+          avatar: Icon(icon, size: 18, color: accent),
           label: Text(difficultyLabel(d)),
           selected: selected,
           tooltip: difficultyHint(d),
+          labelStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: selected ? FontWeight.w600 : null,
+          ),
+          backgroundColor: accent.withOpacity(0.08),
+          selectedColor: accent.withOpacity(0.18),
           onSelected: (_) => setState(() => _difficulty = d),
         );
       }).toList(),
