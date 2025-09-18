@@ -40,149 +40,187 @@ class _LoginScreenState extends State<LoginScreen> {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        final errorStyle = TextStyle(color: colorScheme.error);
         final isBusy = _isLoading || _isGoogleLoading;
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF40E0D0), Color(0xFF87CEEB)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        final panelOpacity = cfg.darkMode ? 0.88 : 0.94;
+        final panelColor = colorScheme.surface.withOpacity(panelOpacity);
+        final shadowColor =
+            Colors.black.withOpacity(cfg.darkMode ? 0.6 : 0.18);
+        final appBarColor =
+            colorScheme.surface.withOpacity(cfg.darkMode ? 0.85 : 0.9);
+
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: appBarColor,
+            foregroundColor: colorScheme.onSurface,
+            elevation: 0,
+            title: Text(_isLogin ? 'Se connecter' : "Créer un compte"),
+            titleTextStyle:
+                theme.textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
           ),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-                title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
-            body: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/logo_splash.png',
-                        height: 180,
-                        fit: BoxFit.contain,
+          body: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: panelColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 32,
+                        offset: const Offset(0, 20),
                       ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        autofillHints: const [AutofillHints.email],
-                        decoration: const InputDecoration(labelText: 'Email'),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email requis';
-                          }
-                          final email = value.trim();
-                          final emailRegex = RegExp(r'^[^@]+@[^@]+[.][^@]+$');
-                          if (!emailRegex.hasMatch(email)) {
-                            return 'Email invalide';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      if (!_isLogin)
-                        ...[
+                    ],
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/logo_splash.png',
+                            height: 180,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 24),
                           TextFormField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(labelText: 'Nom'),
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: const InputDecoration(labelText: 'Email'),
                             validator: (value) {
-                              if (!_isLogin &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Nom requis';
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Email requis';
+                              }
+                              final email = value.trim();
+                              final emailRegex =
+                                  RegExp(r'^[^@]+@[^@]+[.][^@]+$');
+                              if (!emailRegex.hasMatch(email)) {
+                                return 'Email invalide';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
-                        ],
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration:
-                            const InputDecoration(labelText: 'Mot de passe'),
-                        keyboardType: TextInputType.visiblePassword,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        obscureText: true,
-                        validator: (value) {
-                          final pwd = value?.trim() ?? '';
-                          if (pwd.isEmpty) {
-                            return 'Mot de passe requis';
-                          }
-                          if (pwd.length < 6) {
-                            return 'Le mot de passe doit contenir au moins 6 caractères';
-                          }
-                          final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
-                          final hasDigit = RegExp(r'\d').hasMatch(pwd);
-                          if (!hasLetter || !hasDigit) {
-                            return 'Le mot de passe doit contenir des lettres et des chiffres';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      if (_error != null)
-                        Text(_error!, style: errorStyle),
-                      const SizedBox(height: 12),
-                      PrimaryButton(
-                        onPressed: isBusy ? null : _submit,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(_isLogin ? 'Connexion' : 'Inscription'),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: isBusy ? null : _signInWithGoogle,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4285F4),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: _isGoogleLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Icon(
-                                FontAwesomeIcons.google,
-                                size: 24,
+                          if (!_isLogin)
+                            ...[
+                              TextFormField(
+                                controller: _nameController,
+                                decoration:
+                                    const InputDecoration(labelText: 'Nom'),
+                                validator: (value) {
+                                  if (!_isLogin &&
+                                      (value == null || value.trim().isEmpty)) {
+                                    return 'Nom requis';
+                                  }
+                                  return null;
+                                },
                               ),
-                        label: const Text('Se connecter avec Google'),
+                              const SizedBox(height: 16),
+                            ],
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                                labelText: 'Mot de passe'),
+                            keyboardType: TextInputType.visiblePassword,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            obscureText: true,
+                            validator: (value) {
+                              final pwd = value?.trim() ?? '';
+                              if (pwd.isEmpty) {
+                                return 'Mot de passe requis';
+                              }
+                              if (pwd.length < 6) {
+                                return 'Le mot de passe doit contenir au moins 6 caractères';
+                              }
+                              final hasLetter = RegExp(r'[A-Za-z]').hasMatch(pwd);
+                              final hasDigit = RegExp(r'\d').hasMatch(pwd);
+                              if (!hasLetter || !hasDigit) {
+                                return 'Le mot de passe doit contenir des lettres et des chiffres';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          if (_error != null)
+                            Text(_error!, style: errorStyle),
+                          const SizedBox(height: 12),
+                          PrimaryButton(
+                            onPressed: isBusy ? null : _submit,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: isBusy ? null : _signInWithGoogle,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4285F4),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              shadowColor: Colors.black.withOpacity(0.25),
+                            ),
+                            icon: _isGoogleLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(
+                                              Colors.white),
+                                    ),
+                                  )
+                                : const Icon(
+                                    FontAwesomeIcons.google,
+                                    size: 24,
+                                  ),
+                            label: const Text('Se connecter avec Google'),
+                          ),
+                          const SizedBox(height: 12),
+                          if (_unverifiedUser != null)
+                            TextButton(
+                              onPressed: _resendVerificationEmail,
+                              style: TextButton.styleFrom(
+                                foregroundColor: colorScheme.primary,
+                              ),
+                              child: const Text(
+                                  'Renvoyer l\'email de vérification'),
+                            ),
+                          TextButton(
+                            onPressed: () => setState(() {
+                              _isLogin = !_isLogin;
+                              _unverifiedUser = null;
+                            }),
+                            style: TextButton.styleFrom(
+                              foregroundColor: colorScheme.primary,
+                            ),
+                            child: Text(
+                                _isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
+                          )
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      if (_unverifiedUser != null)
-                        TextButton(
-                          onPressed: _resendVerificationEmail,
-                          child:
-                              const Text('Renvoyer l\'email de vérification'),
-                        ),
-                      TextButton(
-                        onPressed: () => setState(() {
-                          _isLogin = !_isLogin;
-                          _unverifiedUser = null;
-                        }),
-                        child:
-                            Text(_isLogin ? "Créer un compte" : 'Déjà inscrit ?'),
-                      )
-                    ],
+                    ),
                   ),
                 ),
               ),
