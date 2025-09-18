@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/leaderboard_entry.dart';
+import 'private_scores_store.dart';
 
 class LeaderboardStore {
   static const _collectionName = 'leaderboards';
@@ -46,6 +47,10 @@ class LeaderboardStore {
   }
 
   static Future<void> add(LeaderboardEntry e) async {
+    if (e.mode == 'training') {
+      await PrivateScoresStore.add(e);
+      return;
+    }
     final updated = List<LeaderboardEntry>.from(_memoryEntries)..add(e);
     final sorted = _sortEntries(updated);
     _memoryEntries
@@ -68,9 +73,10 @@ class LeaderboardStore {
   }
 
   static Future<List<LeaderboardEntry>> all() async {
+    final localEntries = await PrivateScoresStore.load();
     final col = _collection();
     if (col == null) {
-      return List<LeaderboardEntry>.from(_memoryEntries);
+      return [...localEntries, ..._memoryEntries];
     }
     try {
       final snapshot = await _orderedQuery(col).limit(_maxEntries).get();
@@ -80,17 +86,18 @@ class LeaderboardStore {
       _memoryEntries
         ..clear()
         ..addAll(entries);
-      return entries;
+      return [...localEntries, ...entries];
     } catch (err, st) {
       if (kDebugMode) {
         debugPrint('LeaderboardStore.all failed: $err\n$st');
       }
-      return List<LeaderboardEntry>.from(_memoryEntries);
+      return [...localEntries, ..._memoryEntries];
     }
   }
 
   static Future<void> clear() async {
     _memoryEntries.clear();
+    await PrivateScoresStore.clear();
     final col = _collection();
     if (col == null) return;
     try {
