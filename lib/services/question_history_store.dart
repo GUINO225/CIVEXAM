@@ -12,9 +12,10 @@ class QuestionHistoryStore {
   static const String _collectionName = 'questionHistory';
   static const int _batchSize = 400; // Below Firestore's 500 writes per batch.
 
-  static const String _prefsCacheKey = 'question_history_cache';
-  static const String _prefsPendingKey = 'question_history_pending';
-  static const String _prefsNeedsClearKey = 'question_history_needs_clear';
+  static const String _prefsCacheKeyBase = 'question_history_cache';
+  static const String _prefsPendingKeyBase = 'question_history_pending';
+  static const String _prefsNeedsClearKeyBase = 'question_history_needs_clear';
+  static const String _defaultUserKey = 'local';
 
   static final Set<String> _memoryCache = <String>{};
   static final Set<String> _pendingSync = <String>{};
@@ -24,6 +25,11 @@ class QuestionHistoryStore {
   static Future<void>? _localLoadFuture;
   static Future<void>? _ongoingSync;
 
+  static bool _remoteSyncEnabled = false;
+  static bool _userKeyInitialized = false;
+  static String _activeUserKey = _defaultUserKey;
+  static StreamSubscription<User?>? _authSubscription;
+
   static bool get _firebaseReady {
     try {
       return Firebase.apps.isNotEmpty;
@@ -32,10 +38,128 @@ class QuestionHistoryStore {
     }
   }
 
+  /// Enables or disables the optional Firestore synchronization.
+  static void setRemoteSyncEnabled(bool enabled) {
+    if (_remoteSyncEnabled == enabled) {
+      return;
+    }
+    _remoteSyncEnabled = enabled;
+    if (_remoteSyncEnabled) {
+      _setupAuthListener();
+      _updateActiveUserKey();
+      _scheduleRemoteSync();
+    }
+  }
+
+  static void _setupAuthListener() {
+    if (_authSubscription != null || !_firebaseReady) {
+      return;
+    }
+    try {
+      _authSubscription = FirebaseAuth.instance.authStateChanges().listen(
+        (user) {
+          _switchActiveUser(_userKeyFromUid(user?.uid));
+        },
+        onError: (Object error, StackTrace st) {
+          if (kDebugMode) {
+            debugPrint(
+              'QuestionHistoryStore._setupAuthListener error: $error\n$st',
+            );
+          }
+        },
+      );
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('QuestionHistoryStore._setupAuthListener failed: $e\n$st');
+      }
+    }
+  }
+
+  static void _updateActiveUserKey() {
+    final resolved = _resolveCurrentUserKey();
+    _switchActiveUser(resolved);
+  }
+
+  static void _switchActiveUser(String newKey) {
+    if (_userKeyInitialized && newKey == _activeUserKey) {
+      return;
+    }
+    _userKeyInitialized = true;
+    _activeUserKey = newKey;
+    _memoryCache.clear();
+    _pendingSync.clear();
+    _needsRemoteClear = false;
+    _localLoaded = false;
+    _localLoadFuture = null;
+  }
+
+  static String _resolveCurrentUserKey() {
+    if (!_firebaseReady) {
+      return _defaultUserKey;
+    }
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      return _userKeyFromUid(uid);
+    } catch (_) {
+      return _defaultUserKey;
+    }
+  }
+
+  static String _userKeyFromUid(String? uid) {
+    if (uid == null || uid.isEmpty) {
+      return _defaultUserKey;
+    }
+    return uid;
+  }
+
+  static String _scopedPrefsKey(String base, String userKey) {
+    return '${base}_$userKey';
+  }
+
+  static Future<void> _migrateLegacyKeysIfNeeded(
+    SharedPreferences prefs,
+    String userKey,
+  ) async {
+    const legacyKeys = <String>{
+      _prefsCacheKeyBase,
+      _prefsPendingKeyBase,
+      _prefsNeedsClearKeyBase,
+    };
+    final hasLegacy = legacyKeys.any(prefs.containsKey);
+    if (!hasLegacy) {
+      return;
+    }
+
+    final cacheKey = _scopedPrefsKey(_prefsCacheKeyBase, userKey);
+    final pendingKey = _scopedPrefsKey(_prefsPendingKeyBase, userKey);
+    final needsClearKey = _scopedPrefsKey(_prefsNeedsClearKeyBase, userKey);
+
+    final cached = prefs.getStringList(_prefsCacheKeyBase);
+    final pending = prefs.getStringList(_prefsPendingKeyBase);
+    final needsClear = prefs.getBool(_prefsNeedsClearKeyBase);
+
+    if (cached != null && !prefs.containsKey(cacheKey)) {
+      await prefs.setStringList(cacheKey, cached);
+    }
+    if (pending != null && !prefs.containsKey(pendingKey)) {
+      await prefs.setStringList(pendingKey, pending);
+    }
+    if (needsClear != null && !prefs.containsKey(needsClearKey)) {
+      await prefs.setBool(needsClearKey, needsClear);
+    }
+
+    for (final key in legacyKeys) {
+      await prefs.remove(key);
+    }
+  }
+
   static CollectionReference<Map<String, dynamic>>? _historyCollection() {
-    if (!_firebaseReady) return null;
+    if (!_remoteSyncEnabled || !_firebaseReady) return null;
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return null;
+    if (!_userKeyInitialized || _activeUserKey != uid) {
+      return null;
+    }
     return FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
@@ -45,6 +169,11 @@ class QuestionHistoryStore {
   /// Loads the set of question IDs already used.
   static Future<Set<String>> load() async {
     await _ensureLocalLoaded();
+    final targetUserKey = _activeUserKey;
+    if (!_remoteSyncEnabled) {
+      return Set<String>.from(_memoryCache);
+    }
+
     _scheduleRemoteSync();
 
     if (_needsRemoteClear) {
@@ -58,6 +187,9 @@ class QuestionHistoryStore {
 
     try {
       final snapshot = await col.get();
+      if (_activeUserKey != targetUserKey) {
+        return Set<String>.from(_memoryCache);
+      }
       final remoteIds = snapshot.docs.map((doc) => doc.id).toSet();
 
       var pendingChanged = false;
@@ -120,27 +252,41 @@ class QuestionHistoryStore {
   /// Clears the stored question IDs.
   static Future<void> clear() async {
     await _ensureLocalLoaded();
-    final hadData = _memoryCache.isNotEmpty || _pendingSync.isNotEmpty || _needsRemoteClear;
+    final previousNeedsRemoteClear = _needsRemoteClear;
+    final hadLocalData = _memoryCache.isNotEmpty || _pendingSync.isNotEmpty;
     _memoryCache.clear();
     _pendingSync.clear();
     _needsRemoteClear = true;
-    if (hadData) {
+    final needsClearChanged = _needsRemoteClear != previousNeedsRemoteClear;
+    if (hadLocalData || needsClearChanged) {
       await _persistToLocalStore();
     }
     _scheduleRemoteSync();
   }
 
   static Future<void> _ensureLocalLoaded() {
+    _setupAuthListener();
+    _updateActiveUserKey();
     if (_localLoaded) return Future.value();
     return _localLoadFuture ??= _loadFromLocalStore();
   }
 
   static Future<void> _loadFromLocalStore() async {
+    final targetUserKey = _activeUserKey;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cached = prefs.getStringList(_prefsCacheKey) ?? const <String>[];
-      final pending = prefs.getStringList(_prefsPendingKey) ?? const <String>[];
-      _needsRemoteClear = prefs.getBool(_prefsNeedsClearKey) ?? false;
+      await _migrateLegacyKeysIfNeeded(prefs, targetUserKey);
+      final cacheKey = _scopedPrefsKey(_prefsCacheKeyBase, targetUserKey);
+      final pendingKey = _scopedPrefsKey(_prefsPendingKeyBase, targetUserKey);
+      final needsClearKey =
+          _scopedPrefsKey(_prefsNeedsClearKeyBase, targetUserKey);
+      final cached = prefs.getStringList(cacheKey) ?? const <String>[];
+      final pending = prefs.getStringList(pendingKey) ?? const <String>[];
+      final needsClear = prefs.getBool(needsClearKey) ?? false;
+
+      if (_activeUserKey != targetUserKey) {
+        return;
+      }
 
       _memoryCache
         ..clear()
@@ -148,6 +294,7 @@ class QuestionHistoryStore {
       _pendingSync
         ..clear()
         ..addAll(pending);
+      _needsRemoteClear = needsClear;
       _localLoaded = true;
     } catch (e, st) {
       if (kDebugMode) {
@@ -163,9 +310,13 @@ class QuestionHistoryStore {
       final prefs = await SharedPreferences.getInstance();
       final cacheList = _memoryCache.toList()..sort();
       final pendingList = _pendingSync.toList()..sort();
-      await prefs.setStringList(_prefsCacheKey, cacheList);
-      await prefs.setStringList(_prefsPendingKey, pendingList);
-      await prefs.setBool(_prefsNeedsClearKey, _needsRemoteClear);
+      final cacheKey = _scopedPrefsKey(_prefsCacheKeyBase, _activeUserKey);
+      final pendingKey = _scopedPrefsKey(_prefsPendingKeyBase, _activeUserKey);
+      final needsClearKey =
+          _scopedPrefsKey(_prefsNeedsClearKeyBase, _activeUserKey);
+      await prefs.setStringList(cacheKey, cacheList);
+      await prefs.setStringList(pendingKey, pendingList);
+      await prefs.setBool(needsClearKey, _needsRemoteClear);
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('QuestionHistoryStore._persistToLocalStore failed: $e\n$st');
@@ -174,6 +325,9 @@ class QuestionHistoryStore {
   }
 
   static void _scheduleRemoteSync() {
+    if (!_remoteSyncEnabled) {
+      return;
+    }
     if ((_pendingSync.isEmpty && !_needsRemoteClear) || _ongoingSync != null) {
       return;
     }
@@ -190,8 +344,12 @@ class QuestionHistoryStore {
   }
 
   static Future<void> _flushPendingToFirestore() async {
+    final targetUserKey = _activeUserKey;
     try {
       while (true) {
+        if (!_remoteSyncEnabled || _activeUserKey != targetUserKey) {
+          return;
+        }
         if (_needsRemoteClear) {
           final col = _historyCollection();
           if (col == null) {
