@@ -29,6 +29,7 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBWAIrkydvaNel2li2mKwrF2qbBag7M98Q',
     appId: '1:522640251078:web:8157ff3781f38b4b0b9f86',
+    authDomain: 'civexam-54e17.firebaseapp.com',
     messagingSenderId: '522640251078',
     projectId: 'civexam-54e17',
     storageBucket: 'civexam-54e17.firebasestorage.app',
