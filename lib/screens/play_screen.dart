@@ -12,7 +12,6 @@ import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
 import '../widgets/adaptive_text.dart';
 
-import 'training_quick_start.dart';
 import 'official_intro_screen.dart';
 import 'subject_list_screen.dart';
 import 'training_history_screen.dart';
@@ -202,21 +201,18 @@ class _PlayScreenState extends State<PlayScreen> {
   Future<void> _navigate(BuildContext context, int index) async {
     switch (index) {
       case 0:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()));
-        break;
-      case 1:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
         break;
-      case 2:
+      case 1:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const SubjectListScreen()));
         break;
-      case 3:
+      case 2:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
         break;
-      case 4:
+      case 3:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
         break;
-      case 5:
+      case 4:
         await showDialog(
           context: context,
           builder: (_) => const AlertDialog(
@@ -225,7 +221,7 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
         );
         break;
-      case 6:
+      case 5:
         try {
           const int desiredCount = 60;
           final all = await QuestionLoader.loadENA();
@@ -281,7 +277,7 @@ class _PlayScreenState extends State<PlayScreen> {
           );
         }
         break;
-      case 7:
+      case 6:
         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
         break;
       default:
@@ -393,7 +389,6 @@ class _MenuItem {
 }
 
 const _items = <_MenuItem>[
-  _MenuItem("S'entraîner", Icons.play_circle_fill_rounded, 'mintTurquoise'),
   _MenuItem('Concours ENA', Icons.school_rounded, 'violetRose'),
   _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue'),
   _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
