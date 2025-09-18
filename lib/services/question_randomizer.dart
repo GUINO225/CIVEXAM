@@ -62,12 +62,15 @@ Future<List<Question>> pickAndShuffle(
   final history = await QuestionHistoryStore.load();
 
   // Prepare data for the isolate.
+  int rngSeed = (r.nextDouble() * 0x100000000).floor();
+  if (rngSeed == 0) rngSeed = 1;
+
   final args = _PickAndShuffleArgs(
     pool: pool.map((q) => q.toMap()).toList(),
     history: history,
     take: take,
     dedupeByQuestion: dedupeByQuestion,
-    rngSeed: r.nextInt(1 << 32),
+    rngSeed: rngSeed,
   );
 
   final argsMap = args.toMap();
