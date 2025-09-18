@@ -43,8 +43,8 @@ class _PlayScreenState extends State<PlayScreen> {
         final user = FirebaseAuth.instance.currentUser;
         final name = user?.displayName ?? user?.email;
         final welcomeText = name != null && name.isNotEmpty
-            ? 'Bienvenue $name 👋  •  Choisis un mode'
-            : 'Bienvenue 👋  •  Choisis un mode';
+            ? 'Bienvenue $name 👋'
+            : 'Bienvenue 👋';
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
