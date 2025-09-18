@@ -13,8 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/user_profile_service.dart';
-import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
+import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -256,10 +256,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     await _profileService.saveProfile(profile);
 
     if (_initialPseudo != _pseudoController.text) {
-      final entries = await LeaderboardStore.all();
-      await LeaderboardStore.clear();
+      final entries = await PrivateScoresStore.load();
+      await PrivateScoresStore.clear();
       for (final e in entries) {
-        await LeaderboardStore.add(LeaderboardEntry(
+        await PrivateScoresStore.add(LeaderboardEntry(
           userId: e.userId,
           name: _pseudoController.text,
           mode: e.mode,
