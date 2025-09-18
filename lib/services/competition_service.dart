@@ -1,5 +1,6 @@
 // lib/services/competition_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/leaderboard_entry.dart';
@@ -56,20 +57,30 @@ class CompetitionService {
 
   /// Supprime les anciens enregistrements non liés au mode compétition.
   Future<void> purgeLegacyEntries() async {
-    const legacyModes = ['training', 'concours'];
-    for (final mode in legacyModes) {
-      try {
-        final snapshot = await _col.where('mode', isEqualTo: mode).get();
-        if (snapshot.docs.isEmpty) continue;
-        final batch = FirebaseFirestore.instance.batch();
-        for (final doc in snapshot.docs) {
-          batch.delete(doc.reference);
-        }
-        await batch.commit();
-      } catch (e, st) {
-        debugPrint('purgeLegacyEntries failed for mode=$mode: $e');
-        debugPrintStack(stackTrace: st);
-      }
+    const legacyModes = <String>{'training', 'concours'};
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint('purgeLegacyEntries skipped: no authenticated user');
+      return;
+    }
+
+    try {
+      final doc = await _col.doc(user.uid).get();
+      if (!doc.exists) return;
+
+      final data = doc.data();
+      if (data == null) return;
+
+      final mode = data['mode'] as String? ?? 'competition';
+      if (!legacyModes.contains(mode)) return;
+
+      await _col.doc(user.uid).delete();
+    } on FirebaseException catch (e, st) {
+      debugPrint('purgeLegacyEntries failed for user=${user.uid}: $e');
+      debugPrintStack(stackTrace: st);
+    } catch (e, st) {
+      debugPrint('purgeLegacyEntries failed: $e');
+      debugPrintStack(stackTrace: st);
     }
   }
 
