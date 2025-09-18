@@ -62,12 +62,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _pseudoController.text = prefs.getString('nickname') ?? '';
     final uid = FirebaseAuth.instance.currentUser?.uid;
     String? storedPhotoUrl;
+    String? remoteNickname;
     if (uid != null) {
       try {
         final profile = await _profileService.loadProfile(uid);
         if (profile != null) {
+          if (profile.firstName.isNotEmpty) {
+            _firstNameController.text = profile.firstName;
+          }
+          if (profile.lastName.isNotEmpty) {
+            _lastNameController.text = profile.lastName;
+          }
+          if (profile.profession.isNotEmpty) {
+            _professionController.text = profile.profession;
+          }
           if (profile.nickname.isNotEmpty) {
-            _pseudoController.text = profile.nickname;
+            remoteNickname = profile.nickname;
           }
           storedPhotoUrl = profile.photoUrl;
         }
@@ -75,11 +85,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         debugPrint('Failed to load profile: $e\n$st');
       }
     }
+    if (remoteNickname != null) {
+      _pseudoController.text = remoteNickname;
+    }
     if (!mounted) return;
     setState(() {
       _avatarPath = storedPath;
       _avatarBytes = storedBytes;
-      _photoUrl = storedPhotoUrl;
+      if (remoteNickname != null) {
+        _pseudoController.text = remoteNickname;
+      }
+      _photoUrl = storedPhotoUrl ?? _photoUrl;
     });
     _initialPseudo = _pseudoController.text;
   }
