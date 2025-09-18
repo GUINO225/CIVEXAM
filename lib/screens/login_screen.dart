@@ -10,7 +10,9 @@ import '../widgets/primary_button.dart';
 import 'play_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialUnverifiedUser});
+
+  final User? initialUnverifiedUser;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -28,6 +30,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isGoogleLoading = false;
   User? _unverifiedUser;
   static const Color _logoOrange = Color(0xFFFF7F00);
+
+  @override
+  void initState() {
+    super.initState();
+    _unverifiedUser = widget.initialUnverifiedUser;
+  }
 
   @override
   void dispose() {
