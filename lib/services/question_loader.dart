@@ -48,7 +48,7 @@ class QuestionLoader {
       final path = paths[i];
       try {
         final raw = await rootBundle.loadString(path);
-        final out = await compute(_parseQuestions, raw);
+        final out = await _parseQuestionsIsolateAware(raw);
         if (out.isEmpty) continue;
 
         if (i == 0 && out.length < ExamBlueprint.totalTarget) {
@@ -90,6 +90,17 @@ class QuestionLoader {
         return 3;
       default:
         return 2;
+    }
+  }
+
+  static Future<List<Question>> _parseQuestionsIsolateAware(String raw) async {
+    if (kIsWeb) {
+      return _parseQuestions(raw);
+    }
+    try {
+      return await compute(_parseQuestions, raw);
+    } on UnsupportedError {
+      return _parseQuestions(raw);
     }
   }
 
