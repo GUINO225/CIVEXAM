@@ -70,7 +70,18 @@ Future<List<Question>> pickAndShuffle(
     rngSeed: r.nextInt(1 << 32),
   );
 
-  final result = await compute(_pickAndShuffleIsolate, args.toMap());
+  final argsMap = args.toMap();
+
+  Map<String, dynamic> result;
+  if (kIsWeb) {
+    result = _pickAndShuffleIsolate(argsMap);
+  } else {
+    try {
+      result = await compute(_pickAndShuffleIsolate, argsMap);
+    } on UnsupportedError {
+      result = _pickAndShuffleIsolate(argsMap);
+    }
+  }
 
   final selectedMaps = List<Map<String, dynamic>>.from(
       (result['selected'] as List).map((e) => Map<String, dynamic>.from(e)));
