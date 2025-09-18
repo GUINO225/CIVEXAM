@@ -65,7 +65,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Image.asset(
                         'assets/images/logo_splash.png',
-                        height: 120,
+                        height: 180,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 24),
                       TextFormField(
