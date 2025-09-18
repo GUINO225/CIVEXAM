@@ -44,68 +44,8 @@ Future<void> showSaveScoreDialog({
       debugPrint('Failed to load profile for $uid: $e\n$st');
       profile = null;
     }
-    String nickname = profile?.nickname ?? '';
-
-    // Demande le pseudonyme si absent
-    if (nickname.trim().isEmpty && context.mounted) {
-      final controller = TextEditingController();
-      try {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            title: const Text('Votre pseudonyme'),
-            content: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                  labelText: 'Pseudonyme', border: OutlineInputBorder()),
-            ),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK')),
-            ],
-          ),
-        );
-        nickname = controller.text.trim();
-      } finally {
-        controller.dispose();
-      }
-      if (nickname.isNotEmpty) {
-        final toSave = UserProfile(
-          firstName: profile?.firstName ?? '',
-          lastName: profile?.lastName ?? '',
-          nickname: nickname,
-          profession: profile?.profession ?? '',
-          photoUrl: profile?.photoUrl ?? '',
-        );
-        try {
-          await profileService.saveProfile(toSave);
-        } catch (e, st) {
-          debugPrint('Error saving profile: $e\n$st');
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
-                    "Échec de l'enregistrement du pseudonyme. Réessayez."),
-                action: SnackBarAction(
-                  label: 'Réessayer',
-                  onPressed: () async {
-                    try {
-                      await profileService.saveProfile(toSave);
-                    } catch (e, st) {
-                      debugPrint('Failed to save profile: $e\n$st');
-                    }
-                  },
-                ),
-              ),
-            );
-          }
-        }
-      }
-    }
-
-    if (nickname.isNotEmpty) {
+    final nickname = profile?.nickname?.trim();
+    if (nickname != null && nickname.isNotEmpty) {
       name = nickname;
     }
 
