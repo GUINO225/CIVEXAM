@@ -1,8 +1,8 @@
 // lib/screens/leaderboard_screen.dart (fixed async + duration format)
 import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
-import '../services/leaderboard_store.dart';
 import '../services/competition_service.dart';
+import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -18,10 +18,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    final all = await LeaderboardStore.all();
-    final comp = await CompetitionService().topEntries();
+    final localEntries = await PrivateScoresStore.load();
+    final competitionService = CompetitionService();
+    await competitionService.purgeLegacyEntries();
+    final comp = await competitionService.topEntries();
     if (!mounted) return;
-    final merged = [...all, ...comp];
+    final merged = [...localEntries, ...comp];
     merged.sort((a, b) {
       final p = b.percent.compareTo(a.percent);
       if (p != 0) return p;

@@ -16,6 +16,7 @@ class CompetitionService {
   Future<void> saveEntry(LeaderboardEntry entry) async {
     final data = entry.toJson();
     data['updatedAt'] = FieldValue.serverTimestamp();
+    data['mode'] = 'competition';
     try {
       await _col.doc(entry.userId).set(data);
     } catch (e) {
@@ -26,18 +27,49 @@ class CompetitionService {
   /// Récupère les meilleurs résultats (max 100 par défaut).
   Future<List<LeaderboardEntry>> topEntries({int limit = 100}) async {
     try {
-      final snap = await _col
-          .orderBy('percent', descending: true)
-          .orderBy('durationSec')
-          .limit(limit)
-          .get();
-      return snap.docs
-          .map((d) => LeaderboardEntry.fromJson(d.data()))
-          .toList();
+      return await _fetchSortedEntries(
+        baseQuery: _col.where('mode', isEqualTo: 'competition'),
+        limit: limit,
+      );
+    } on FirebaseException catch (e, st) {
+      if (e.code == 'failed-precondition') {
+        debugPrint(
+            'topEntries filtered query missing index, falling back. Error: $e');
+        debugPrintStack(stackTrace: st);
+        try {
+          return await _fetchSortedEntries(baseQuery: _col, limit: limit);
+        } catch (err, stack) {
+          debugPrint('topEntries fallback failed: $err');
+          debugPrintStack(stackTrace: stack);
+          return [];
+        }
+      }
+      debugPrint('topEntries firebase error: $e');
+      debugPrintStack(stackTrace: st);
+      return [];
     } catch (e, st) {
       debugPrint('topEntries failed: limit=$limit, error: $e');
       debugPrintStack(stackTrace: st);
       return [];
+    }
+  }
+
+  /// Supprime les anciens enregistrements non liés au mode compétition.
+  Future<void> purgeLegacyEntries() async {
+    const legacyModes = ['training', 'concours'];
+    for (final mode in legacyModes) {
+      try {
+        final snapshot = await _col.where('mode', isEqualTo: mode).get();
+        if (snapshot.docs.isEmpty) continue;
+        final batch = FirebaseFirestore.instance.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      } catch (e, st) {
+        debugPrint('purgeLegacyEntries failed for mode=$mode: $e');
+        debugPrintStack(stackTrace: st);
+      }
     }
   }
 
@@ -46,7 +78,11 @@ class CompetitionService {
     try {
       final doc = await _col.doc(userId).get();
       if (!doc.exists) return null;
-      return LeaderboardEntry.fromJson(doc.data()!);
+      final data = doc.data()!;
+      if ((data['mode'] ?? 'competition') != 'competition') {
+        return null;
+      }
+      return LeaderboardEntry.fromJson(data);
     } catch (e, st) {
       debugPrint('entryForUser failed: userId=$userId, error: $e');
       debugPrintStack(stackTrace: st);
@@ -56,12 +92,28 @@ class CompetitionService {
 
   /// Retourne un flux des meilleurs résultats (max 100 par défaut).
   Stream<List<LeaderboardEntry>> topEntriesStream({int limit = 100}) {
-    return _col
+    final query = _col
+        .orderBy('percent', descending: true)
+        .orderBy('durationSec')
+        .limit(limit);
+    return query.snapshots().map((snap) => snap.docs
+        .map((d) => LeaderboardEntry.fromJson(d.data()))
+        .where((entry) => entry.mode == 'competition')
+        .toList());
+  }
+
+  Future<List<LeaderboardEntry>> _fetchSortedEntries({
+    required Query<Map<String, dynamic>> baseQuery,
+    required int limit,
+  }) async {
+    final snap = await baseQuery
         .orderBy('percent', descending: true)
         .orderBy('durationSec')
         .limit(limit)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => LeaderboardEntry.fromJson(d.data())).toList());
+        .get();
+    return snap.docs
+        .map((d) => LeaderboardEntry.fromJson(d.data()))
+        .where((entry) => entry.mode == 'competition')
+        .toList();
   }
 }
