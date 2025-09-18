@@ -181,8 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: const Color(0xFF4285F4),
                           foregroundColor: Colors.white,
                           minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
                           ),
                         ),
                         icon: _isGoogleLoading
