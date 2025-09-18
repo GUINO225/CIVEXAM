@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/training_history_entry.dart';
+import '../services/local_history_persistence.dart';
 import '../services/training_history_store.dart';
 
 class TrainingHistoryScreen extends StatefulWidget {
@@ -16,7 +17,14 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    LocalHistoryPersistence.addUserChangeListener(_handleUserChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    LocalHistoryPersistence.removeUserChangeListener(_handleUserChanged);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -29,6 +37,13 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
       _items = list;
       _loading = false;
     });
+  }
+
+  void _handleUserChanged(String _) {
+    if (!mounted) {
+      return;
+    }
+    _load();
   }
 
   Future<void> _clearAll() async {

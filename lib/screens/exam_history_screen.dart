@@ -3,6 +3,7 @@ import '../models/exam_history_entry.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/history_store.dart';
+import '../services/local_history_persistence.dart';
 
 class ExamHistoryScreen extends StatefulWidget {
   const ExamHistoryScreen({super.key});
@@ -18,7 +19,14 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    LocalHistoryPersistence.addUserChangeListener(_handleUserChanged);
     _load();
+  }
+
+  @override
+  void dispose() {
+    LocalHistoryPersistence.removeUserChangeListener(_handleUserChanged);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -29,6 +37,13 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
       _items = list;
       _loading = false;
     });
+  }
+
+  void _handleUserChanged(String _) {
+    if (!mounted) {
+      return;
+    }
+    _load();
   }
 
   Future<void> _clearAll() async {
