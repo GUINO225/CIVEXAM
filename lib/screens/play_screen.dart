@@ -217,7 +217,7 @@ class _PlayScreenState extends State<PlayScreen> {
           context: context,
           builder: (_) => const AlertDialog(
             title: Text('Comment ça marche ?'),
-            content: Text('• Entraînement : 5–10 s par question.\n• Concours ENA : difficulté = timing.\n• Par matière : révise par modules.\n• Historique : suis tes progrès.'),
+            content: Text('• Entraînement : 5–10 s par question.\n• Concours ENA : difficulté = timing.\n• Entraînement par matière : révise par modules.\n• Historique : suis tes progrès.'),
           ),
         );
         break;
@@ -392,7 +392,7 @@ class _MenuItem {
 
 const _items = <_MenuItem>[
   _MenuItem('Simulation concours ENA', Icons.school_rounded, 'violetRose'),
-  _MenuItem('Par matière', Icons.menu_book_rounded, 'sereneBlue'),
+  _MenuItem('Entraînement par matière', Icons.menu_book_rounded, 'sereneBlue'),
   _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
   _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow'),
   _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),
