@@ -224,6 +224,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = _profile;
+    final entry = _entry;
+    final rank = _rank;
+    final scoreText = entry != null
+        ? '${entry.percent.toStringAsFixed(1)}% (${entry.correct}/${entry.total})'
+        : 'Non renseigné';
+    final rankText = rank != null ? '$rank' : 'Non renseigné';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mon dashboard'),
@@ -240,64 +248,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _entry == null
-              ? const Center(child: Text('Aucune donnée de compétition'))
-              : ListView(
-                  padding: const EdgeInsets.all(16),
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Image.asset('assets/images/logo_splash.png', height: 150),
+                const SizedBox(height: 24),
+                Row(
                   children: [
-                    Image.asset('assets/images/logo_splash.png', height: 150),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        _buildAvatar(),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            'Pseudo : ${_profile?.nickname ?? ''}',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.person),
-                        title: const Text('Prénom'),
-                        subtitle: Text(_profile?.firstName ?? ''),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.person_outline),
-                        title: const Text('Nom'),
-                        subtitle: Text(_profile?.lastName ?? ''),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.work),
-                        title: const Text('Profession'),
-                        subtitle: Text(_profile?.profession ?? ''),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.emoji_events),
-                        title: const Text('Score'),
-                        subtitle: Text(
-                            '${_entry!.percent.toStringAsFixed(1)}% (${_entry!.correct}/${_entry!.total})'),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.leaderboard),
-                        title: const Text('Classement global'),
-                        subtitle: Text('${_rank ?? 'Non classé'}'),
+                    _buildAvatar(),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Pseudo : ${profile?.nickname ?? ''}',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text('Prénom'),
+                    subtitle: Text(profile?.firstName ?? ''),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.person_outline),
+                    title: const Text('Nom'),
+                    subtitle: Text(profile?.lastName ?? ''),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.work),
+                    title: const Text('Profession'),
+                    subtitle: Text(profile?.profession ?? ''),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.emoji_events),
+                    title: const Text('Score'),
+                    subtitle: Text(scoreText),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.leaderboard),
+                    title: const Text('Classement global'),
+                    subtitle: Text(rankText),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
