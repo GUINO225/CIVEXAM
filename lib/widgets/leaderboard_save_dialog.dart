@@ -138,7 +138,8 @@ Future<void> showSaveScoreDialog({
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(
               decoration: const InputDecoration(
-                  labelText: 'Votre nom', border: OutlineInputBorder()),
+                  labelText: 'Votre nom',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.zero)),
               controller: controller),
           const SizedBox(height: 12),
           Text('Mode : $mode  •  Score : ${percent.toStringAsFixed(1)}%'),
