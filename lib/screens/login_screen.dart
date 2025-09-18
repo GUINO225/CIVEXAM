@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isGoogleLoading = false;
   User? _unverifiedUser;
+  static const Color _logoOrange = Color(0xFFFF7F00);
 
   @override
   void dispose() {
@@ -35,13 +36,39 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  ButtonStyle _loginButtonStyle(ThemeData theme) {
+    final baseStyle = theme.elevatedButtonTheme.style;
+    final baseBackground = baseStyle?.backgroundColor;
+
+    Color? resolveBase(Set<MaterialState> states) =>
+        baseBackground?.resolve(states);
+
+    final background = MaterialStateProperty.resolveWith<Color?>((states) {
+      if (states.contains(MaterialState.disabled)) {
+        return resolveBase(states) ??
+            theme.colorScheme.onSurface.withOpacity(0.12);
+      }
+      if (states.isNotEmpty) {
+        return resolveBase(states) ?? _logoOrange;
+      }
+      return _logoOrange;
+    });
+
+    final override = ButtonStyle(backgroundColor: background);
+    return baseStyle?.merge(override) ?? override;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final errorStyle = TextStyle(color: Theme.of(context).colorScheme.error);
+        final theme = Theme.of(context);
+        final errorStyle = TextStyle(color: theme.colorScheme.error);
         final isBusy = _isLoading || _isGoogleLoading;
+        final loginButtonTheme = ElevatedButtonThemeData(
+          style: _loginButtonStyle(theme),
+        );
         return Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -130,15 +157,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_error != null)
                         Text(_error!, style: errorStyle),
                       const SizedBox(height: 12),
-                      PrimaryButton(
-                        onPressed: isBusy ? null : _submit,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                      Theme(
+                        data: theme.copyWith(
+                          elevatedButtonTheme: loginButtonTheme,
+                        ),
+                        child: PrimaryButton(
+                          onPressed: isBusy ? null : _submit,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(_isLogin ? 'Connexion' : 'Inscription'),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton.icon(
