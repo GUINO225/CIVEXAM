@@ -18,6 +18,7 @@ import 'subject_list_screen.dart';
 import 'training_history_screen.dart';
 import 'exam_history_screen.dart';
 import 'leaderboard_screen.dart';
+import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
@@ -88,6 +89,17 @@ class _PlayScreenState extends State<PlayScreen> {
                           if (mounted) setState(() => _signingOut = false);
                         }
                       },
+              ),
+              IconButton(
+                icon: const Icon(Icons.person_outline),
+                tooltip: 'Tableau de bord',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const DashboardScreen()),
+                  );
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.emoji_events_outlined),
