@@ -4,6 +4,7 @@ import '../models/training_history_entry.dart';
 
 class TrainingHistoryStore {
   static const String _collectionName = 'trainingHistory';
+  static const String _metadataDocumentId = 'meta';
   static const String _entriesCollectionName = 'entries';
   static const int _maxItems = 100; // conservation des 100 dernières tentatives
 
@@ -31,7 +32,8 @@ class TrainingHistoryStore {
 
   static Future<void> add(TrainingHistoryEntry entry) async {
     final userDocument = _userDocument();
-    if (userDocument == null) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (userDocument == null || uid == null) {
       return;
     }
 
@@ -39,7 +41,7 @@ class TrainingHistoryStore {
 
     await userDocument.set(
       {
-        'uid': userDocument.id,
+        'uid': uid,
         'lastEntryDate': entry.date.toIso8601String(),
       },
       SetOptions(merge: true),
@@ -85,7 +87,11 @@ class TrainingHistoryStore {
     if (uid == null) {
       return null;
     }
-    return FirebaseFirestore.instance.collection(_collectionName).doc(uid);
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection(_collectionName)
+        .doc(_metadataDocumentId);
   }
 
   static Map<String, dynamic> _normalizeEntry(Map<String, dynamic> data) {
