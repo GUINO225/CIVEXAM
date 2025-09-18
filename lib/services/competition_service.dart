@@ -15,11 +15,24 @@ class CompetitionService {
 
   /// Sauvegarde ou met à jour un résultat de compétition pour l'utilisateur.
   Future<void> saveEntry(LeaderboardEntry entry) async {
+    const reconnectMessage =
+        'Votre session a expiré, veuillez vous reconnecter pour enregistrer votre score.';
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception(reconnectMessage);
+    }
+    final uid = user.uid;
+    if (entry.userId.isNotEmpty && entry.userId != uid) {
+      debugPrint(
+          'saveEntry aborted: mismatched userId (entry=${entry.userId}, uid=$uid)');
+      throw Exception(reconnectMessage);
+    }
     final data = entry.toJson();
+    data['userId'] = uid;
     data['updatedAt'] = FieldValue.serverTimestamp();
     data['mode'] = 'competition';
     try {
-      await _col.doc(entry.userId).set(data);
+      await _col.doc(uid).set(data);
     } catch (e) {
       throw Exception("Échec de l'enregistrement du score: $e");
     }
