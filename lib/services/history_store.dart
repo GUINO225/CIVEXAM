@@ -9,7 +9,11 @@ class HistoryStore {
   static DocumentReference<Map<String, dynamic>>? _docForCurrentUser() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return null;
-    return FirebaseFirestore.instance.collection(_collectionName).doc(uid);
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection(_collectionName)
+        .doc('summary');
   }
 
   static Future<List<ExamHistoryEntry>> load() async {
