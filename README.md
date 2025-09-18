@@ -42,3 +42,23 @@ l'utilisateur. Une connexion anonyme n'est effectuée que si la préférence
 
 Si cette préférence vaut `false`, l'application ne se connecte pas
 automatiquement et l'écran de connexion est affiché.
+
+### Index Firestore requis pour le classement
+
+Le service `CompetitionService.topEntries()` interroge la collection
+`competition_scores` avec un filtre sur `mode` et un tri composé sur
+`percent` (descendant) puis `durationSec` (ascendant). Firestore réclame
+un index composite pour ce type de requête :
+
+1. Dans la console Firebase, ouvrez **Firestore Database › Indexes**.
+2. Ajoutez un index composite sur la collection `competition_scores` avec
+   les champs suivants :
+   - `mode` : **Ascending** (utilisé en filtre d'égalité),
+   - `percent` : **Descending**,
+   - `durationSec` : **Ascending**.
+3. Attendez que l'index soit construit, puis relancez l'application ; le
+   classement renvoyé par `topEntries()` sera correctement trié sans
+   repasser par le mode dégradé.
+
+> ℹ️ L'index doit être créé dans chaque projet Firebase utilisé par
+> l'application (dev, staging, prod, …).
