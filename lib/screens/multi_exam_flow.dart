@@ -10,6 +10,7 @@ import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
+import '../utils/palette_utils.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -56,6 +57,13 @@ int? secondsPerQuestion(ExamDifficulty d) {
       return 30; // 30s par question
   }
 }
+
+final Map<ExamDifficulty, Color> _difficultyPalette = <ExamDifficulty, Color>{
+  ExamDifficulty.facile: accentColor('forestGreen'),
+  ExamDifficulty.normal: accentColor('sereneBlue'),
+  ExamDifficulty.difficile: accentColor('civFlag'),
+  ExamDifficulty.expert: accentColor('violetRose'),
+};
 
 List<Question> _filterQuestions(List<Question> all, String subject, String chapter) {
   final s0 = QuestionLoader.canon(subject);
@@ -338,23 +346,22 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       children: items.map((d) {
         final selected = _difficulty == d;
         late final IconData icon;
-        late final Color accent;
+        final accent = _difficultyPalette[d] ?? theme.colorScheme.primary;
+        final isDark = theme.brightness == Brightness.dark;
+        final backgroundColor = accent.withOpacity(isDark ? 0.24 : 0.12);
+        final selectedColor = accent.withOpacity(isDark ? 0.36 : 0.2);
         switch (d) {
           case ExamDifficulty.facile:
             icon = Icons.sentiment_satisfied_alt;
-            accent = Colors.green.shade600;
             break;
           case ExamDifficulty.normal:
             icon = Icons.sentiment_neutral;
-            accent = Colors.blue.shade600;
             break;
           case ExamDifficulty.difficile:
             icon = Icons.sentiment_dissatisfied;
-            accent = Colors.orange.shade600;
             break;
           case ExamDifficulty.expert:
             icon = Icons.bolt;
-            accent = Colors.purple.shade600;
             break;
         }
         return ChoiceChip(
@@ -366,8 +373,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
             color: theme.colorScheme.onSurface,
             fontWeight: selected ? FontWeight.w600 : null,
           ),
-          backgroundColor: accent.withOpacity(0.08),
-          selectedColor: accent.withOpacity(0.18),
+          backgroundColor: backgroundColor,
+          selectedColor: selectedColor,
           onSelected: (_) => setState(() => _difficulty = d),
         );
       }).toList(),
