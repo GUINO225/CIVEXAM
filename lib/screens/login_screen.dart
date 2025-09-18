@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/design_config.dart';
+import '../models/user_profile.dart';
 import '../services/auth_service.dart';
+import '../services/user_profile_service.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/primary_button.dart';
@@ -243,11 +245,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final credential = await _auth.signInWithGoogle();
-      if (!mounted) return;
-      if (credential.user == null) {
-        setState(() => _error = 'Connexion Google impossible');
+      final user = credential.user;
+      if (user == null) {
+        if (mounted) {
+          setState(() => _error = 'Connexion Google impossible');
+        }
         return;
       }
+      await _ensureUserProfile(user);
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const PlayScreen()),
@@ -296,6 +302,13 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         return;
       }
+      if (user == null) {
+        if (mounted) {
+          setState(() => _error = 'Utilisateur introuvable');
+        }
+        return;
+      }
+      await _ensureUserProfile(user);
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -330,5 +343,36 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     }
+  }
+
+  Future<void> _ensureUserProfile(User user) async {
+    final profileService = UserProfileService();
+    final existingProfile = await profileService.loadProfile(user.uid);
+    if (existingProfile != null) {
+      return;
+    }
+
+    final typedName = _nameController.text.trim();
+    final displayName = user.displayName?.trim() ?? '';
+    final email = user.email?.trim() ?? '';
+    final resolvedName = displayName.isNotEmpty
+        ? displayName
+        : typedName.isNotEmpty
+            ? typedName
+            : (email.isNotEmpty ? email : user.uid);
+
+    final parts = resolvedName.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final firstName = parts.isNotEmpty ? parts.first : resolvedName;
+    final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final nickname = resolvedName;
+
+    final profile = UserProfile(
+      firstName: firstName,
+      lastName: lastName,
+      nickname: nickname,
+      profession: '',
+      photoUrl: user.photoURL ?? '',
+    );
+    await profileService.saveProfile(profile);
   }
 }
