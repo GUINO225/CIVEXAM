@@ -141,21 +141,29 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text(_isLogin ? 'Connexion' : 'Inscription'),
                       ),
                       const SizedBox(height: 12),
-                      OutlinedButton.icon(
+                      ElevatedButton.icon(
                         onPressed: isBusy ? null : _signInWithGoogle,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4285F4),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         icon: _isGoogleLoading
                             ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
                               )
                             : const Icon(
                                 FontAwesomeIcons.google,
-                                color: Color(0xFF4285F4),
+                                size: 24,
                               ),
                         label: const Text('Se connecter avec Google'),
                       ),
