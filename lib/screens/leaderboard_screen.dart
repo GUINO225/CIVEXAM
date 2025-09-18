@@ -48,7 +48,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           padding: const EdgeInsets.fromLTRB(12,12,12,6),
           child: Row(children: [
             Expanded(child: TextField(
-              decoration: const InputDecoration(isDense:true, prefixIcon: Icon(Icons.search), hintText:'Nom / matière', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                isDense: true,
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Nom / matière',
+                border: OutlineInputBorder(borderRadius: BorderRadius.zero),
+              ),
               onChanged: (v)=>setState(()=>_query=v),
             )),
             const SizedBox(width:12),
