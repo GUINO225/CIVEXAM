@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/design_config.dart';
 import '../services/auth_service.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/primary_button.dart';
 import 'play_screen.dart';
 
@@ -69,6 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final loginButtonTheme = ElevatedButtonThemeData(
           style: _loginButtonStyle(theme),
         );
+        final textColor =
+            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
@@ -76,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
-            foregroundColor: Colors.white,
+            foregroundColor: textColor,
             title: Text(_isLogin ? 'Se connecter' : "Créer un compte"),
           ),
           body: Center(
