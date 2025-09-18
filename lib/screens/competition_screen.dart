@@ -350,10 +350,14 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     });
     // Pause the timer and move to next question shortly after.
     _controller.stop();
-    Future.delayed(const Duration(milliseconds: 300), () => _goNext(i));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _goNext(i);
+    });
   }
 
   void _goNext([int? selected]) {
+    if (!mounted) return;
     // Determine whether the chosen option (if any) is correct, wrong or blank.
     final bool isBlank = selected == null;
     final bool isCorrect =
