@@ -120,10 +120,9 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
-  /// Minimum weighted score required to pass the exam.
-  /// A strictly positive value ensures that a non‑zero score is needed
-  /// to succeed.
-  static const int PASS_MIN_WEIGHTED = 1;
+  /// Minimum success rate required to pass the exam.
+  /// Expressed as a fraction of correct answers over total questions.
+  static const double PASS_MIN_SUCCESS_RATE = 0.5;
 
   @override
   void initState() {
@@ -280,6 +279,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     final Map<String, int> corrects = {};
     final Map<String, int> totals = {};
     int totalWeighted = 0;
+    int totalCorrect = 0;
+    int totalQuestions = 0;
 
     for (int i = 0; i < results.length; i++) {
       final sec = sections[i];
@@ -289,9 +290,15 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       corrects[sec.title] = (corrects[sec.title] ?? 0) + r.correctCount;
       totals[sec.title] = (totals[sec.title] ?? 0) + r.total;
       totalWeighted += r.weightedScore;
+      totalCorrect += r.correctCount;
+      totalQuestions += r.total;
     }
 
-    final bool success = !abandoned && totalWeighted >= PASS_MIN_WEIGHTED;
+    final double successRate =
+        totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
+    final bool success = !abandoned &&
+        totalQuestions > 0 &&
+        successRate >= PASS_MIN_SUCCESS_RATE;
 
     final entry = ExamHistoryEntry(
       date: DateTime.now(),
@@ -317,6 +324,9 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
               Text('$s — Brut ${bruts[s]} • Pondéré ${ponders[s]} (${corrects[s]}/${totals[s]})'),
             const SizedBox(height: 8),
             Text('Total pondéré : $totalWeighted'),
+            Text(
+              'Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %',
+            ),
             Text('Résultat : ${abandoned ? "Abandonné 🟠" : (success ? "Réussi ✅" : "Échoué ❌")}'),
           ],
         ),
