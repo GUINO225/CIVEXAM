@@ -23,7 +23,7 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
     if (mounted) {
       setState(() => _loading = true);
     }
-    final list = await TrainingHistoryStore.load();
+    final list = await TrainingHistoryStore.loadLocal();
     if (!mounted) return;
     setState(() {
       _items = list;

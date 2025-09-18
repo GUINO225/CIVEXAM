@@ -22,8 +22,10 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
-    final list = await HistoryStore.load();
+    if (mounted) {
+      setState(() => _loading = true);
+    }
+    final list = await HistoryStore.loadLocal();
     if (!mounted) return;
     setState(() {
       _items = list;
