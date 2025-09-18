@@ -80,7 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             appBar: AppBar(
-                title: Text(_isLogin ? 'Se connecter' : "Créer un compte")),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              title: Text(_isLogin ? 'Se connecter' : "Créer un compte"),
+            ),
             body: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
