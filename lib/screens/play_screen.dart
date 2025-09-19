@@ -8,9 +8,7 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
-import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
-import '../widgets/adaptive_text.dart';
 import '../utils/responsive_utils.dart';
 
 import 'official_intro_screen.dart';
@@ -48,9 +46,6 @@ class _PlayScreenState extends State<PlayScreen> {
             : 'Bienvenue 👋';
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
-        final badgeColors = playIconColors(cfg.bgPaletteName);
-        final bgColor =
-            pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
         final mediaQuery = MediaQuery.of(context);
         final scale = computeScaleFactor(mediaQuery);
@@ -183,39 +178,6 @@ class _PlayScreenState extends State<PlayScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GlassCard(
-                    blur: cfg.glassBlur,
-                    backgroundOpacity: cfg.glassBgOpacity,
-                    borderOpacity: cfg.glassBorderOpacity,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      child: Row(
-                        children: [
-                          _IconBadge(
-                            icon: Icons.grid_view_rounded,
-                            size: cfg.tileIconSize,
-                            useMono: cfg.useMono,
-                            monoColor: cfg.monoColor,
-                            gradientColors: badgeColors,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AdaptiveText(
-                              welcomeText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              backgroundColor: bgColor,
-                              style: TextStyle(
-                                fontSize: welcomeFontSize,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
                   Expanded(
                     child: Align(
                       alignment: Alignment.bottomCenter,
@@ -422,49 +384,6 @@ class _PlayScreenState extends State<PlayScreen> {
       ),
     );
     return proceed == true;
-  }
-}
-
-class _IconBadge extends StatelessWidget {
-  const _IconBadge({
-    required this.icon,
-    this.size = 52,
-    required this.useMono,
-    required this.monoColor,
-    required this.gradientColors,
-  });
-  final IconData icon;
-  final double size;
-  final bool useMono;
-  final Color monoColor;
-  final List<Color> gradientColors;
-  @override
-  Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final scale = computeScaleFactor(mediaQuery);
-    final badgeSize = scaledDimension(
-      base: size,
-      scale: scale,
-      min: 40,
-      max: 96,
-    );
-    final colors = useMono
-        ? [monoColor.withOpacity(0.15), monoColor.withOpacity(0.35)]
-        : gradientColors;
-    final iconColor = useMono ? monoColor : Colors.white;
-    return Container(
-      height: badgeSize,
-      width: badgeSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-      ),
-      child: Icon(icon, size: badgeSize * 0.58, color: iconColor),
-    );
   }
 }
 
