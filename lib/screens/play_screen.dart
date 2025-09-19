@@ -56,11 +56,11 @@ class _PlayScreenState extends State<PlayScreen> {
         final scale = computeScaleFactor(mediaQuery);
         final textScaler = MediaQuery.textScalerOf(context);
         final welcomeFontSize = scaledFontSize(
-          base: 16,
+          base: 20,
           scale: scale,
           textScaler: textScaler,
-          min: 14,
-          max: 22,
+          min: 18,
+          max: 28,
         );
 
         return Scaffold(
@@ -72,22 +72,24 @@ class _PlayScreenState extends State<PlayScreen> {
             elevation: 0,
             foregroundColor: textColor,
             title: Center(
-              child: Row(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
                     'assets/images/logo_splash.png',
-                    height: 32,
+                    height: 56,
                     fit: BoxFit.contain,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 8),
                   Text(
                     welcomeText,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: textColor,
                       fontSize: welcomeFontSize,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
