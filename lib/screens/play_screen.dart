@@ -56,11 +56,11 @@ class _PlayScreenState extends State<PlayScreen> {
         final scale = computeScaleFactor(mediaQuery);
         final textScaler = MediaQuery.textScalerOf(context);
         final welcomeFontSize = scaledFontSize(
-          base: 20,
+          base: 27,
           scale: scale,
           textScaler: textScaler,
-          min: 18,
-          max: 28,
+          min: 24,
+          max: 36,
         );
 
         return Scaffold(
@@ -79,7 +79,12 @@ class _PlayScreenState extends State<PlayScreen> {
                 children: [
                   Image.asset(
                     'assets/images/logo_splash.png',
-                    height: 56,
+                    height: scaledDimension(
+                      base: 72,
+                      scale: scale,
+                      min: 64,
+                      max: 96,
+                    ),
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 8),
