@@ -184,42 +184,6 @@ class _PlayScreenState extends State<PlayScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: GlassCard(
-                    blur: cfg.glassBlur,
-                    backgroundOpacity: cfg.glassBgOpacity,
-                    borderOpacity: cfg.glassBorderOpacity,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      child: Row(
-                        children: [
-                          _IconBadge(
-                            icon: Icons.grid_view_rounded,
-                            size: cfg.tileIconSize,
-                            useMono: cfg.useMono,
-                            monoColor: cfg.monoColor,
-                            gradientColors: badgeColors,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AdaptiveText(
-                              welcomeText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              backgroundColor: bgColor,
-                              style: TextStyle(
-                                fontSize: welcomeFontSize,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomCenter,
