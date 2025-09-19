@@ -11,6 +11,7 @@ import '../utils/palette_utils.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
 import '../widgets/adaptive_text.dart';
+import '../utils/responsive_utils.dart';
 
 import 'official_intro_screen.dart';
 import 'subject_list_screen.dart';
@@ -50,6 +51,17 @@ class _PlayScreenState extends State<PlayScreen> {
         final badgeColors = playIconColors(cfg.bgPaletteName);
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
+
+        final mediaQuery = MediaQuery.of(context);
+        final scale = computeScaleFactor(mediaQuery);
+        final textScaler = MediaQuery.textScalerOf(context);
+        final welcomeFontSize = scaledFontSize(
+          base: 16,
+          scale: scale,
+          textScaler: textScaler,
+          min: 14,
+          max: 22,
+        );
 
         return Scaffold(
           extendBody: true,
@@ -148,8 +160,8 @@ class _PlayScreenState extends State<PlayScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   backgroundColor: bgColor,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: TextStyle(
+                                    fontSize: welcomeFontSize,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -180,6 +192,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           bgOpacity: cfg.glassBgOpacity,
                           borderOpacity: cfg.glassBorderOpacity,
                           iconSize: cfg.tileIconSize,
+                          scaleFactor: scale,
                           centerContent: cfg.tileCenter,
                           useMono: cfg.useMono,
                           monoColor: cfg.monoColor,
@@ -360,16 +373,24 @@ class _IconBadge extends StatelessWidget {
   final double size;
   final bool useMono;
   final Color monoColor;
-   final List<Color> gradientColors;
+  final List<Color> gradientColors;
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final scale = computeScaleFactor(mediaQuery);
+    final badgeSize = scaledDimension(
+      base: size,
+      scale: scale,
+      min: 40,
+      max: 96,
+    );
     final colors = useMono
         ? [monoColor.withOpacity(0.15), monoColor.withOpacity(0.35)]
         : gradientColors;
     final iconColor = useMono ? monoColor : Colors.white;
     return Container(
-      height: size,
-      width: size,
+      height: badgeSize,
+      width: badgeSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
@@ -378,7 +399,7 @@ class _IconBadge extends StatelessWidget {
           colors: colors,
         ),
       ),
-      child: Icon(icon, size: size * 0.58, color: iconColor),
+      child: Icon(icon, size: badgeSize * 0.58, color: iconColor),
     );
   }
 }
