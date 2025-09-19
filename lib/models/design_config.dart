@@ -42,7 +42,7 @@ class DesignConfig {
 
   const DesignConfig({
     // Thème fond
-    this.bgPaletteName = 'civFlag',
+    this.bgPaletteName = 'charcoalElectric',
     this.waveEnabled = true,
     this.bgGradient = true,
     this.darkMode = false,
@@ -57,7 +57,7 @@ class DesignConfig {
     this.useMono = false,
     this.iconSetName = 'default',
     this.svgIconSize = 54.0,
-    this.monoColor = const Color(0xFFFFFFFF),
+    this.monoColor = const Color(0xFFF472B6),
   });
 
   DesignConfig copyWith({
@@ -115,7 +115,7 @@ class DesignConfig {
     final double tileSize = _toDouble(map['tileIconSize'], svgSize);
 
     return DesignConfig(
-      bgPaletteName: map['bgPaletteName'] ?? 'civFlag',
+      bgPaletteName: map['bgPaletteName'] ?? 'charcoalElectric',
       waveEnabled: _toBool(map, 'waveEnabled', true),
       bgGradient: _toBool(map, 'bgGradient', true),
       glassBlur: _toDouble(map['glassBlur'], 18.0),
@@ -127,7 +127,7 @@ class DesignConfig {
       useMono: _toBool(map, 'useMono', false),
       iconSetName: map['iconSetName'] ?? 'default',
       svgIconSize: svgSize,
-      monoColor: Color((map['monoColor'] ?? 0xFFFFFFFF) as int),
+      monoColor: Color((map['monoColor'] ?? 0xFFF472B6) as int),
     );
   }
 
