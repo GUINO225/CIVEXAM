@@ -56,11 +56,17 @@ class _PlayScreenState extends State<PlayScreen> {
         final scale = computeScaleFactor(mediaQuery);
         final textScaler = MediaQuery.textScalerOf(context);
         final welcomeFontSize = scaledFontSize(
-          base: 27,
+          base: 22,
           scale: scale,
           textScaler: textScaler,
-          min: 24,
-          max: 36,
+          min: 18,
+          max: 28,
+        );
+        final logoHeight = scaledDimension(
+          base: 56,
+          scale: scale,
+          min: 44,
+          max: 72,
         );
 
         return Scaffold(
@@ -71,35 +77,7 @@ class _PlayScreenState extends State<PlayScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             foregroundColor: textColor,
-            title: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/logo_splash.png',
-                    height: scaledDimension(
-                      base: 72,
-                      scale: scale,
-                      min: 64,
-                      max: 96,
-                    ),
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    welcomeText,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: welcomeFontSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            toolbarHeight: 0,
           ),
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
@@ -189,6 +167,28 @@ class _PlayScreenState extends State<PlayScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        'assets/images/logo_splash.png',
+                        height: logoHeight,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        welcomeText,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: welcomeFontSize,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomCenter,
