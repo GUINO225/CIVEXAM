@@ -429,6 +429,16 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final q = widget.questions;
     final title = widget.title ?? 'Examen officiel';
+    final mediaQuery = MediaQuery.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final bool useLargeInstructionsTitle =
+        widget.competitionMode || mediaQuery.size.width >= 600;
+    final instructionsTitleStyle = (useLargeInstructionsTitle
+            ? textTheme.titleLarge
+            : textTheme.titleMedium)
+        ?.copyWith(fontWeight: FontWeight.bold);
+    final instructionsBodyStyle =
+        textTheme.bodyLarge?.copyWith(height: 1.35);
 
     if (widget.competitionMode) {
       Widget content = Scaffold(
@@ -513,14 +523,23 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Instructions',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 6),
                   Text(
-                      'Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}'),
-                  const SizedBox(height: 4),
-                  const Text(
-                      'Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.'),
+                    'Instructions',
+                    style: instructionsTitleStyle ??
+                        textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold) ??
+                        const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}',
+                    style: instructionsBodyStyle ?? textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.',
+                    style: instructionsBodyStyle ?? textTheme.bodyLarge,
+                  ),
                 ],
               ),
             ),
