@@ -62,6 +62,13 @@ class _PlayScreenState extends State<PlayScreen> {
           min: 18,
           max: 28,
         );
+        final subtitleFontSize = scaledFontSize(
+          base: 16,
+          scale: scale,
+          textScaler: textScaler,
+          min: 14,
+          max: 20,
+        );
         final logoHeight = scaledDimension(
           base: 100,
           scale: scale,
@@ -166,32 +173,48 @@ class _PlayScreenState extends State<PlayScreen> {
             bottom: false,
             minimum: const EdgeInsets.only(top: 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/logo_splash.png',
-                        height: logoHeight,
-                        fit: BoxFit.contain,
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/logo_splash.png',
+                            height: logoHeight,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            welcomeText,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: welcomeFontSize,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Sélectionne un mode pour démarrer ta session.',
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.8),
+                              fontSize: subtitleFontSize,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        welcomeText,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: welcomeFontSize,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
                 Expanded(
+                  flex: 3,
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: FractionallySizedBox(
