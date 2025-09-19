@@ -50,7 +50,9 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final overlayTextColor = Theme.of(context).colorScheme.onSurface;
+        final theme = Theme.of(context);
+        final textTheme = theme.textTheme;
+        final overlayTextColor = theme.colorScheme.onSurface;
         final mediaQuery = MediaQuery.of(context);
         final scale = computeScaleFactor(mediaQuery);
         final textScaler = MediaQuery.textScalerOf(context);
@@ -68,6 +70,25 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
           min: 72,
           max: 132,
         );
+        final bodyStyle =
+            textTheme.bodyLarge ?? textTheme.bodyMedium ?? const TextStyle(fontSize: 16);
+        final double bodyFontSize = bodyStyle.fontSize ?? 16;
+        final baseCardTitleStyle =
+            textTheme.titleMedium ?? textTheme.titleLarge ?? bodyStyle;
+        final double cardTitleFontSize = (baseCardTitleStyle.fontSize != null &&
+                baseCardTitleStyle.fontSize! > bodyFontSize)
+            ? baseCardTitleStyle.fontSize!
+            : bodyFontSize + 2;
+        final cardTitleStyle = baseCardTitleStyle.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: cardTitleFontSize,
+        );
+        final introTitleStyle =
+            (textTheme.titleLarge ?? textTheme.headlineSmall ?? baseCardTitleStyle)
+                .copyWith(
+          fontSize: introTitleSize,
+          fontWeight: FontWeight.bold,
+        );
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar:
@@ -77,20 +98,16 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
               ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Text(
-                    'Simulation du concours ENA (pré‑sélection)',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: introTitleSize,
-                    ),
-                  ),
+                  Text('Simulation du concours ENA (pré‑sélection)',
+                      style: introTitleStyle),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Vous allez enchaîner 4 épreuves :\n'
                     '1) Culture Générale (Côte d’Ivoire)\n'
                     '2) Aptitude Verbale (Vocabulaire & règles)\n'
                     '3) Organisation & Logique (Classements & déductions)\n'
                     '4) Aptitude Numérique (Bases & proportionnalité)\n',
+                    style: bodyStyle,
                   ),
                   const SizedBox(height: 12),
                   Card(
@@ -98,15 +115,19 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
                       padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Durée & barème',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                          SizedBox(height: 6),
-                          Text('• Durée : 60 minutes par épreuve (total ~4h).'),
+                        children: [
+                          Text('Durée & barème', style: cardTitleStyle),
+                          const SizedBox(height: 6),
+                          Text('• Durée : 60 minutes par épreuve (total ~4h).',
+                              style: bodyStyle),
                           Text(
-                              '• Barème : +1 bonne, 0 blanc, −1 mauvaise (barème négatif).'),
+                            '• Barème : +1 bonne, 0 blanc, −1 mauvaise (barème négatif).',
+                            style: bodyStyle,
+                          ),
                           Text(
-                              '• Coefficient : ×2 par épreuve (pondération finale).'),
+                            '• Coefficient : ×2 par épreuve (pondération finale).',
+                            style: bodyStyle,
+                          ),
                         ],
                       ),
                     ),
@@ -117,15 +138,21 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
                       padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Règles',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                          SizedBox(height: 6),
+                        children: [
+                          Text('Règles', style: cardTitleStyle),
+                          const SizedBox(height: 6),
                           Text(
-                              '• Une fois le chrono lancé, vous ne pouvez pas revenir en arrière.'),
+                            '• Une fois le chrono lancé, vous ne pouvez pas revenir en arrière.',
+                            style: bodyStyle,
+                          ),
                           Text(
-                              '• À la fin du temps, l’épreuve est automatiquement soumise.'),
-                          Text('• Évitez de quitter l’app pendant une épreuve.'),
+                            '• À la fin du temps, l’épreuve est automatiquement soumise.',
+                            style: bodyStyle,
+                          ),
+                          Text(
+                            '• Évitez de quitter l’app pendant une épreuve.',
+                            style: bodyStyle,
+                          ),
                         ],
                       ),
                     ),
@@ -138,9 +165,12 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
                         onChanged: (v) =>
                             setState(() => _accepted = v ?? false),
                       ),
-                      const Expanded(
-                          child: Text(
-                              'Je comprends les règles et je suis prêt(e) à commencer.')),
+                      Expanded(
+                        child: Text(
+                          'Je comprends les règles et je suis prêt(e) à commencer.',
+                          style: bodyStyle,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
