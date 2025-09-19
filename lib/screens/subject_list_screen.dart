@@ -4,6 +4,7 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/glass_tile.dart';
+import '../utils/responsive_utils.dart';
 import 'chapter_list_screen.dart';
 
 /// Liste des matières ENA
@@ -21,6 +22,8 @@ class SubjectListScreen extends StatelessWidget {
       builder: (context, cfg, _) {
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+        final mediaQuery = MediaQuery.of(context);
+        final scale = computeScaleFactor(mediaQuery);
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,
@@ -53,6 +56,7 @@ class SubjectListScreen extends StatelessWidget {
                     bgOpacity: cfg.glassBgOpacity,
                     borderOpacity: cfg.glassBorderOpacity,
                     iconSize: cfg.tileIconSize,
+                    scaleFactor: scale,
                     centerContent: cfg.tileCenter,
                     useMono: cfg.useMono,
                     monoColor: cfg.monoColor,

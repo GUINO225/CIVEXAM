@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/question.dart';
 import '../theme/competition_theme.dart';
 import '../services/leaderboard_hooks.dart';
+import '../utils/responsive_utils.dart';
 
 /// Competition quiz screen with a circular countdown and progress tracking.
 class CompetitionScreen extends StatefulWidget {
@@ -99,15 +100,29 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
+    final scale = computeScaleFactor(mediaQuery);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final theme =
+        (widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context)))
+            .scaled(scale, textScaler);
     final TextStyle resolvedChipTextStyle =
         DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
+    final double optionFontSize = scaledFontSize(
+      base: 18,
+      scale: scale,
+      textScaler: textScaler,
+      min: 15,
+      max: 26,
+    );
     final double chipMinHeight =
         (resolvedChipTextStyle.fontSize ?? 16) *
                 (resolvedChipTextStyle.height ?? 1.0) +
             16;
-    final double topCardHeight =
-        (mediaQuery.size.height * 0.3).clamp(240.0, 320.0) as double;
+    final double topCardHeight = clampDouble(
+      mediaQuery.size.height * 0.3,
+      240.0,
+      320.0,
+    );
     return Scaffold(
       // Global background color comes from the theme.
       backgroundColor: theme.backgroundColor,
@@ -323,7 +338,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                   _currentQuestion.choices[i],
                                   textAlign: TextAlign.center,
                                   style: theme.optionTextStyle
-                                      .copyWith(fontSize: 18),
+                                      .copyWith(fontSize: optionFontSize),
                                 ),
                               ),
                             ),

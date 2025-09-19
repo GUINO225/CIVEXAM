@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/scoring.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../utils/responsive_utils.dart';
 import 'multi_exam_flow.dart';
 
 class OfficialIntroScreen extends StatefulWidget {
@@ -50,6 +51,23 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final overlayTextColor = Theme.of(context).colorScheme.onSurface;
+        final mediaQuery = MediaQuery.of(context);
+        final scale = computeScaleFactor(mediaQuery);
+        final textScaler = MediaQuery.textScalerOf(context);
+        final double introTitleSize = scaledFontSize(
+          base: 18,
+          scale: scale,
+          textScaler: textScaler,
+          min: 16,
+          max: 24,
+        );
+        final double countdownFontSize = scaledFontSize(
+          base: 96,
+          scale: scale,
+          textScaler: textScaler,
+          min: 72,
+          max: 132,
+        );
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar:
@@ -59,9 +77,12 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
               ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  const Text(
+                  Text(
                     'Simulation du concours ENA (pré‑sélection)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: introTitleSize,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -143,9 +164,10 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
                       child: Text(
                         '$_count',
                         style: TextStyle(
-                            fontSize: 96,
-                            color: overlayTextColor,
-                            fontWeight: FontWeight.bold),
+                          fontSize: countdownFontSize,
+                          color: overlayTextColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
