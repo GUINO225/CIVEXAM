@@ -198,16 +198,6 @@ class _PlayScreenState extends State<PlayScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Sélectionne un mode pour démarrer ta session.',
-                            style: TextStyle(
-                              color: textColor.withOpacity(0.8),
-                              fontSize: subtitleFontSize,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
                         ],
                       ),
                     ),
