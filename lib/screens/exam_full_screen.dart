@@ -15,6 +15,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../app/theme.dart';
+import '../utils/responsive_utils.dart';
 
 class ExamResult {
   final int correctCount;
@@ -216,6 +217,16 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   }
 
   Widget _questionCard(Question item, int i) {
+    final mediaQuery = MediaQuery.of(context);
+    final scale = computeScaleFactor(mediaQuery);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final double optionFontSize = scaledFontSize(
+      base: 18,
+      scale: scale,
+      textScaler: textScaler,
+      min: 16,
+      max: 26,
+    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -247,9 +258,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                   item.choices[c],
                   textAlign: TextAlign.start,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
+                        fontSize: optionFontSize,
                       ) ??
-                      const TextStyle(fontSize: 18),
+                      TextStyle(fontSize: optionFontSize),
                 ),
               ),
           ],

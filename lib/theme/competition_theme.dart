@@ -5,6 +5,8 @@
 /// be modified as needed.
 import 'package:flutter/material.dart';
 
+import '../utils/responsive_utils.dart';
+
 @immutable
 class CompetitionTheme {
   /// Background color of the whole screen.
@@ -121,6 +123,70 @@ class CompetitionTheme {
           ) ??
           const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
       selectedChipBackgroundColor: scheme.primary,
+    );
+  }
+
+  /// Returns a responsive copy of this theme using the provided scale factors.
+  CompetitionTheme scaled(double scale, TextScaler textScaler) {
+    TextStyle scaleText(
+      TextStyle style,
+      double fallback,
+      double min,
+      double max,
+    ) {
+      final baseSize = style.fontSize ?? fallback;
+      final fontSize = scaledFontSize(
+        base: baseSize,
+        scale: scale,
+        textScaler: textScaler,
+        min: min,
+        max: max,
+      );
+      return style.copyWith(fontSize: fontSize);
+    }
+
+    return copyWith(
+      questionCardRadius: scaledDimension(
+        base: questionCardRadius,
+        scale: scale,
+        min: 12,
+        max: 28,
+      ),
+      optionCardRadius: scaledDimension(
+        base: optionCardRadius,
+        scale: scale,
+        min: 16,
+        max: 32,
+      ),
+      timerSize: scaledDimension(
+        base: timerSize,
+        scale: scale,
+        min: 56,
+        max: 132,
+      ),
+      timerStrokeWidth: scaledDimension(
+        base: timerStrokeWidth,
+        scale: scale,
+        min: 4,
+        max: 9,
+      ),
+      timerContainerRadius: scaledDimension(
+        base: timerContainerRadius,
+        scale: scale,
+        min: 8,
+        max: 20,
+      ),
+      selectedChipRadius: scaledDimension(
+        base: selectedChipRadius,
+        scale: scale,
+        min: 18,
+        max: 32,
+      ),
+      timerTextStyle: scaleText(timerTextStyle, 24, 18, 36),
+      questionIndexTextStyle: scaleText(questionIndexTextStyle, 14, 12, 20),
+      questionTextStyle: scaleText(questionTextStyle, 20, 16, 28),
+      optionTextStyle: scaleText(optionTextStyle, 16, 14, 24),
+      selectedChipTextStyle: scaleText(selectedChipTextStyle, 16, 14, 24),
     );
   }
 

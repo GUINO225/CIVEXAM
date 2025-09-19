@@ -10,6 +10,7 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/design_prefs.dart';
 import '../utils/palette_utils.dart';
+import '../utils/responsive_utils.dart';
 
 class DesignSettingsScreen extends StatefulWidget {
   const DesignSettingsScreen({super.key});
@@ -69,6 +70,23 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
         pastelColors(_cfg.bgPaletteName, darkMode: _cfg.darkMode);
     final previewTextColor =
         textColorForPalette(_cfg.bgPaletteName, darkMode: _cfg.darkMode);
+    final mediaQuery = MediaQuery.of(context);
+    final scale = computeScaleFactor(mediaQuery);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final double previewFontSize = scaledFontSize(
+      base: 20,
+      scale: scale,
+      textScaler: textScaler,
+      min: 18,
+      max: 28,
+    );
+    final double sectionTitleSize = scaledFontSize(
+      base: 16,
+      scale: scale,
+      textScaler: textScaler,
+      min: 14,
+      max: 22,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Personnalisation')),
@@ -86,14 +104,14 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
               'Aperçu',
               style: TextStyle(
                 color: previewTextColor,
-                fontSize: 20,
+                fontSize: previewFontSize,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           const SizedBox(height: 24),
 
-          _sectionTitle('Thème'),
+          _sectionTitle('Thème', sectionTitleSize),
           SwitchListTile(
             title: const Text('Mode sombre'),
             value: _cfg.darkMode,
@@ -106,7 +124,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           ),
           const Divider(height: 32),
 
-          _sectionTitle('Palette de couleurs'),
+          _sectionTitle('Palette de couleurs', sectionTitleSize),
           SizedBox(
             height: 200,
             child: GridView.count(
@@ -121,7 +139,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
           ),
           const Divider(height: 32),
 
-          _sectionTitle('Options'),
+          _sectionTitle('Options', sectionTitleSize),
           SwitchListTile(
             title: const Text('Effet "wave" (halo)'),
             value: _cfg.waveEnabled,
@@ -273,12 +291,12 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) => Padding(
+  Widget _sectionTitle(String text, double fontSize) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
