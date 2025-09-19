@@ -70,10 +70,10 @@ class _PlayScreenState extends State<PlayScreen> {
           max: 20,
         );
         final logoHeight = scaledDimension(
-          base: 100,
+          base: 200,
           scale: scale,
-          min: 100,
-          max: 100,
+          min: 200,
+          max: 200,
         );
 
         return Scaffold(
