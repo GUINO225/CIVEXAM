@@ -412,6 +412,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     final perQ = secondsPerQuestion(_difficulty);
     return Scaffold(
       appBar: AppBar(
@@ -432,14 +434,23 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Niveau de difficulté', style: TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Niveau de difficulté',
+                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 8),
                   _difficultyPicker(),
                   const SizedBox(height: 12),
                   if (perQ == null)
-                    const Text('Mode Normal : timings officiels des épreuves (réaliste).')
+                    Text(
+                      'Mode Normal : timings officiels des épreuves (réaliste).',
+                      style: textTheme.bodyLarge,
+                    )
                   else
-                    Text('Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).'),
+                    Text(
+                      'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                      style: textTheme.bodyLarge,
+                    ),
                   const SizedBox(height: 16),
                   Card(
                     child: Column(
@@ -447,8 +458,14 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
                         for (final s in sections)
                           ListTile(
                             leading: Icon(_iconForSection(s.title)),
-                            title: Text(s.title),
-                            subtitle: Text('Barème: ${s.scoring} • Questions visées: ${s.targetCount}'),
+                            title: Text(
+                              s.title,
+                              style: textTheme.titleMedium,
+                            ),
+                            subtitle: Text(
+                              'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
+                              style: textTheme.bodyLarge,
+                            ),
                             trailing: const Icon(Icons.chevron_right),
                           ),
                       ],
