@@ -193,6 +193,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(title: Text('S’entraîner — ${widget.subjectName}')),
       body: _loading
@@ -202,7 +203,10 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Module : ${widget.chapterName}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Module : ${widget.chapterName}',
+                    style: textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   Card(
                     child: Padding(
@@ -210,7 +214,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Temps par question', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Temps par question', style: textTheme.titleMedium),
                           const SizedBox(height: 8),
                           ChipSelector<int>(
                             options: _secondOptions,
@@ -221,7 +225,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                             labelBuilder: (s) => '${s}s',
                           ),
                           const SizedBox(height: 16),
-                          const Text('Nombre de questions', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Nombre de questions', style: textTheme.titleMedium),
                           const SizedBox(height: 8),
                           ChipSelector<int>(
                             options: _countOptions,
@@ -231,7 +235,10 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                             labelBuilder: (n) => '$n',
                           ),
                           const SizedBox(height: 12),
-                          Text('Questions dispo pour ce module : ${_pool.length}'),
+                          Text(
+                            'Questions dispo pour ce module : ${_pool.length}',
+                            style: textTheme.bodyLarge,
+                          ),
                         ],
                       ),
                     ),

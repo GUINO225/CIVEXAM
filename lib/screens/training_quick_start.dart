@@ -206,6 +206,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     final total = Duration(seconds: _perQuestionSeconds * _questionCount);
     String two(int x) => x.toString().padLeft(2, '0');
     final totalLabel = '${two(total.inMinutes)}:${two(total.inSeconds % 60)}';
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Entraînement (5–10s/question)')),
@@ -214,7 +215,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Temps par question', style: TextStyle(fontWeight: FontWeight.w700)),
+            Text('Temps par question', style: textTheme.titleMedium),
             const SizedBox(height: 8),
             ChipSelector<int>(
               options: _secondOptions,
@@ -225,7 +226,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
               labelBuilder: (s) => '${s}s',
             ),
             const SizedBox(height: 16),
-            const Text('Nombre de questions', style: TextStyle(fontWeight: FontWeight.w700)),
+            Text('Nombre de questions', style: textTheme.titleMedium),
             const SizedBox(height: 8),
             ChipSelector<int>(
               options: _countOptions,
@@ -235,7 +236,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
               labelBuilder: (n) => '$n',
             ),
             const SizedBox(height: 16),
-            Text('Temps total : $totalLabel', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text('Temps total : $totalLabel', style: textTheme.bodyLarge),
             const Spacer(),
             SizedBox(
               width: double.infinity,
