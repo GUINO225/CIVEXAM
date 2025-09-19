@@ -73,64 +73,89 @@ class _PlayScreenState extends State<PlayScreen> {
             foregroundColor: textColor,
             title: const Text('CivExam'),
             centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                tooltip: 'Déconnexion',
-                onPressed: _signingOut
-                    ? null
-                    : () async {
-                        setState(() => _signingOut = true);
-                        try {
-                          await _auth.signOut();
-                          if (!mounted) return;
-                          Navigator.pushReplacement(
+          ),
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x1A000000),
+                  offset: Offset(0, -2),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.logout, color: Color(0xFF0D47A1)),
+                      tooltip: 'Déconnexion',
+                      onPressed: _signingOut
+                          ? null
+                          : () async {
+                              setState(() => _signingOut = true);
+                              try {
+                                await _auth.signOut();
+                                if (!mounted) return;
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const LoginScreen()),
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                final message = e is AuthException
+                                    ? e.message
+                                    : 'Déconnexion échouée';
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
+                                );
+                              } finally {
+                                if (mounted) setState(() => _signingOut = false);
+                              }
+                            },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.person_outline, color: Color(0xFF0D47A1)),
+                      tooltip: 'Tableau de bord',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const DashboardScreen()),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.emoji_events_outlined, color: Color(0xFF0D47A1)),
+                      tooltip: 'Classement',
+                      onPressed: () {
+                        Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
-                          );
-                        } catch (e) {
-                          if (!mounted) return;
-                          final message =
-                              e is AuthException ? e.message : 'Déconnexion échouée';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(message)),
-                          );
-                        } finally {
-                          if (mounted) setState(() => _signingOut = false);
-                        }
+                                builder: (_) => const LeaderboardScreen()));
                       },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.palette_outlined, color: Color(0xFF0D47A1)),
+                      tooltip: 'Choisir un thème',
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const DesignSettingsScreen()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.person_outline),
-                tooltip: 'Tableau de bord',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DashboardScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.emoji_events_outlined),
-                tooltip: 'Classement',
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.palette_outlined),
-                tooltip: 'Choisir un thème',
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DesignSettingsScreen()),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
           body: SafeArea(
             child: Padding(
