@@ -71,8 +71,28 @@ class _PlayScreenState extends State<PlayScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             foregroundColor: textColor,
-            title: const Text('CivExam'),
-            centerTitle: true,
+            title: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/logo_splash.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    welcomeText,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: welcomeFontSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
