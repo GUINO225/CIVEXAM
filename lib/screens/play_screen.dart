@@ -63,10 +63,10 @@ class _PlayScreenState extends State<PlayScreen> {
           max: 28,
         );
         final logoHeight = scaledDimension(
-          base: 56,
+          base: 100,
           scale: scale,
-          min: 44,
-          max: 72,
+          min: 100,
+          max: 100,
         );
 
         return Scaffold(
@@ -164,6 +164,7 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           body: SafeArea(
             bottom: false,
+            minimum: const EdgeInsets.only(top: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
