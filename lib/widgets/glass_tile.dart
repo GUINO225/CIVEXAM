@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'glass_card.dart';
+import '../utils/responsive_utils.dart';
 
 class GlassTile extends StatefulWidget {
   const GlassTile({
@@ -16,6 +17,7 @@ class GlassTile extends StatefulWidget {
     required this.useMono,
     required this.monoColor,
     required this.textColor,
+    this.scaleFactor,
   });
 
   final String title;
@@ -30,6 +32,7 @@ class GlassTile extends StatefulWidget {
   final bool useMono;
   final Color monoColor;
   final Color textColor;
+  final double? scaleFactor;
 
   @override
   State<GlassTile> createState() => _GlassTileState();
@@ -40,6 +43,16 @@ class _GlassTileState extends State<GlassTile> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final scale = widget.scaleFactor ?? computeScaleFactor(mediaQuery);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final iconSize = scaledDimension(
+      base: widget.iconSize,
+      scale: scale,
+      min: 40,
+      max: 96,
+    );
+
     final gradientColors = widget.useMono
         ? [
             widget.monoColor.withOpacity(0.15),
@@ -48,10 +61,17 @@ class _GlassTileState extends State<GlassTile> {
         : widget.gradientColors;
 
     final iconColor = widget.useMono ? widget.monoColor : Colors.white;
+    final titleFontSize = scaledFontSize(
+      base: 20,
+      scale: scale,
+      textScaler: textScaler,
+      min: 16,
+      max: 28,
+    );
 
     final iconBadge = Container(
-      height: widget.iconSize,
-      width: widget.iconSize,
+      height: iconSize,
+      width: iconSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
@@ -61,14 +81,14 @@ class _GlassTileState extends State<GlassTile> {
         ),
         border: Border.all(color: Colors.white.withOpacity(0.25)),
       ),
-      child: Icon(widget.icon, size: widget.iconSize * 0.58, color: iconColor),
+      child: Icon(widget.icon, size: iconSize * 0.58, color: iconColor),
     );
 
     final title = Text(
       widget.title,
       textAlign: widget.centerContent ? TextAlign.center : TextAlign.left,
       style: TextStyle(
-        fontSize: 20,
+        fontSize: titleFontSize,
         height: 1.15,
         fontWeight: FontWeight.w800,
         color: widget.textColor,
