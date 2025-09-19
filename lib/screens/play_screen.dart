@@ -79,7 +79,7 @@ class _PlayScreenState extends State<PlayScreen> {
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,
-          backgroundColor: Colors.transparent,
+          backgroundColor: bgColor,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -172,14 +172,62 @@ class _PlayScreenState extends State<PlayScreen> {
           body: SafeArea(
             bottom: false,
             minimum: const EdgeInsets.only(top: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                    child: Center(
+            child: Container(
+              color: bgColor,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: FractionallySizedBox(
+                      heightFactor: 0.75,
+                      widthFactor: 1,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(22),
+                          topRight: Radius.circular(22),
+                        ),
+                        child: Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                          child: GridView.builder(
+                            padding: EdgeInsets.zero,
+                            physics: const BouncingScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                              childAspectRatio: 1.05,
+                            ),
+                            itemCount: _items.length,
+                            itemBuilder: (context, i) {
+                              final item = _items[i];
+                              final iconColors = playIconColors(item.palette);
+                              return GlassTile(
+                                title: item.title,
+                                icon: item.icon,
+                                gradientColors: iconColors,
+                                blur: cfg.glassBlur,
+                                bgOpacity: cfg.glassBgOpacity,
+                                borderOpacity: cfg.glassBorderOpacity,
+                                iconSize: cfg.tileIconSize,
+                                scaleFactor: scale,
+                                centerContent: cfg.tileCenter,
+                                useMono: cfg.useMono,
+                                monoColor: cfg.monoColor,
+                                textColor: textColor,
+                                onTap: () => _navigate(context, i),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -202,58 +250,8 @@ class _PlayScreenState extends State<PlayScreen> {
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: FractionallySizedBox(
-                      heightFactor: 0.75,
-                      widthFactor: 1,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(22),
-                            topRight: Radius.circular(22),
-                          ),
-                        ),
-                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                        child: GridView.builder(
-                          padding: EdgeInsets.zero,
-                          physics: const BouncingScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 14,
-                            mainAxisSpacing: 14,
-                            childAspectRatio: 1.05,
-                          ),
-                          itemCount: _items.length,
-                          itemBuilder: (context, i) {
-                            final item = _items[i];
-                            final iconColors = playIconColors(item.palette);
-                            return GlassTile(
-                              title: item.title,
-                              icon: item.icon,
-                              gradientColors: iconColors,
-                              blur: cfg.glassBlur,
-                              bgOpacity: cfg.glassBgOpacity,
-                              borderOpacity: cfg.glassBorderOpacity,
-                              iconSize: cfg.tileIconSize,
-                              scaleFactor: scale,
-                              centerContent: cfg.tileCenter,
-                              useMono: cfg.useMono,
-                              monoColor: cfg.monoColor,
-                              textColor: textColor,
-                              onTap: () => _navigate(context, i),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
