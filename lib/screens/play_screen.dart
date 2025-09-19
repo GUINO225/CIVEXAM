@@ -159,72 +159,91 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                      GlassCard(
-                        blur: cfg.glassBlur,
-                        backgroundOpacity: cfg.glassBgOpacity,
-                        borderOpacity: cfg.glassBorderOpacity,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          child: Row(
-                            children: [
-                              _IconBadge(
-                                icon: Icons.grid_view_rounded,
-                                size: cfg.tileIconSize,
+                  GlassCard(
+                    blur: cfg.glassBlur,
+                    backgroundOpacity: cfg.glassBgOpacity,
+                    borderOpacity: cfg.glassBorderOpacity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Row(
+                        children: [
+                          _IconBadge(
+                            icon: Icons.grid_view_rounded,
+                            size: cfg.tileIconSize,
+                            useMono: cfg.useMono,
+                            monoColor: cfg.monoColor,
+                            gradientColors: badgeColors,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AdaptiveText(
+                              welcomeText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              backgroundColor: bgColor,
+                              style: TextStyle(
+                                fontSize: welcomeFontSize,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: FractionallySizedBox(
+                        heightFactor: 0.75,
+                        widthFactor: 1,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(28),
+                              topRight: Radius.circular(28),
+                            ),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                          child: GridView.builder(
+                            padding: EdgeInsets.zero,
+                            physics: const BouncingScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                              childAspectRatio: 1.05,
+                            ),
+                            itemCount: _items.length,
+                            itemBuilder: (context, i) {
+                              final item = _items[i];
+                              final iconColors = playIconColors(item.palette);
+                              return GlassTile(
+                                title: item.title,
+                                icon: item.icon,
+                                gradientColors: iconColors,
+                                blur: cfg.glassBlur,
+                                bgOpacity: cfg.glassBgOpacity,
+                                borderOpacity: cfg.glassBorderOpacity,
+                                iconSize: cfg.tileIconSize,
+                                scaleFactor: scale,
+                                centerContent: cfg.tileCenter,
                                 useMono: cfg.useMono,
                                 monoColor: cfg.monoColor,
-                                gradientColors: badgeColors,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: AdaptiveText(
-                                  welcomeText,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  backgroundColor: bgColor,
-                                  style: TextStyle(
-                                    fontSize: welcomeFontSize,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
+                                textColor: textColor,
+                                onTap: () => _navigate(context, i),
+                              );
+                            },
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
-                  Expanded(
-                    child: GridView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 1.05,
-                      ),
-                      itemCount: _items.length,
-                      itemBuilder: (context, i) {
-                        final item = _items[i];
-                        final iconColors = playIconColors(item.palette);
-                        return GlassTile(
-                          title: item.title,
-                          icon: item.icon,
-                          gradientColors: iconColors,
-                          blur: cfg.glassBlur,
-                          bgOpacity: cfg.glassBgOpacity,
-                          borderOpacity: cfg.glassBorderOpacity,
-                          iconSize: cfg.tileIconSize,
-                          scaleFactor: scale,
-                          centerContent: cfg.tileCenter,
-                          useMono: cfg.useMono,
-                          monoColor: cfg.monoColor,
-                          textColor: textColor,
-                          onTap: () => _navigate(context, i),
-                        );
-                      },
                     ),
                   ),
                 ],
