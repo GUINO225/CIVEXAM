@@ -75,7 +75,9 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final cs = Theme.of(context).colorScheme;
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+        final textTheme = theme.textTheme;
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
@@ -100,15 +102,19 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                     final e = _items[i];
                     final weak = e.weakSubjects();
                     Color chipBg;
+                    Color chipFg;
                     String chipText;
                     if (e.abandoned) {
                       chipBg = cs.tertiaryContainer;
+                      chipFg = cs.onTertiaryContainer;
                       chipText = 'Abandonné';
                     } else if (e.success) {
                       chipBg = cs.primaryContainer;
+                      chipFg = cs.onPrimaryContainer;
                       chipText = 'Réussi';
                     } else {
                       chipBg = cs.errorContainer;
+                      chipFg = cs.onErrorContainer;
                       chipText = 'Échoué';
                     }
 
@@ -123,33 +129,63 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                             Row(
                               children: [
                                 Expanded(
-                                    child: Text('Examen du ${_fmt(e.date)}',
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w700))),
+                                  child: Text(
+                                    'Examen du ${_fmt(e.date)}',
+                                    style: textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
                                 Chip(
-                                    label: Text(chipText),
-                                    backgroundColor: chipBg),
+                                  label: Text(
+                                    chipText,
+                                    style: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: chipFg,
+                                    ),
+                                  ),
+                                  backgroundColor: chipBg,
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Text('Total pondéré : ${e.totalPondere}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
+                            Text(
+                              'Total pondéré : ${e.totalPondere}',
+                              style: textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             const Divider(height: 16),
-                            const Text('Détails par matière :',
-                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            Text(
+                              'Détails par matière :',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             for (final s in e.scoresBruts.keys) ...[
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(child: Text(s)),
+                                  Expanded(
+                                    child: Text(
+                                      s,
+                                      style: textTheme.bodyLarge,
+                                    ),
+                                  ),
                                   Text(
-                                      'Brut ${e.scoresBruts[s]} • Pondéré ${e.scoresPonderes[s]}'),
+                                    'Brut ${e.scoresBruts[s]} • Pondéré ${e.scoresPonderes[s]}',
+                                    style: textTheme.bodyLarge,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
-                                      '(${e.correctBySubject[s]}/${e.totalBySubject[s]})'),
+                                    '(${e.correctBySubject[s]}/${e.totalBySubject[s]})',
+                                    style: textTheme.bodyLarge,
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -158,9 +194,10 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                               const Divider(height: 16),
                               Text(
                                 'À renforcer : ${weak.join(', ')}',
-                                style: TextStyle(
-                                    color: cs.tertiary,
-                                    fontWeight: FontWeight.w600),
+                                style: textTheme.bodyLarge?.copyWith(
+                                  color: cs.tertiary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ],

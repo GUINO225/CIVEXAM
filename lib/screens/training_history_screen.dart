@@ -89,6 +89,8 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
               itemCount: _items.length,
               itemBuilder: (context, i) {
                 final e = _items[i];
+                final theme = Theme.of(context);
+                final textTheme = theme.textTheme;
 
                 String statusText;
                 Color statusColor;
@@ -103,6 +105,12 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
                   statusColor = Colors.red.shade200;
                 }
 
+                final chipLabelColor =
+                    ThemeData.estimateBrightnessForColor(statusColor) ==
+                            Brightness.dark
+                        ? Colors.white
+                        : Colors.black87;
+
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Padding(
@@ -115,16 +123,36 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
                             Expanded(
                               child: Text(
                                 '${e.subject} • ${e.chapter}',
-                                style: const TextStyle(fontWeight: FontWeight.w700),
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                            Chip(label: Text(statusText), backgroundColor: statusColor),
+                            Chip(
+                              label: Text(
+                                statusText,
+                                style: textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: chipLabelColor,
+                                ),
+                              ),
+                              backgroundColor: statusColor,
+                              visualDensity: VisualDensity.compact,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text('${_fmt(e.date)} • durée ${e.durationMinutes} min'),
+                        Text(
+                          '${_fmt(e.date)} • durée ${e.durationMinutes} min',
+                          style: textTheme.bodyLarge,
+                        ),
                         const SizedBox(height: 6),
-                        Text('Score : ${e.correct}/${e.total} — brut ${e.rawScore} • pondéré ${e.weightedScore}'),
+                        Text(
+                          'Score : ${e.correct}/${e.total} — brut ${e.rawScore} • pondéré ${e.weightedScore}',
+                          style: textTheme.bodyLarge,
+                        ),
                       ],
                     ),
                   ),
