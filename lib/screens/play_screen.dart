@@ -171,7 +171,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
                         'assets/images/logo_splash.png',
@@ -186,6 +186,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           fontSize: welcomeFontSize,
                           fontWeight: FontWeight.w700,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
