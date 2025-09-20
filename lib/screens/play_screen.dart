@@ -2,7 +2,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
@@ -10,7 +9,6 @@ import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glass_tile.dart';
-import '../widgets/adaptive_text.dart';
 import '../utils/responsive_utils.dart';
 
 import 'official_intro_screen.dart';
@@ -41,11 +39,6 @@ class _PlayScreenState extends State<PlayScreen> {
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
-        final user = FirebaseAuth.instance.currentUser;
-        final name = user?.displayName ?? user?.email;
-        final welcomeText = name != null && name.isNotEmpty
-            ? 'Bienvenue $name 👋'
-            : 'Bienvenue 👋';
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
@@ -54,21 +47,6 @@ class _PlayScreenState extends State<PlayScreen> {
 
         final mediaQuery = MediaQuery.of(context);
         final scale = computeScaleFactor(mediaQuery);
-        final textScaler = MediaQuery.textScalerOf(context);
-        final welcomeFontSize = scaledFontSize(
-          base: 22,
-          scale: scale,
-          textScaler: textScaler,
-          min: 18,
-          max: 28,
-        );
-        final subtitleFontSize = scaledFontSize(
-          base: 16,
-          scale: scale,
-          textScaler: textScaler,
-          min: 14,
-          max: 20,
-        );
         final logoHeight = scaledDimension(
           base: 200,
           scale: scale,
@@ -235,16 +213,6 @@ class _PlayScreenState extends State<PlayScreen> {
                             'assets/images/logo_splash.png',
                             height: logoHeight,
                             fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            welcomeText,
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: welcomeFontSize,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
