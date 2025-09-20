@@ -206,7 +206,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(
-                          height: 8,
+                          height: 5,
                         ), // Reduced spacing between logo and welcome text
                         Text(
                           'Bienvenue 👋',
