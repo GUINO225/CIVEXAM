@@ -43,12 +43,12 @@ class _PlayScreenState extends State<PlayScreen> {
       builder: (context, cfg, _) {
         final user = FirebaseAuth.instance.currentUser;
         final name = user?.displayName ?? user?.email;
-        final welcomeText = name != null && name.isNotEmpty
-            ? 'Bienvenue $name 👋'
-            : 'Bienvenue 👋';
+        final hasName = name != null && name.isNotEmpty;
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
+        final nameColor =
+            badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
@@ -61,6 +61,13 @@ class _PlayScreenState extends State<PlayScreen> {
           textScaler: textScaler,
           min: 18,
           max: 28,
+        );
+        final nameFontSize = scaledFontSize(
+          base: 26,
+          scale: scale,
+          textScaler: textScaler,
+          min: 20,
+          max: 36,
         );
         final subtitleFontSize = scaledFontSize(
           base: 16,
@@ -202,7 +209,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           height: 8,
                         ), // Reduced spacing between logo and welcome text
                         Text(
-                          welcomeText,
+                          'Bienvenue 👋',
                           style: TextStyle(
                             color: textColor,
                             fontSize: welcomeFontSize,
@@ -210,6 +217,18 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
+                        if (hasName) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            name!,
+                            style: TextStyle(
+                              color: nameColor,
+                              fontSize: nameFontSize,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ],
                     ),
                   ),
