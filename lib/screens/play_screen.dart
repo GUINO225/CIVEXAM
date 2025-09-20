@@ -172,23 +172,49 @@ class _PlayScreenState extends State<PlayScreen> {
           body: SafeArea(
             bottom: false,
             minimum: const EdgeInsets.only(top: 16),
-            child: Container(
-              color: bgColor,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: FractionallySizedBox(
-                      heightFactor: 0.75,
-                      widthFactor: 1,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(22),
-                          topRight: Radius.circular(22),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: bgColor),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_splash.png',
+                          height: logoHeight,
+                          fit: BoxFit.contain,
                         ),
-                        child: Container(
-                          color: Colors.white,
+                        const SizedBox(height: 16),
+                        Text(
+                          welcomeText,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: welcomeFontSize,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: FractionallySizedBox(
+                    heightFactor: 0.75,
+                    widthFactor: 1,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(22),
+                        topRight: Radius.circular(22),
+                      ),
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(color: Colors.white),
+                        child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                           child: GridView.builder(
                             padding: EdgeInsets.zero,
@@ -224,34 +250,8 @@ class _PlayScreenState extends State<PlayScreen> {
                       ),
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/logo_splash.png',
-                            height: logoHeight,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            welcomeText,
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: welcomeFontSize,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
