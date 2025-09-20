@@ -175,7 +175,17 @@ class _PlayScreenState extends State<PlayScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                ColoredBox(color: bgColor),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    image: const DecorationImage(
+                      image: AssetImage(
+                        'assets/images/background_playscreen.png',
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
                 Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
