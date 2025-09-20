@@ -42,10 +42,16 @@ class _PlayScreenState extends State<PlayScreen> {
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final user = FirebaseAuth.instance.currentUser;
-        final name = user?.displayName ?? user?.email;
-        final welcomeText = name != null && name.isNotEmpty
-            ? 'Bienvenue $name 👋'
-            : 'Bienvenue 👋';
+        final rawDisplayName = user?.displayName?.trim();
+        final rawEmail = user?.email?.trim();
+        String? displayName;
+        if (rawDisplayName != null && rawDisplayName.isNotEmpty) {
+          displayName = rawDisplayName;
+        } else if (rawEmail != null && rawEmail.isNotEmpty) {
+          displayName = rawEmail;
+        }
+        const welcomeMessage = 'Bienvenue 👋';
+        final hasName = displayName != null && displayName.isNotEmpty;
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
@@ -199,15 +205,36 @@ class _PlayScreenState extends State<PlayScreen> {
                           fit: BoxFit.contain,
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          welcomeText,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: welcomeFontSize,
-                            fontWeight: FontWeight.w700,
+                        if (hasName) ...[
+                          Text(
+                            welcomeMessage,
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.85),
+                              fontSize: subtitleFontSize,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            displayName!,
+                            style: TextStyle(
+                              color: badgeColors.last,
+                              fontSize: welcomeFontSize,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ] else
+                          Text(
+                            welcomeMessage,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: welcomeFontSize,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                       ],
                     ),
                   ),
