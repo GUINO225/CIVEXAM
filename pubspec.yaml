@@ -42,7 +42,7 @@ flutter:
     - assets/questions/
     - assets/questions/ena_sample.json
     - assets/images/logo_splash.png
-    - assets/images/play_background.png
+    - assets/images/background_playscreen.png
     - assets/icons/
     - assets/icons/mono/
     - assets/icons/sets/amber/
