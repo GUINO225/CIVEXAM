@@ -188,7 +188,7 @@ class _PlayScreenState extends State<PlayScreen> {
                             height: logoHeight,
                             fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           Text(
                             welcomeText,
                             style: TextStyle(
