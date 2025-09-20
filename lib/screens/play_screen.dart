@@ -215,7 +215,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: FractionallySizedBox(
-                    heightFactor: 0.75,
+                    heightFactor: 0.7,
                     widthFactor: 1,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
