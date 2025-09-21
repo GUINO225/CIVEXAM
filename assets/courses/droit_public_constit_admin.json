@@ -1,0 +1,34 @@
+{
+  "sections": [
+    {
+      "title": "Principes constitutionnels",
+      "description": "Fondements de l'État de droit ivoirien : souveraineté, hiérarchie des normes et droits fondamentaux garantis par la Constitution.",
+      "highlights": [
+        "Définition du préambule, des valeurs de la République et de la forme de l'État.",
+        "Place de la Constitution dans la hiérarchie des normes : supériorité sur les lois et règlements.",
+        "Garantie des libertés publiques et des droits fondamentaux : droits civils, politiques, économiques et sociaux.",
+        "Procédures de révision constitutionnelle et limites matérielles (respect de la forme républicaine, intégrité du territoire)."
+      ]
+    },
+    {
+      "title": "Institutions de la République",
+      "description": "Organisation et fonctionnement des organes constitutionnels : exécutif, législatif, judiciaire et autorités indépendantes.",
+      "highlights": [
+        "Rôle du Président de la République, du Gouvernement et du Premier Ministre dans la conduite de la politique nationale.",
+        "Parlement bicaméral : Assemblée nationale et Sénat, compétences législatives et procédures d'adoption des lois.",
+        "Indépendance du pouvoir judiciaire : Conseil supérieur de la magistrature, cours et tribunaux.",
+        "Institutions de contrôle et de régulation (Cour des comptes, CEI, autorités administratives indépendantes)."
+      ]
+    },
+    {
+      "title": "Administration publique et contrôle",
+      "description": "Structures administratives centrales, déconcentrées et décentralisées ainsi que les mécanismes de contrôle administratif et juridictionnel.",
+      "highlights": [
+        "Organisation de l'administration centrale : ministères, services rattachés, autorités administratives.",
+        "Déconcentration et décentralisation : préfets, conseils régionaux, communaux et district autonome d'Abidjan.",
+        "Responsabilité de l'administration : faute de service, faute personnelle et régimes d'indemnisation.",
+        "Contrôles : tutelle administrative, inspections, Chambre des comptes, juge administratif et voies de recours des usagers."
+      ]
+    }
+  ]
+}
