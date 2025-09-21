@@ -18,7 +18,14 @@ class Chapter {
 /// initial chacun. Cette liste peut ensuite être reconstruite dynamiquement
 /// via [buildSubjectsENA] lorsque les questions sont chargées depuis le JSON.
 List<Subject> subjectsENA = const <Subject>[
-  Subject('Culture Générale', [Chapter("Côte d'Ivoire")]),
+  Subject(
+    'Culture Générale',
+    [
+      Chapter('Afrique'),
+      Chapter("Côte d'Ivoire"),
+      Chapter('Union africaine'),
+    ],
+  ),
   Subject('Droit Constitutionnel', [Chapter('Institutions & principes')]),
   Subject('Problèmes Économiques & Sociaux', [Chapter('Notions clés')]),
   Subject('Aptitude Numérique', [Chapter('Bases & proportionnalité')]),
