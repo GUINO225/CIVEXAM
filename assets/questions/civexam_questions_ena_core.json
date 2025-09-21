@@ -160,6 +160,118 @@
     "explanation": ""
   },
   {
+    "id": "CG-AF-01",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Afrique",
+    "difficulty": 1,
+    "question": "Quel est le plus grand désert chaud du continent africain ?",
+    "choices": [
+      "Le Sahara",
+      "Le Kalahari",
+      "Le Namib",
+      "Le Danakil"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Sahara couvre la majeure partie de l’Afrique du Nord et constitue le plus vaste désert chaud du monde."
+  },
+  {
+    "id": "CG-AF-02",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Afrique",
+    "difficulty": 1,
+    "question": "Quel fleuve traverse la ville du Caire avant de se jeter dans la Méditerranée ?",
+    "choices": [
+      "Le Nil",
+      "Le Niger",
+      "Le Congo",
+      "Le Zambèze"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Nil traverse l’Égypte en irriguant Le Caire avant de former un delta qui s’ouvre sur la Méditerranée."
+  },
+  {
+    "id": "CG-AF-03",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Afrique",
+    "difficulty": 2,
+    "question": "Quel pays africain est le plus peuplé en 2023 ?",
+    "choices": [
+      "Nigéria",
+      "Éthiopie",
+      "Égypte",
+      "Afrique du Sud"
+    ],
+    "answerIndex": 0,
+    "explanation": "Avec plus de 200 millions d’habitants, le Nigéria est l’État le plus peuplé du continent africain."
+  },
+  {
+    "id": "CG-AF-04",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Afrique",
+    "difficulty": 2,
+    "question": "Le Kilimandjaro, point culminant de l’Afrique, se situe dans quel pays ?",
+    "choices": [
+      "Tanzanie",
+      "Kenya",
+      "Ouganda",
+      "Éthiopie"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le Kilimandjaro se trouve au nord-est de la Tanzanie, à la frontière avec le Kenya."
+  },
+  {
+    "id": "CG-UA-01",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Union africaine",
+    "difficulty": 1,
+    "question": "Dans quelle ville se trouve le siège de l’Union africaine ?",
+    "choices": [
+      "Addis-Abeba",
+      "Abuja",
+      "Johannesburg",
+      "Nairobi"
+    ],
+    "answerIndex": 0,
+    "explanation": "Le siège de l’Union africaine est à Addis-Abeba, capitale de l’Éthiopie."
+  },
+  {
+    "id": "CG-UA-02",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Union africaine",
+    "difficulty": 1,
+    "question": "En quelle année l’Union africaine a-t-elle officiellement succédé à l’Organisation de l’unité africaine (OUA) ?",
+    "choices": [
+      "2002",
+      "1994",
+      "2010",
+      "1989"
+    ],
+    "answerIndex": 0,
+    "explanation": "L’Union africaine a été lancée à Durban en 2002, remplaçant l’Organisation de l’unité africaine."
+  },
+  {
+    "id": "CG-UA-03",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Union africaine",
+    "difficulty": 2,
+    "question": "Quel est l’objectif principal de l’Agenda 2063 de l’Union africaine ?",
+    "choices": [
+      "Accélérer l’intégration et le développement durable du continent",
+      "Créer immédiatement une monnaie unique africaine",
+      "Multiplier les bases militaires étrangères",
+      "Supprimer toutes les frontières nationales d’ici 2025"
+    ],
+    "answerIndex": 0,
+    "explanation": "L’Agenda 2063 constitue la feuille de route stratégique de l’Union africaine pour un développement inclusif et durable du continent."
+  },
+  {
     "id": "DC-01",
     "concours": "ENA",
     "subject": "Droit Constitutionnel",
