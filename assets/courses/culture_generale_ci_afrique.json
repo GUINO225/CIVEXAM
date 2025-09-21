@@ -4,20 +4,153 @@
       "title": "Côte d’Ivoire",
       "description": "Panorama institutionnel, économique et social de la République de Côte d’Ivoire pour replacer les sujets des concours ENA dans leur contexte national.",
       "highlights": [
-        "Institutions : Constitution de 2016, exécutif bicéphale (Président et Vice-Président), gouvernement dirigé par un Premier ministre et Parlement bicaméral (Assemblée nationale et Sénat).",
-        "Économie : première puissance d’Afrique de l’Ouest francophone avec un PIB porté par l’agriculture (cacao, anacarde), l’industrie agroalimentaire et les services, plans nationaux de développement successifs.",
-        "Société : population estimée à plus de 28 millions d’habitants, diversité culturelle et linguistique, défis en matière d’urbanisation, d’éducation, de cohésion nationale et de gouvernance locale.",
-        "Ressources recommandées : Portail du Gouvernement ivoirien, rapports de la Primature, documents de planification (PND) et statistiques de l’INS."
+        "Institutions : Constitution du 8 novembre 2016 (Troisième République), révisée le 19 mars 2020 ; exécutif avec Président, Vice-Président, Premier ministre ; Parlement bicaméral (Assemblée nationale et Sénat).",
+        "Économie : PIB ~ 86,5 Mds US$ (2024, Banque mondiale) ; exportations dominées par or, cacao (grains et dérivés), caoutchouc, produits pétroliers ; plans nationaux de développement 2012-2015, 2016-2020, 2021-2025.",
+        "Société : 29 389 150 habitants au RGPH 2021 ; diversité culturelle et linguistique ; défis d’urbanisation, d’éducation, de cohésion nationale et de gouvernance locale.",
+        "Ressources recommandées : Portail du Gouvernement, Présidence (texte constitutionnel), Primature/Plan (PND), INS (RGPH/annuaires), BCEAO (monnaie/indicateurs)."
+      ],
+      "institutions": {
+        "constitution": {
+          "entry_into_force": "2016-11-08",
+          "last_revision": "2020-03-19",
+          "notes": [
+            "Clarification du statut/nomination du Vice-Président",
+            "Dispositions sur la continuité du Parlement et divers ajustements organiques"
+          ]
+        },
+        "executive": {
+          "president": "Alassane Ouattara",
+          "vice_president": "Tiémoko Meyliet Koné",
+          "prime_minister": "Robert Beugré Mambé"
+        },
+        "legislature": {
+          "type": "Bicaméral",
+          "chambers": [
+            "Assemblée nationale",
+            "Sénat"
+          ]
+        },
+        "currency": {
+          "name": "Franc CFA (XOF)",
+          "union": "UEMOA",
+          "issuer": "BCEAO"
+        }
+      },
+      "key_indicators": {
+        "population_total_rgph_2021": 29389150,
+        "gdp_current_usd_2024": 86540000000,
+        "main_exports_2023": [
+          "Or",
+          "Cacao (grains, beurre, pâte)",
+          "Caoutchouc naturel",
+          "Produits pétroliers raffinés",
+          "Noix de cajou et coproduits"
+        ]
+      },
+      "economy": {
+        "sectors": [
+          "Agriculture et agro-industrie (cacao, anacarde, hévéa, café, palmier à huile)",
+          "Industrie (agroalimentaire, raffinage, matériaux)",
+          "Services (logistique portuaire, télécoms, finance, commerce)"
+        ],
+        "development_plans": [
+          "PND 2012-2015",
+          "PND 2016-2020",
+          "PND 2021-2025 (axes : transformation industrielle, capital humain, inclusion, gouvernance, transition verte, ancrage territorial)"
+        ]
+      },
+      "society": {
+        "themes": [
+          "Urbanisation rapide (capitale économique : Abidjan)",
+          "Éducation et formation professionnelle",
+          "Cohésion sociale et décentralisation",
+          "Emploi des jeunes et genre"
+        ]
+      },
+      "governance_security": {
+        "regional_memberships": [
+          "UA",
+          "CEDEAO",
+          "UEMOA",
+          "ZLECAf",
+          "BAD"
+        ],
+        "notes": [
+          "Veille sécuritaire accrue aux frontières nord (sahelisation régionale)",
+          "Harmonisation avec normes CEDEAO/UEMOA (marché, monnaie, critères de convergence)"
+        ]
+      },
+      "recommended_resources": [
+        "Portail du Gouvernement (actualités, communiqués)",
+        "Présidence de la République (Constitution 2016 et révision 2020)",
+        "Primature / Ministère du Plan (documents PND 2016-2020, 2021-2025)",
+        "INS / Plan (RGPH 2021, statistiques officielles)",
+        "BCEAO (monnaie XOF, inflation UEMOA)",
+        "Banque mondiale (indicateurs WDI, profil pays)",
+        "OEC / Trendeconomy (structure des échanges, top exports)"
       ]
     },
     {
       "title": "Afrique",
       "description": "Repères continentaux et organisations régionales à maîtriser pour relier l’actualité africaine aux thématiques de culture générale des concours.",
       "highlights": [
-        "Organisations régionales : Union africaine (UA), CEDEAO, UEMOA, Banque africaine de développement et partenariats stratégiques panafricains.",
-        "Enjeux socio-économiques : croissance démographique, transitions énergétiques, industrialisation, sécurité alimentaire, intégration commerciale (ZLECAf).",
-        "Gouvernance et sécurité : dynamiques démocratiques contrastées, mécanismes de paix et sécurité de l’UA, opérations de maintien de la paix, coopération régionale contre le terrorisme.",
-        "Ressources recommandées : rapports de la Banque mondiale et de la BAD, Agenda 2063 de l’UA, bulletins de la CEDEAO, think tanks africains (WATHI, ISS)."
+        "Organisations : Union africaine (UA) et son Conseil Paix & Sécurité (CPS), Force africaine en attente (ASF) ; CEDEAO (reconfigurée après le retrait du Mali, du Burkina Faso et du Niger en 2025) ; UEMOA ; Banque africaine de développement (BAD) ; ZLECAf (AfCFTA).",
+        "Enjeux socio-économiques : démographie (~1,5 milliard d’habitants en 2024), urbanisation, industrialisation, sécurité alimentaire, transition énergétique, intégration commerciale.",
+        "Gouvernance et sécurité : dynamiques politiques contrastées ; mécanismes de paix de l’UA ; coopérations régionales contre le terrorisme au Sahel et dans le bassin du Lac Tchad.",
+        "Ressources recommandées : Agenda 2063 (UA), rapports BAD (AEO), World Bank Africa, bulletins CEDEAO, think tanks (WATHI, ISS)."
+      ],
+      "organisations_regionales": {
+        "UA": {
+          "agenda_2063": "Cadre stratégique continental à l’horizon 2063",
+          "peace_security": [
+            "Conseil Paix & Sécurité (CPS)",
+            "Architecture africaine de paix et de sécurité",
+            "Force africaine en attente (ASF)"
+          ]
+        },
+        "CEDEAO": {
+          "note_2025": "Retrait effectif du Mali, du Burkina Faso et du Niger (AES) le 29/01/2025 ; discussions régionales en cours sur les modalités de coopération.",
+          "domaines": [
+            "Libre circulation",
+            "Intégration économique",
+            "Mécanismes de prévention des crises"
+          ]
+        },
+        "UEMOA": {
+          "monnaie": "XOF (BCEAO)",
+          "focus_macro": [
+            "Convergence macroéconomique",
+            "Stabilité des prix au niveau de l’Union"
+          ]
+        },
+        "ZLECAf": {
+          "etat_des_lieux_mid_2025": "Environ 49 ratifications, montée en puissance des protocoles (biens, services, règles d’origine)."
+        },
+        "BAD": {
+          "publication_phares": [
+            "African Economic Outlook (AEO)",
+            "Macroeconomic Performance & Outlook (MEO)"
+          ]
+        }
+      },
+      "key_indicators": {
+        "population_2024_estimate": 1500000000,
+        "growth_outlook_2025_afdb_percent": 3.9
+      },
+      "themes": [
+        "Démographie et dividende démographique",
+        "Intégration commerciale et chaînes de valeur régionales (ZLECAf)",
+        "Transition énergétique et climat",
+        "Sécurité alimentaire et systèmes agricoles",
+        "Paix, sécurité et gouvernance"
+      ],
+      "recommended_resources": [
+        "Union africaine – Agenda 2063, CPS",
+        "Banque africaine de développement – AEO, MEO",
+        "Banque mondiale – Africa Overview",
+        "CEDEAO – communiqués et décisions",
+        "BCEAO/UEMOA – données monétaires et inflation",
+        "Think tanks : WATHI (débats citoyens), ISS (analyses sécurité)"
       ]
     }
   ]
