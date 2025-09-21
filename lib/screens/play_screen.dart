@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/auth_service.dart';
-// import '../widgets/glass_tile.dart'; // ❌ plus utilisé
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
@@ -26,41 +25,19 @@ import '../services/question_history_store.dart';
 import '../models/question.dart';
 
 /// ============================================================================
-/// === CONFIG UI (à éditer facilement) ========================================
-/// ****************************************************************************
-/// Tout ce qui suit est FAIT pour être modifié sans toucher au reste du code.
-/// Les "légendes" expliquent quoi changer.
-/// ****************************************************************************
+/// === CONFIG UI (éditable facilement) ========================================
+/// ============================================================================
 
 class SectionStyle {
-  /// Largeur relative de CHAQUE tuile (ex: 0.25 = 25% de la largeur du carrousel)
   final double itemWidthFraction;
-
-  /// Hauteur FIXE de chaque tuile (en px). Si null, on laissera la hauteur par défaut.
   final double? itemHeight;
-
-  /// Couleur du LISERÉ (bordure extérieure) des tuiles.
   final Color borderColor;
-
-  /// Épaisseur du liseré.
   final double borderWidth;
-
-  /// Rayon d’arrondi des tuiles.
   final double borderRadius;
-
-  /// Couleur de FOND des tuiles.
   final Color tileBackgroundColor;
-
-  /// Style du texte (TITRE DE SECTION) affiché au-dessus du carrousel.
   final TextStyle sectionTitleStyle;
-
-  /// Style du titre DANS la tuile.
   final TextStyle? tileTitleTextStyle;
-
-  /// Couleur de l’icône dans la tuile (si null, on déduira depuis la palette).
   final Color? tileIconColor;
-
-  /// Espace horizontal entre 2 tuiles (en px).
   final double tileSpacing;
 
   const SectionStyle({
@@ -78,25 +55,23 @@ class SectionStyle {
 }
 
 class PlayUIConfig {
-  /// Fraction de hauteur occupée par le panneau “sections/tuiles” (0.60 = 60%).
   final double panelHeightFactor;
-
-  /// Titre des sections (modifiable ici).
-  final String trainingTitle;
+  final String quickPrepTitle;
+  final String coursesTitle;
+  final String bankTitle;
+  final String resourcesTitle;
   final String historyTitle;
   final String challengeTitle;
   final String helpTitle;
-
-  /// Styles par section (clé -> style).
-  /// Clés attendues : 'training', 'history', 'challenge', 'help'
   final Map<String, SectionStyle> sectionStyles;
-
-  /// Espace (px) sous le header “Bienvenue”.
   final double spacingUnderWelcome;
 
   const PlayUIConfig({
     required this.panelHeightFactor,
-    required this.trainingTitle,
+    required this.quickPrepTitle,
+    required this.coursesTitle,
+    required this.bankTitle,
+    required this.resourcesTitle,
     required this.historyTitle,
     required this.challengeTitle,
     required this.helpTitle,
@@ -105,55 +80,130 @@ class PlayUIConfig {
   });
 }
 
-/// Couleurs utilitaires par défaut
+/// Overlay calendrier (configurable)
+class CalendarOverlayConfig {
+  final bool showSeconds;
+  final bool use24h;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final Color bgColor;
+  final Color iconColor;
+  final double iconSize;
+  final TextStyle textStyle;
+  final double spacing;
+  final List<BoxShadow>? shadows;
+
+  const CalendarOverlayConfig({
+    this.showSeconds = false,
+    this.use24h = true,
+    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    this.borderRadius = 16,
+    this.bgColor = const Color(0xFF2E53B3),
+    this.iconColor = const Color(0xFFEF6C00),
+    this.iconSize = 24,
+    this.textStyle = const TextStyle(
+      fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
+    ),
+    this.spacing = 10,
+    this.shadows = const [
+      BoxShadow(color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
+    ],
+  });
+}
+
+/// Couleurs
 const _blue = Color(0xFF1565C0);
-const _red = Color(0xFFFF0000);
 const _orange = Color(0xFFEF6C00);
 const _cardWhite = Colors.white;
 const _titleColor = Color(0xFF1C2430);
 
-/// Légendes rapides :
-/// - itemWidthFraction : largeur d’une tuile en % de la zone carrousel (ex: 0.25)
-/// - itemHeight       : hauteur d’une tuile en px (ex: 100.0)
-/// - borderColor      : couleur du liseré
-/// - borderWidth      : épaisseur du liseré
-/// - borderRadius     : arrondi des coins
-/// - tileBackgroundColor : fond de la tuile
-/// - sectionTitleStyle   : style du titre au-dessus du carrousel
-/// - tileTitleTextStyle  : style du texte dans la tuile
-/// - tileIconColor       : couleur de l’icône (si null, automatique)
-/// - tileSpacing         : espace horizontal entre tuiles
-
+/// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
-  panelHeightFactor: 0.60, // ← Le panneau des tuiles occupe 60% du bas
-  trainingTitle: 'Modes d’entraînement',
+  panelHeightFactor: 0.60,
+  quickPrepTitle: 'Prépa rapide',
+  coursesTitle: 'Cours ENA (Côte d’Ivoire)',
+  bankTitle: 'Sujets & corrigés',
+  resourcesTitle: 'Ressources officielles (CI)',
   historyTitle: 'Historique & suivi',
   challengeTitle: 'Défis & classement',
   helpTitle: 'Aide & thèmes',
-
   sectionStyles: {
-    // SECTION ENTRAÎNEMENT
-    'training': SectionStyle(
-      itemWidthFraction: 0.50,
+    // Prépa rapide
+    'quick': SectionStyle(
+      itemWidthFraction: 0.55,
       itemHeight: 150.0,
       borderColor: _blue,
-      borderWidth: 1.50,
+      borderWidth: 1.4,
       borderRadius: 18,
       tileBackgroundColor: _cardWhite,
       sectionTitleStyle: const TextStyle(
-        fontSize: 25, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 24, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
       ),
       tileIconColor: _blue,
       tileSpacing: 12.0,
     ),
 
-    // SECTION HISTORIQUE
+    // Cours
+    'courses': SectionStyle(
+      itemWidthFraction: 0.45,
+      itemHeight: 140.0,
+      borderColor: const Color(0xFF1E88E5),
+      borderWidth: 1.2,
+      borderRadius: 16,
+      tileBackgroundColor: const Color(0xFFFDFEFE),
+      sectionTitleStyle: const TextStyle(
+        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
+      ),
+      tileTitleTextStyle: const TextStyle(
+        fontSize: 16, fontWeight: FontWeight.w700, color: _titleColor,
+      ),
+      tileIconColor: const Color(0xFF1E88E5),
+      tileSpacing: 10.0,
+    ),
+
+    // Banque
+    'bank': SectionStyle(
+      itemWidthFraction: 0.55,
+      itemHeight: 150.0,
+      borderColor: const Color(0xFF6A1B9A),
+      borderWidth: 1.3,
+      borderRadius: 18,
+      tileBackgroundColor: const Color(0xFFF9F6FF),
+      sectionTitleStyle: const TextStyle(
+        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
+      ),
+      tileTitleTextStyle: const TextStyle(
+        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
+      ),
+      tileIconColor: const Color(0xFF6A1B9A),
+      tileSpacing: 12.0,
+    ),
+
+    // Ressources
+    'resources': SectionStyle(
+      itemWidthFraction: 0.55,
+      itemHeight: 150.0,
+      borderColor: const Color(0xFF2E7D32),
+      borderWidth: 1.2,
+      borderRadius: 18,
+      tileBackgroundColor: const Color(0xFFF4FFF6),
+      sectionTitleStyle: const TextStyle(
+        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
+      ),
+      tileTitleTextStyle: const TextStyle(
+        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
+      ),
+      tileIconColor: const Color(0xFF2E7D32),
+      tileSpacing: 12.0,
+    ),
+
+    // Historique
     'history': SectionStyle(
-      itemWidthFraction: 0.50,
-      itemHeight: 200, // mets null pour responsive
+      itemWidthFraction: 0.55,
+      itemHeight: 180,
       borderColor: _orange,
       borderWidth: 1.25,
       borderRadius: 18,
@@ -162,22 +212,22 @@ final PlayUIConfig UI = PlayUIConfig(
         fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 25, fontWeight: FontWeight.w700, color: _cardWhite,
+        fontSize: 22, fontWeight: FontWeight.w700, color: _cardWhite,
       ),
       tileIconColor: _cardWhite,
       tileSpacing: 12.0,
     ),
 
-    // SECTION DÉFIS
+    // Défis
     'challenge': SectionStyle(
-      itemWidthFraction: 0.50,
-      itemHeight: 250,
+      itemWidthFraction: 0.55,
+      itemHeight: 200,
       borderColor: _blue,
       borderWidth: 1.25,
       borderRadius: 18,
       tileBackgroundColor: _blue,
       sectionTitleStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w800, color: _titleColor,
+        fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
         fontSize: 20, fontWeight: FontWeight.w700, color: _cardWhite,
@@ -186,7 +236,7 @@ final PlayUIConfig UI = PlayUIConfig(
       tileSpacing: 12.0,
     ),
 
-    // SECTION AIDE
+    // Aide
     'help': SectionStyle(
       itemWidthFraction: 1,
       itemHeight: null,
@@ -198,7 +248,7 @@ final PlayUIConfig UI = PlayUIConfig(
         fontSize: 18, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 25, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 20, fontWeight: FontWeight.w700, color: _titleColor,
       ),
       tileIconColor: _orange,
       tileSpacing: 12.0,
@@ -206,10 +256,11 @@ final PlayUIConfig UI = PlayUIConfig(
   },
 );
 
+const CalendarOverlayConfig CAL = CalendarOverlayConfig();
+
 /// ============================================================================
 /// === ÉCRAN ==================================================================
 /// ============================================================================
-
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
   @override
@@ -220,10 +271,76 @@ class _PlayScreenState extends State<PlayScreen> {
   final _auth = AuthService();
   bool _signingOut = false;
 
+  // Carrousel
+  final List<String> _promoImages = const [
+    'assets/images/C1.png',
+    'assets/images/C2.png',
+    'assets/images/C3.png',
+    'assets/images/C4.png',
+  ];
+  late final PageController _promoController;
+  Timer? _promoTimer;
+  int _promoIndex = 0;
+
+  // Fonds
+  late final AssetImage _screenBg =
+  const AssetImage('assets/images/background_playscreen.png');
+  late final AssetImage _panelBg =
+  const AssetImage('assets/images/background_playscreen2.png');
+
+  // Horloge
+  final ValueNotifier<DateTime> _now = ValueNotifier<DateTime>(DateTime.now());
+  Timer? _clockTimer;
+
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    _promoController = PageController(viewportFraction: 1.0);
+    _startAutoPlay();
+    _startClock();
+  }
+
+  void _startAutoPlay() {
+    _promoTimer?.cancel();
+    _promoTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || _promoImages.isEmpty) return;
+      final next = (_promoIndex + 1) % _promoImages.length;
+      _promoController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOut,
+      );
+      setState(() => _promoIndex = next);
+    });
+  }
+
+  void _startClock() {
+    _clockTimer?.cancel();
+    final interval = CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
+    _clockTimer = Timer.periodic(interval, (_) {
+      _now.value = DateTime.now();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(_screenBg, context);
+    precacheImage(_panelBg, context);
+    for (final p in _promoImages) {
+      precacheImage(AssetImage(p), context);
+    }
+  }
+
+  @override
+  void dispose() {
+    _promoTimer?.cancel();
+    _promoController.dispose();
+    _clockTimer?.cancel();
+    _now.dispose();
+    super.dispose();
   }
 
   @override
@@ -245,8 +362,6 @@ class _PlayScreenState extends State<PlayScreen> {
 
         final mq = MediaQuery.of(context);
         final scale = computeScaleFactor(mq);
-
-        // ✅ Utilise TextScaler (conforme à ta util)
         final textScaler = MediaQuery.textScalerOf(context);
 
         final welcomeFontSize = scaledFontSize(
@@ -274,28 +389,17 @@ class _PlayScreenState extends State<PlayScreen> {
           systemNavigationBarColor: Colors.transparent,
         );
 
-        // Définition des sections et mapping styles
+        // ===== Orga des sections (ENA CI) =====
         final sections = <_Section>[
-          _Section(
-            keyName: 'training',
-            title: UI.trainingTitle,
-            itemIndexes: const [0, 1], // Simulation ENA, Par matière
-          ),
-          _Section(
-            keyName: 'history',
-            title: UI.historyTitle,
-            itemIndexes: const [2, 3],
-          ),
-          _Section(
-            keyName: 'challenge',
-            title: UI.challengeTitle,
-            itemIndexes: const [5, 6],
-          ),
-          _Section(
-            keyName: 'help',
-            title: UI.helpTitle,
-            itemIndexes: const [4],
-          ),
+          _Section(keyName: 'quick',     title: UI.quickPrepTitle, itemIndexes: const [0, 15, 1]),
+          _Section(keyName: 'courses',   title: UI.coursesTitle,   itemIndexes: const [
+            7, 16, 8, 17, 9, 10, 18, 11, 12, 13, 14, 19
+          ]),
+          _Section(keyName: 'bank',      title: UI.bankTitle,      itemIndexes: const [20, 21, 22]),
+          _Section(keyName: 'resources', title: UI.resourcesTitle, itemIndexes: const [23, 24, 25, 26]),
+          _Section(keyName: 'history',   title: UI.historyTitle,   itemIndexes: const [2, 3]),
+          _Section(keyName: 'challenge', title: UI.challengeTitle, itemIndexes: const [5, 6]),
+          _Section(keyName: 'help',      title: UI.helpTitle,      itemIndexes: const [4]),
         ];
 
         return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -314,14 +418,11 @@ class _PlayScreenState extends State<PlayScreen> {
             body: Stack(
               fit: StackFit.expand,
               children: [
-                // BACKGROUND ÉCRAN
+                // Background écran
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: bgColor,
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/background_playscreen.png'),
-                      fit: BoxFit.cover,
-                    ),
+                    image: DecorationImage(image: _screenBg, fit: BoxFit.cover),
                   ),
                 ),
                 _buildHeader(
@@ -495,7 +596,7 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  /// SECTIONS + CARROUSELS (fond image background_playscreen_2)
+  /// BOX BLANCHE + BACKGROUND_Playscreen2 + CONTENU SCROLLABLE
   Widget _buildSections({
     required DesignConfig cfg,
     required List<_Section> sections,
@@ -513,111 +614,220 @@ class _PlayScreenState extends State<PlayScreen> {
             topLeft: Radius.circular(22),
             topRight: Radius.circular(22),
           ),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              // ✅ Image de fond pour la box des tuiles
-              image: DecorationImage(
-                image: AssetImage('assets/images/background_playscreen_2.png'),
-                fit: BoxFit.cover,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // image de fond de la BOX
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  image: DecorationImage(image: _panelBg, fit: BoxFit.cover),
+                ),
               ),
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final w = constraints.maxWidth;
-                final h = constraints.maxHeight;
+              // voile discret
+              Container(color: Colors.white.withOpacity(0.04)),
 
-                // "Base" si une section n'a pas d'itemHeight — calcule une hauteur cohérente
-                final baseCardHeight =
-                (h > 260) ? 200.0 : (h - 80).clamp(150.0, 220.0);
+              // === CONTENU (carrousel + tuiles) ===
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final w = constraints.maxWidth;
+                  final h = constraints.maxHeight;
+                  final baseCardHeight =
+                  (h > 260) ? 200.0 : (h - 80).clamp(150.0, 220.0);
 
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: sections.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, si) {
-                    final section = sections[si];
-                    final style = UI.sectionStyles[section.keyName]!;
+                  return CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      // Barre calendrier
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: Row(
+                            children: [
+                              const Spacer(),
+                              ValueListenableBuilder<DateTime>(
+                                valueListenable: _now,
+                                builder: (_, now, __) {
+                                  final text = _formatDateTime(now);
+                                  return Container(
+                                    padding: CAL.padding,
+                                    decoration: BoxDecoration(
+                                      color: CAL.bgColor,
+                                      borderRadius:
+                                      BorderRadius.circular(CAL.borderRadius),
+                                      boxShadow: CAL.shadows,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.calendar_today_rounded,
+                                            size: CAL.iconSize,
+                                            color: CAL.iconColor),
+                                        SizedBox(width: CAL.spacing),
+                                        Text(text, style: CAL.textStyle),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
-                    // Largeur/hauteur d’une tuile selon la config
-                    final double itemWidth =
-                    (w * style.itemWidthFraction).clamp(80.0, w);
-                    final double itemHeight =
-                        style.itemHeight ?? baseCardHeight;
-
-                    // viewportFraction = largeur tuile / largeur viewport
-                    final double viewportFraction =
-                    (itemWidth / w).clamp(0.1, 1.0);
-                    final controller =
-                    PageController(viewportFraction: viewportFraction);
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(section.title, style: style.sectionTitleStyle),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          height: itemHeight,
-                          child: PageView.builder(
-                            controller: controller,
-                            padEnds: false,
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: section.itemIndexes.length,
-                            itemBuilder: (context, pi) {
-                              final i = section.itemIndexes[pi];
-                              final item = _items[i];
-                              final trailing =
-                              (pi == section.itemIndexes.length - 1)
-                                  ? 0.0
-                                  : style.tileSpacing;
-
-                              // Couleur d'icône : config → sinon, on prend une couleur de la palette
-                              final paletteColors = playIconColors(item.palette);
-                              final iconColor = style.tileIconColor ??
-                                  (paletteColors.isNotEmpty
-                                      ? paletteColors.last
-                                      : textColor);
-
-                              final tile = _TileCard(
-                                borderColor: style.borderColor,
-                                borderWidth: style.borderWidth,
-                                borderRadius: style.borderRadius,
-                                backgroundColor: style.tileBackgroundColor,
-                                onTap: () => _navigate(context, i), // ← NAVIGATION
-                                child: _BasicTile(
-                                  title: item.title,
-                                  icon: item.icon,
-                                  iconSize: scale * 48, // ou cfg.tileIconSize
-                                  iconColor: iconColor,
-                                  titleStyle: style.tileTitleTextStyle ??
-                                      const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: _titleColor,
-                                      ),
-                                ),
+                      // Carrousel
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: _PromoCarousel(
+                            images: _promoImages,
+                            controller: _promoController,
+                            currentIndex: _promoIndex,
+                            onIndexTapped: (idx) {
+                              _promoController.animateToPage(
+                                idx,
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOut,
                               );
-
-                              // largeur fixe via SizedBox pour respecter itemWidth
-                              return Padding(
-                                padding: EdgeInsets.only(right: trailing),
-                                child: SizedBox(
-                                  width: itemWidth,
-                                  height: itemHeight,
-                                  child: tile,
-                                ),
-                              );
+                              setState(() => _promoIndex = idx);
                             },
                           ),
                         ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
+                      ),
+
+                      // Sections
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            if (index.isOdd) return const SizedBox(height: 12);
+                            final si = index ~/ 2;
+                            final section = sections[si];
+                            final style = UI.sectionStyles[section.keyName]!;
+
+                            final double itemWidth =
+                            (w * style.itemWidthFraction).clamp(80.0, w);
+                            final double itemHeight =
+                                style.itemHeight ?? baseCardHeight;
+
+                            final double viewportFraction =
+                            (itemWidth / w).clamp(0.1, 1.0);
+                            final controller = PageController(
+                                viewportFraction: viewportFraction);
+
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(section.title,
+                                      style: style.sectionTitleStyle),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    height: itemHeight,
+                                    child: PageView.builder(
+                                      controller: controller,
+                                      padEnds: false,
+                                      physics: const BouncingScrollPhysics(),
+                                      itemCount: section.itemIndexes.length,
+                                      itemBuilder: (context, pi) {
+                                        final i = section.itemIndexes[pi];
+                                        final item = _items[i];
+                                        final trailing =
+                                        (pi == section.itemIndexes.length - 1)
+                                            ? 0.0
+                                            : style.tileSpacing;
+
+                                        final paletteColors =
+                                        playIconColors(item.palette);
+                                        final iconColor = style.tileIconColor ??
+                                            (paletteColors.isNotEmpty
+                                                ? paletteColors.last
+                                                : textColor);
+
+                                        final tile = _TileCard(
+                                          borderColor: style.borderColor,
+                                          borderWidth: style.borderWidth,
+                                          borderRadius: style.borderRadius,
+                                          backgroundColor:
+                                          style.tileBackgroundColor,
+                                          onTap: () => _navigate(context, i),
+                                          child: _BasicTile(
+                                            title: item.title,
+                                            icon: item.icon,
+                                            iconSize: scale * 48,
+                                            iconColor: iconColor,
+                                            titleStyle:
+                                            style.tileTitleTextStyle ??
+                                                const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight:
+                                                  FontWeight.w700,
+                                                  color: _titleColor,
+                                                ),
+                                          ),
+                                        );
+
+                                        return Padding(
+                                          padding:
+                                          EdgeInsets.only(right: trailing),
+                                          child: SizedBox(
+                                            width: itemWidth,
+                                            height: itemHeight,
+                                            child: tile,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          childCount: sections.length * 2 - 1,
+                        ),
+                      ),
+
+                      const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Format date/heure
+  String _formatDateTime(DateTime now) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final y = now.year.toString();
+    final m = two(now.month);
+    final d = two(now.day);
+    int hour = now.hour;
+    String suffix = '';
+    if (!CAL.use24h) {
+      suffix = hour >= 12 ? ' PM' : ' AM';
+      hour = hour % 12;
+      if (hour == 0) hour = 12;
+    }
+    final h = two(hour);
+    final min = two(now.minute);
+    final sec = two(now.second);
+    final time = CAL.showSeconds ? '$h:$min:$sec' : '$h:$min';
+    return '$d/$m/$y  $time$suffix';
+  }
+
+  /// Helper placeholder
+  Future<void> _showComingSoon(BuildContext context, String title, [String? body]) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(body ?? 'Bientôt disponible.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(_, null), child: const Text('OK')),
+        ],
       ),
     );
   }
@@ -625,11 +835,12 @@ class _PlayScreenState extends State<PlayScreen> {
   /// NAVIGATION
   Future<void> _navigate(BuildContext context, int index) async {
     switch (index) {
-      case 0:
+    // ===== Prépa rapide & existants
+      case 0: // Simulation concours
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
         break;
-      case 1:
+      case 1: // Entraînement par matière
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const SubjectListScreen()));
         break;
@@ -642,20 +853,14 @@ class _PlayScreenState extends State<PlayScreen> {
             MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
         break;
       case 4:
-        await showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(
-            title: Text('Comment ça marche ?'),
-            content: Text(
-              '• Entraînement : 5–10 s par question.\n'
-                  '• Concours ENA : difficulté = timing.\n'
-                  '• Entraînement par matière : révise par modules.\n'
-                  '• Historique : suis tes progrès.',
-            ),
-          ),
-        );
+        await _showComingSoon(context, 'Comment ça marche ?', 'Fiches d’utilisation et tutoriels arrivent.');
         break;
       case 5:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
+        break;
+      case 6:
+      // Compétition chronométrée (existant)
         bool progressShown = false;
         try {
           const int desiredCount = 60;
@@ -685,8 +890,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 if (!mounted) return;
                 messenger.showSnackBar(
                   const SnackBar(
-                    content:
-                    Text('Échec de l’enregistrement de l’historique des questions.'),
+                    content: Text('Échec de l’enregistrement de l’historique des questions.'),
                   ),
                 );
               },
@@ -710,12 +914,44 @@ class _PlayScreenState extends State<PlayScreen> {
           );
         }
         break;
-      case 6:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
+      case 15: // Examens blancs (NOUVEAU)
+        await _showComingSoon(
+          context,
+          'Examens blancs ENA',
+          'Programmez des sessions complètes (durées, barèmes, corrigés).',
+        );
         break;
+
+    // ===== Cours ENA (CI)
+      case 7:  await _showComingSoon(context, 'Culture générale (CI & Afrique)'); break;
+      case 16: await _showComingSoon(context, 'Communication administrative'); break;
+      case 8:  await _showComingSoon(context, 'Droit public (Constitutionnel & Administratif)'); break;
+      case 17: await _showComingSoon(context, 'TIC & Bureautique'); break;
+      case 9:  await _showComingSoon(context, 'Finances publiques (CI)'); break;
+      case 10: await _showComingSoon(context, 'Économie & gestion'); break;
+      case 18: await _showComingSoon(context, 'Comptabilité publique'); break;
+      case 11: await _showComingSoon(context, 'Relations internationales & UE'); break;
+      case 12: await _showComingSoon(context, 'Institutions de la Côte d’Ivoire'); break;
+      case 13: await _showComingSoon(context, 'Note de synthèse'); break;
+      case 14: await _showComingSoon(context, 'Méthodologie QRC / QCM'); break;
+      case 19: await _showComingSoon(context, 'Anglais (option)'); break;
+
+    // ===== Banque de sujets & corrigés
+      case 20: await _showComingSoon(context, 'Banque de sujets ENA CI'); break;
+      case 21: await _showComingSoon(context, 'Corrigés détaillés'); break;
+      case 22: await _showComingSoon(context, 'Sujets par filière (A/B/C)'); break;
+
+    // ===== Ressources officielles
+      case 23: await _showComingSoon(context, 'Constitution & textes clés'); break;
+      case 24: await _showComingSoon(context, 'Programme officiel (PDF)'); break;
+      case 25: await _showComingSoon(context, 'Calendrier des concours'); break;
+      case 26: await _showComingSoon(context, 'Textes ENA / Arrêtés / Guides'); break;
+
       default:
-        assert(false, 'Unexpected index: $index');
+      // sécurité
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fonctionnalité à venir.')),
+        );
         break;
     }
   }
@@ -781,11 +1017,10 @@ class _PlayScreenState extends State<PlayScreen> {
 /// ============================================================================
 /// === HELPERS / MODÈLES LOCAUX ===============================================
 /// ============================================================================
-
 class _Section {
-  final String keyName;         // ← clé de style ('training'/'history'/'challenge'/'help')
-  final String title;           // ← texte du titre de section
-  final List<int> itemIndexes;  // ← indexes dans _items
+  final String keyName;
+  final String title;
+  final List<int> itemIndexes;
   const _Section({
     required this.keyName,
     required this.title,
@@ -793,7 +1028,6 @@ class _Section {
   });
 }
 
-/// Carte “pure” (sans glass), gérée par _TileCard pour bordure/fond.
 class _BasicTile extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -840,7 +1074,7 @@ class _TileCard extends StatelessWidget {
   final double borderWidth;
   final double borderRadius;
   final Color backgroundColor;
-  final VoidCallback? onTap; // ✅ gère le tap (navigation)
+  final VoidCallback? onTap;
 
   const _TileCard({
     super.key,
@@ -879,6 +1113,83 @@ class _TileCard extends StatelessWidget {
   }
 }
 
+/// Carrousel
+class _PromoCarousel extends StatelessWidget {
+  final List<String> images;
+  final PageController controller;
+  final int currentIndex;
+  final ValueChanged<int> onIndexTapped;
+
+  const _PromoCarousel({
+    super.key,
+    required this.images,
+    required this.controller,
+    required this.currentIndex,
+    required this.onIndexTapped,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final double height = (mq.size.height * 0.18).clamp(120, 180);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: height.toDouble(),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: PageView.builder(
+              controller: controller,
+              onPageChanged: onIndexTapped,
+              itemCount: images.length,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (_, i) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(images[i], fit: BoxFit.cover),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          children: List.generate(images.length, (i) {
+            final bool active = (i == currentIndex);
+            return GestureDetector(
+              onTap: () => onIndexTapped(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: active ? _orange : _orange.withOpacity(0.35),
+                  boxShadow: active
+                      ? const [
+                    BoxShadow(
+                      color: Color(0x33EF6C00),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                      : null,
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
 /// ============================================================================
 /// === DONNÉES : tuiles affichées =============================================
 /// ============================================================================
@@ -890,13 +1201,40 @@ class _MenuItem {
   const _MenuItem(this.title, this.icon, this.palette);
 }
 
-/// Astuce : change ici les textes affichés **dans** les tuiles.
+// Indices : 0..6 existants, 7..26 nouveaux
 const _items = <_MenuItem>[
-  _MenuItem('Simulation concours ENA', Icons.school_rounded, 'violetRose'),
-  _MenuItem('Entraînement par matière', Icons.menu_book_rounded, 'sereneBlue'),
-  _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),
-  _MenuItem("Historique entraînement", Icons.history_rounded, 'softYellow'),
-  _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),
-  _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen'),
-  _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet'),
+  // Base existante
+  _MenuItem('Simulation concours ENA', Icons.school_rounded, 'violetRose'),     // 0
+  _MenuItem('Entraînement par matière', Icons.menu_book_rounded, 'sereneBlue'), // 1
+  _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),      // 2
+  _MenuItem('Historique entraînement', Icons.history_rounded, 'softYellow'),    // 3
+  _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),           // 4
+  _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet'),          // 5
+  _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen'),                // 6
+
+  // Cours ENA (CI)
+  _MenuItem('Culture générale (CI & Afrique)', Icons.auto_stories_rounded, 'sereneBlue'), // 7
+  _MenuItem('Droit public (Consti/Administratif)', Icons.gavel_rounded, 'royalViolet'),   // 8
+  _MenuItem('Finances publiques (CI)', Icons.account_balance_wallet_rounded, 'lightGreen'), // 9
+  _MenuItem('Économie & gestion', Icons.show_chart_rounded, 'softYellow'),                // 10
+  _MenuItem('Relations internationales & UE', Icons.public_rounded, 'violetRose'),        // 11
+  _MenuItem('Institutions de la Côte d’Ivoire', Icons.corporate_fare_rounded, 'sereneBlue'), // 12
+  _MenuItem('Note de synthèse', Icons.description_rounded, 'powderPink'),                 // 13
+  _MenuItem('Méthodo QRC / QCM', Icons.checklist_rtl_rounded, 'forestGreen'),             // 14
+  _MenuItem('Examens blancs ENA', Icons.timer_rounded, 'royalViolet'),                    // 15
+  _MenuItem('Communication administrative', Icons.record_voice_over_rounded, 'powderPink'), // 16
+  _MenuItem('TIC & Bureautique', Icons.computer_rounded, 'sereneBlue'),                   // 17
+  _MenuItem('Comptabilité publique', Icons.request_quote_rounded, 'lightGreen'),          // 18
+  _MenuItem('Anglais (option)', Icons.translate_rounded, 'softYellow'),                   // 19
+
+  // Banque de sujets & corrigés
+  _MenuItem('Banque de sujets ENA CI', Icons.folder_special_rounded, 'royalViolet'),      // 20
+  _MenuItem('Corrigés détaillés', Icons.task_rounded, 'violetRose'),                      // 21
+  _MenuItem('Sujets par filière (A/B/C)', Icons.view_module_rounded, 'forestGreen'),      // 22
+
+  // Ressources officielles (CI)
+  _MenuItem('Constitution & textes clés', Icons.menu_book_outlined, 'sereneBlue'),        // 23
+  _MenuItem('Programme officiel (PDF)', Icons.picture_as_pdf_rounded, 'powderPink'),      // 24
+  _MenuItem('Calendrier des concours', Icons.calendar_month_rounded, 'softYellow'),       // 25
+  _MenuItem('Textes ENA / Arrêtés / Guides', Icons.library_books_rounded, 'lightGreen'),  // 26
 ];

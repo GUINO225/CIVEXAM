@@ -43,6 +43,12 @@ flutter:
     - assets/questions/ena_sample.json
     - assets/images/logo_splash.png
     - assets/images/background_playscreen.png
+    - assets/images/background_playscreen2.png
+    - assets/images/C1.png
+    - assets/images/C2.png
+    - assets/images/C3.png
+    - assets/images/C4.png
+
     - assets/icons/
     - assets/icons/mono/
     - assets/icons/sets/amber/
