@@ -21,6 +21,7 @@ import 'competition_screen.dart';
 import 'login_screen.dart';
 import 'courses/communication_administrative_screen.dart';
 import 'courses/culture_generale_screen.dart';
+import 'courses/droit_public_screen.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
@@ -943,7 +944,15 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
         );
         break;
-      case 8:  await _showComingSoon(context, 'Droit public (Constitutionnel & Administratif)'); break;
+      case 8:
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const DroitPublicScreen(),
+          ),
+        );
+        break;
       case 17: await _showComingSoon(context, 'TIC & Bureautique'); break;
       case 9:  await _showComingSoon(context, 'Finances publiques (CI)'); break;
       case 10: await _showComingSoon(context, 'Économie & gestion'); break;
