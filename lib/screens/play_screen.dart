@@ -19,6 +19,7 @@ import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'competition_screen.dart';
 import 'login_screen.dart';
+import 'courses/culture_generale_screen.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
@@ -923,7 +924,15 @@ class _PlayScreenState extends State<PlayScreen> {
         break;
 
     // ===== Cours ENA (CI)
-      case 7:  await _showComingSoon(context, 'Culture générale (CI & Afrique)'); break;
+      case 7:
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CultureGeneraleScreen(),
+          ),
+        );
+        break;
       case 16: await _showComingSoon(context, 'Communication administrative'); break;
       case 8:  await _showComingSoon(context, 'Droit public (Constitutionnel & Administratif)'); break;
       case 17: await _showComingSoon(context, 'TIC & Bureautique'); break;
