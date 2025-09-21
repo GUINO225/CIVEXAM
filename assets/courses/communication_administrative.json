@@ -1,0 +1,34 @@
+{
+  "sections": [
+    {
+      "title": "Fondamentaux de la communication administrative",
+      "description": "Objectifs, valeurs et cadre juridique qui structurent la relation entre l'administration et les usagers.",
+      "highlights": [
+        "Respect des principes de légalité, d'égalité de traitement et de transparence dans tout échange.",
+        "Clarté et accessibilité : langage simple, structuration logique, suppression du jargon inutile.",
+        "Traçabilité : chaque message doit pouvoir être retrouvé, daté, signé et archivé conformément aux normes en vigueur.",
+        "Prise en compte de la diversité des publics (alphabétisation, langues, canaux digitaux ou physiques)."
+      ]
+    },
+    {
+      "title": "Communication écrite",
+      "description": "Méthodologie et formats types : note, compte rendu, courrier, rapport, email institutionnel.",
+      "highlights": [
+        "Structure en trois temps : contexte/objet, développement synthétique, conclusion opérationnelle.",
+        "Usage des modèles officiels : en-têtes normalisés, formules d'appel et de politesse adaptées au destinataire.",
+        "Relecture systématique (orthographe, chiffres, références réglementaires) avant diffusion.",
+        "Maîtrise des annexes : tableaux, indicateurs, fiches synthèses pour faciliter la décision de la hiérarchie."
+      ]
+    },
+    {
+      "title": "Communication orale et numérique",
+      "description": "Préparer une présentation, animer une réunion, gérer un accueil téléphonique ou digital.",
+      "highlights": [
+        "Avant la prise de parole : clarifier l'objectif, identifier les messages clés, anticiper questions et objections.",
+        "Pendant l'échange : posture professionnelle, écoute active, reformulation, respect du temps imparti.",
+        "Suivi : compte rendu rapide, plan d'actions et distribution des responsabilités auprès des participants.",
+        "Outils numériques : rédaction de publications institutionnelles, webinaires, messagerie instantanée sécurisée."
+      ]
+    }
+  ]
+}
