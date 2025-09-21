@@ -1,0 +1,24 @@
+{
+  "sections": [
+    {
+      "title": "Côte d’Ivoire",
+      "description": "Panorama institutionnel, économique et social de la République de Côte d’Ivoire pour replacer les sujets des concours ENA dans leur contexte national.",
+      "highlights": [
+        "Institutions : Constitution de 2016, exécutif bicéphale (Président et Vice-Président), gouvernement dirigé par un Premier ministre et Parlement bicaméral (Assemblée nationale et Sénat).",
+        "Économie : première puissance d’Afrique de l’Ouest francophone avec un PIB porté par l’agriculture (cacao, anacarde), l’industrie agroalimentaire et les services, plans nationaux de développement successifs.",
+        "Société : population estimée à plus de 28 millions d’habitants, diversité culturelle et linguistique, défis en matière d’urbanisation, d’éducation, de cohésion nationale et de gouvernance locale.",
+        "Ressources recommandées : Portail du Gouvernement ivoirien, rapports de la Primature, documents de planification (PND) et statistiques de l’INS."
+      ]
+    },
+    {
+      "title": "Afrique",
+      "description": "Repères continentaux et organisations régionales à maîtriser pour relier l’actualité africaine aux thématiques de culture générale des concours.",
+      "highlights": [
+        "Organisations régionales : Union africaine (UA), CEDEAO, UEMOA, Banque africaine de développement et partenariats stratégiques panafricains.",
+        "Enjeux socio-économiques : croissance démographique, transitions énergétiques, industrialisation, sécurité alimentaire, intégration commerciale (ZLECAf).",
+        "Gouvernance et sécurité : dynamiques démocratiques contrastées, mécanismes de paix et sécurité de l’UA, opérations de maintien de la paix, coopération régionale contre le terrorisme.",
+        "Ressources recommandées : rapports de la Banque mondiale et de la BAD, Agenda 2063 de l’UA, bulletins de la CEDEAO, think tanks africains (WATHI, ISS)."
+      ]
+    }
+  ]
+}

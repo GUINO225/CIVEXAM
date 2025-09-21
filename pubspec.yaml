@@ -48,6 +48,7 @@ flutter:
     - assets/images/C2.png
     - assets/images/C3.png
     - assets/images/C4.png
+    - assets/courses/culture_generale_ci_afrique.json
 
     - assets/icons/
     - assets/icons/mono/
