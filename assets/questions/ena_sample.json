@@ -16,6 +16,22 @@
     "explanation": "Abidjan est la capitale économique du pays."
   },
   {
+    "id": "CG-AF-00",
+    "concours": "ENA",
+    "subject": "Culture Générale",
+    "chapter": "Afrique",
+    "difficulty": 1,
+    "question": "Quel océan borde la côte orientale de l’Afrique ?",
+    "choices": [
+      "L’océan Atlantique",
+      "L’océan Indien",
+      "L’océan Pacifique",
+      "L’océan Arctique"
+    ],
+    "answerIndex": 1,
+    "explanation": "Les pays de la façade orientale de l’Afrique sont baignés par l’océan Indien."
+  },
+  {
     "id": "DC-IP-00",
     "concours": "ENA",
     "subject": "Droit Constitutionnel",
