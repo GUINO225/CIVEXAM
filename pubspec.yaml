@@ -50,6 +50,7 @@ flutter:
     - assets/images/C4.png
     - assets/courses/culture_generale_ci_afrique.json
     - assets/courses/communication_administrative.json
+    - assets/courses/droit_public_constit_admin.json
 
     - assets/icons/
     - assets/icons/mono/
