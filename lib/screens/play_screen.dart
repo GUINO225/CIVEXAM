@@ -30,7 +30,6 @@ import '../models/question.dart';
 /// ============================================================================
 /// === CONFIG UI (éditable facilement) ========================================
 /// ============================================================================
-
 class SectionStyle {
   final double itemWidthFraction;
   final double? itemHeight;
@@ -122,7 +121,7 @@ const _titleColor = Color(0xFF1C2430);
 
 /// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
-  panelHeightFactor: 0.60,
+  panelHeightFactor: 0.72, // ⬅️ plus de hauteur pour la box des tuiles
   quickPrepTitle: 'Prépa rapide',
   coursesTitle: 'Cours ENA (Côte d’Ivoire)',
   bankTitle: 'Sujets & corrigés',
@@ -321,7 +320,8 @@ class _PlayScreenState extends State<PlayScreen> {
 
   void _startClock() {
     _clockTimer?.cancel();
-    final interval = CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
+    final interval =
+    CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
     _clockTimer = Timer.periodic(interval, (_) {
       _now.value = DateTime.now();
     });
@@ -634,8 +634,10 @@ class _PlayScreenState extends State<PlayScreen> {
                 builder: (context, constraints) {
                   final w = constraints.maxWidth;
                   final h = constraints.maxHeight;
+
+                  // ⬆️ base un peu plus haute pour les cartes
                   final baseCardHeight =
-                  (h > 260) ? 200.0 : (h - 80).clamp(150.0, 220.0);
+                  (h > 260) ? 220.0 : (h - 60).clamp(170.0, 240.0);
 
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -770,8 +772,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                         );
 
                                         return Padding(
-                                          padding:
-                                          EdgeInsets.only(right: trailing),
+                                          padding: EdgeInsets.only(right: trailing),
                                           child: SizedBox(
                                             width: itemWidth,
                                             height: itemHeight,
@@ -953,26 +954,58 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
         );
         break;
-      case 17: await _showComingSoon(context, 'TIC & Bureautique'); break;
-      case 9:  await _showComingSoon(context, 'Finances publiques (CI)'); break;
-      case 10: await _showComingSoon(context, 'Économie & gestion'); break;
-      case 18: await _showComingSoon(context, 'Comptabilité publique'); break;
-      case 11: await _showComingSoon(context, 'Relations internationales & UE'); break;
-      case 12: await _showComingSoon(context, 'Institutions de la Côte d’Ivoire'); break;
-      case 13: await _showComingSoon(context, 'Note de synthèse'); break;
-      case 14: await _showComingSoon(context, 'Méthodologie QRC / QCM'); break;
-      case 19: await _showComingSoon(context, 'Anglais (option)'); break;
+      case 17:
+        await _showComingSoon(context, 'TIC & Bureautique');
+        break;
+      case 9:
+        await _showComingSoon(context, 'Finances publiques (CI)');
+        break;
+      case 10:
+        await _showComingSoon(context, 'Économie & gestion');
+        break;
+      case 18:
+        await _showComingSoon(context, 'Comptabilité publique');
+        break;
+      case 11:
+        await _showComingSoon(context, 'Relations internationales & UE');
+        break;
+      case 12:
+        await _showComingSoon(context, 'Institutions de la Côte d’Ivoire');
+        break;
+      case 13:
+        await _showComingSoon(context, 'Note de synthèse');
+        break;
+      case 14:
+        await _showComingSoon(context, 'Méthodologie QRC / QCM');
+        break;
+      case 19:
+        await _showComingSoon(context, 'Anglais (option)');
+        break;
 
     // ===== Banque de sujets & corrigés
-      case 20: await _showComingSoon(context, 'Banque de sujets ENA CI'); break;
-      case 21: await _showComingSoon(context, 'Corrigés détaillés'); break;
-      case 22: await _showComingSoon(context, 'Sujets par filière (A/B/C)'); break;
+      case 20:
+        await _showComingSoon(context, 'Banque de sujets ENA CI');
+        break;
+      case 21:
+        await _showComingSoon(context, 'Corrigés détaillés');
+        break;
+      case 22:
+        await _showComingSoon(context, 'Sujets par filière (A/B/C)');
+        break;
 
     // ===== Ressources officielles
-      case 23: await _showComingSoon(context, 'Constitution & textes clés'); break;
-      case 24: await _showComingSoon(context, 'Programme officiel (PDF)'); break;
-      case 25: await _showComingSoon(context, 'Calendrier des concours'); break;
-      case 26: await _showComingSoon(context, 'Textes ENA / Arrêtés / Guides'); break;
+      case 23:
+        await _showComingSoon(context, 'Constitution & textes clés');
+        break;
+      case 24:
+        await _showComingSoon(context, 'Programme officiel (PDF)');
+        break;
+      case 25:
+        await _showComingSoon(context, 'Calendrier des concours');
+        break;
+      case 26:
+        await _showComingSoon(context, 'Textes ENA / Arrêtés / Guides');
+        break;
 
       default:
       // sécurité
@@ -1158,7 +1191,8 @@ class _PromoCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final double height = (mq.size.height * 0.18).clamp(120, 180);
+    // ⬆️ carrousel plus haut (26% de la hauteur écran), clamp 150–260px
+    final double height = (mq.size.height * 0.26).clamp(150, 260);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1220,7 +1254,6 @@ class _PromoCarousel extends StatelessWidget {
 /// ============================================================================
 /// === DONNÉES : tuiles affichées =============================================
 /// ============================================================================
-
 class _MenuItem {
   final String title;
   final IconData icon;
