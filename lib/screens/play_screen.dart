@@ -30,16 +30,28 @@ import '../models/question.dart';
 /// ============================================================================
 /// === CONFIG UI (éditable facilement) ========================================
 /// ============================================================================
+
 class SectionStyle {
   final double itemWidthFraction;
   final double? itemHeight;
   final Color borderColor;
   final double borderWidth;
   final double borderRadius;
+
+  /// Couleur de fond… si `tileGradient` est null.
   final Color tileBackgroundColor;
+
+  /// Dégradé vibrant (prioritaire si défini)
+  final Gradient? tileGradient;
+
   final TextStyle sectionTitleStyle;
+
+  /// Couleur du texte sur la tuile (par défaut: blanc sur dégradé sombre)
   final TextStyle? tileTitleTextStyle;
+
+  /// Couleur de l’icône (par défaut: blanc)
   final Color? tileIconColor;
+
   final double tileSpacing;
 
   const SectionStyle({
@@ -49,6 +61,7 @@ class SectionStyle {
     this.borderWidth = 1.25,
     this.borderRadius = 18,
     required this.tileBackgroundColor,
+    this.tileGradient,
     required this.sectionTitleStyle,
     this.tileTitleTextStyle,
     this.tileIconColor,
@@ -66,7 +79,12 @@ class PlayUIConfig {
   final String challengeTitle;
   final String helpTitle;
   final Map<String, SectionStyle> sectionStyles;
+
+  /// Espace sous le message de bienvenue (déjà existant)
   final double spacingUnderWelcome;
+
+  /// Espace **entre** le logo et le message de bienvenue
+  final double spacingBetweenLogoAndWelcome;
 
   const PlayUIConfig({
     required this.panelHeightFactor,
@@ -79,6 +97,7 @@ class PlayUIConfig {
     required this.helpTitle,
     required this.sectionStyles,
     this.spacingUnderWelcome = 16.0,
+    this.spacingBetweenLogoAndWelcome = 1.0,
   });
 }
 
@@ -101,7 +120,7 @@ class CalendarOverlayConfig {
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     this.borderRadius = 16,
     this.bgColor = const Color(0xFF2E53B3),
-    this.iconColor = const Color(0xFFEF6C00),
+    this.iconColor = const Color(0xFFFFD740),
     this.iconSize = 24,
     this.textStyle = const TextStyle(
       fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
@@ -113,15 +132,13 @@ class CalendarOverlayConfig {
   });
 }
 
-/// Couleurs
-const _blue = Color(0xFF1565C0);
-const _orange = Color(0xFFEF6C00);
+/// Couleurs de base
+const _titleColor = Color(0xFF0E1420);
 const _cardWhite = Colors.white;
-const _titleColor = Color(0xFF1C2430);
 
 /// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
-  panelHeightFactor: 0.72, // ⬅️ plus de hauteur pour la box des tuiles
+  panelHeightFactor: 0.72,
   quickPrepTitle: 'Prépa rapide',
   coursesTitle: 'Cours ENA (Côte d’Ivoire)',
   bankTitle: 'Sujets & corrigés',
@@ -130,135 +147,174 @@ final PlayUIConfig UI = PlayUIConfig(
   challengeTitle: 'Défis & classement',
   helpTitle: 'Aide & thèmes',
   sectionStyles: {
-    // Prépa rapide
     'quick': SectionStyle(
-      itemWidthFraction: 0.55,
-      itemHeight: 150.0,
-      borderColor: _blue,
-      borderWidth: 1.4,
-      borderRadius: 18,
-      tileBackgroundColor: _cardWhite,
+      itemWidthFraction: 0.50,
+      itemHeight: 200,
+      borderColor: const Color(0x887C4DFF),
+      borderWidth: 1.0,
+      borderRadius: 10,
+      tileBackgroundColor: const Color(0xFF7C4DFF),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 24, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: _blue,
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
 
-    // Cours
     'courses': SectionStyle(
-      itemWidthFraction: 0.45,
-      itemHeight: 140.0,
-      borderColor: const Color(0xFF1E88E5),
-      borderWidth: 1.2,
-      borderRadius: 16,
-      tileBackgroundColor: const Color(0xFFFDFEFE),
+      itemWidthFraction: 0.46,
+      itemHeight: 200.0,
+      borderColor: const Color(0xFF21295C),
+      borderWidth: 1.0,
+      borderRadius: 10,
+      tileBackgroundColor: const Color(0xFF00E5FF),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)], ),
       sectionTitleStyle: const TextStyle(
         fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 16, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: const Color(0xFF1E88E5),
+      tileIconColor: Colors.white,
       tileSpacing: 10.0,
     ),
 
-    // Banque
     'bank': SectionStyle(
       itemWidthFraction: 0.55,
-      itemHeight: 150.0,
-      borderColor: const Color(0xFF6A1B9A),
-      borderWidth: 1.3,
-      borderRadius: 18,
-      tileBackgroundColor: const Color(0xFFF9F6FF),
+      itemHeight: 160.0,
+      borderColor: const Color(0x88FFC400),
+      borderWidth: 1.0,
+      borderRadius: 10,
+      tileBackgroundColor: const Color(0xFFFFC400),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFA200), Color(0xFFFF8800)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: const Color(0xFF6A1B9A),
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
 
-    // Ressources
     'resources': SectionStyle(
       itemWidthFraction: 0.55,
-      itemHeight: 150.0,
-      borderColor: const Color(0xFF2E7D32),
-      borderWidth: 1.2,
-      borderRadius: 18,
-      tileBackgroundColor: const Color(0xFFF4FFF6),
+      itemHeight: 160.0,
+      borderColor: const Color(0x8800C853),
+      borderWidth: 1.0,
+      borderRadius: 0,
+      tileBackgroundColor: const Color(0xFF00C853),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFF5A00), Color(0xFFFF4C00)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: const Color(0xFF2E7D32),
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
 
-    // Historique
     'history': SectionStyle(
       itemWidthFraction: 0.55,
-      itemHeight: 180,
-      borderColor: _orange,
-      borderWidth: 1.25,
-      borderRadius: 18,
-      tileBackgroundColor: _orange,
+      itemHeight: 190,
+      borderColor: const Color(0x88FF6D00),
+      borderWidth: 1.0,
+      borderRadius: 2,
+      tileBackgroundColor: const Color(0xFFFF6D00),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF006507), Color(0xFF2F5C00)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 22, fontWeight: FontWeight.w700, color: _cardWhite,
+        fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: _cardWhite,
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
 
-    // Défis
     'challenge': SectionStyle(
       itemWidthFraction: 0.55,
-      itemHeight: 200,
-      borderColor: _blue,
-      borderWidth: 1.25,
-      borderRadius: 18,
-      tileBackgroundColor: _blue,
+      itemHeight: 205,
+      borderColor: const Color(0x882962FF),
+      borderWidth: 1.0,
+      borderRadius: 2,
+      tileBackgroundColor: const Color(0xFF2962FF),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF264653), Color(0xFF264653)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w700, color: _cardWhite,
+        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: _cardWhite,
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
 
-    // Aide
     'help': SectionStyle(
       itemWidthFraction: 1,
       itemHeight: null,
-      borderColor: _orange,
-      borderWidth: 1.25,
-      borderRadius: 18,
-      tileBackgroundColor: _cardWhite,
+      borderColor: const Color(0x88AA00FF),
+      borderWidth: 1.0,
+      borderRadius: 2,
+      tileBackgroundColor: const Color(0xFFAA00FF),
+      tileGradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)],
+      ),
       sectionTitleStyle: const TextStyle(
         fontSize: 18, fontWeight: FontWeight.w800, color: _titleColor,
       ),
       tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w700, color: _titleColor,
+        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
       ),
-      tileIconColor: _orange,
+      tileIconColor: Colors.white,
       tileSpacing: 12.0,
     ),
   },
+
+  spacingUnderWelcome: 16.0,
+  spacingBetweenLogoAndWelcome: 1.0,
 );
 
 const CalendarOverlayConfig CAL = CalendarOverlayConfig();
+
+/// === Helper: couleur principale de la tuile (dernier stop du gradient sinon fond) ===
+Color _pickTileMainColor(SectionStyle style) {
+  final g = style.tileGradient;
+  if (g is LinearGradient && g.colors.isNotEmpty) return g.colors.last;
+  if (g is RadialGradient && g.colors.isNotEmpty) return g.colors.last;
+  if (g is SweepGradient && g.colors.isNotEmpty) return g.colors.last;
+  return style.tileBackgroundColor;
+}
 
 /// ============================================================================
 /// === ÉCRAN ==================================================================
@@ -335,6 +391,12 @@ class _PlayScreenState extends State<PlayScreen> {
     for (final p in _promoImages) {
       precacheImage(AssetImage(p), context);
     }
+    // Précharger les PNG des tuiles disponibles
+    for (final it in _items) {
+      if (it.asset != null) {
+        precacheImage(AssetImage(it.asset!), context);
+      }
+    }
   }
 
   @override
@@ -394,15 +456,45 @@ class _PlayScreenState extends State<PlayScreen> {
 
         // ===== Orga des sections (ENA CI) =====
         final sections = <_Section>[
-          _Section(keyName: 'quick',     title: UI.quickPrepTitle, itemIndexes: const [0, 15, 1]),
-          _Section(keyName: 'courses',   title: UI.coursesTitle,   itemIndexes: const [
-            7, 16, 8, 17, 9, 10, 18, 11, 12, 13, 14, 19
-          ]),
-          _Section(keyName: 'bank',      title: UI.bankTitle,      itemIndexes: const [20, 21, 22]),
-          _Section(keyName: 'resources', title: UI.resourcesTitle, itemIndexes: const [23, 24, 25, 26]),
-          _Section(keyName: 'history',   title: UI.historyTitle,   itemIndexes: const [2, 3]),
-          _Section(keyName: 'challenge', title: UI.challengeTitle, itemIndexes: const [5, 6]),
-          _Section(keyName: 'help',      title: UI.helpTitle,      itemIndexes: const [4]),
+          _Section(
+              keyName: 'quick',
+              title: UI.quickPrepTitle,
+              itemIndexes: const [0, 15, 1]),
+          _Section(
+              keyName: 'courses',
+              title: UI.coursesTitle,
+              itemIndexes: const [
+                7,
+                16,
+                8,
+                17,
+                9,
+                10,
+                18,
+                11,
+                12,
+                13,
+                14,
+                19
+              ]),
+          _Section(
+              keyName: 'bank',
+              title: UI.bankTitle,
+              itemIndexes: const [20, 21, 22]),
+          _Section(
+              keyName: 'resources',
+              title: UI.resourcesTitle,
+              itemIndexes: const [23, 24, 25, 26]),
+          _Section(
+              keyName: 'history',
+              title: UI.historyTitle,
+              itemIndexes: const [2, 3]),
+          _Section(
+              keyName: 'challenge',
+              title: UI.challengeTitle,
+              itemIndexes: const [5, 6]),
+          _Section(
+              keyName: 'help', title: UI.helpTitle, itemIndexes: const [4]),
         ];
 
         return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -502,12 +594,14 @@ class _PlayScreenState extends State<PlayScreen> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.person_outline, color: Color(0xFF0D47A1)),
+                icon:
+                const Icon(Icons.person_outline, color: Color(0xFF0D47A1)),
                 tooltip: 'Tableau de bord',
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const DashboardScreen()),
                   );
                 },
               ),
@@ -518,12 +612,14 @@ class _PlayScreenState extends State<PlayScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const LeaderboardScreen()),
                   );
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.palette_outlined, color: Color(0xFF0D47A1)),
+                icon: const Icon(Icons.palette_outlined,
+                    color: Color(0xFF0D47A1)),
                 tooltip: 'Choisir un thème',
                 onPressed: () async {
                   await Navigator.push(
@@ -563,6 +659,7 @@ class _PlayScreenState extends State<PlayScreen> {
               height: logoHeight,
               fit: BoxFit.contain,
             ),
+            SizedBox(height: UI.spacingBetweenLogoAndWelcome),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: RichText(
@@ -635,7 +732,6 @@ class _PlayScreenState extends State<PlayScreen> {
                   final w = constraints.maxWidth;
                   final h = constraints.maxHeight;
 
-                  // ⬆️ base un peu plus haute pour les cartes
                   final baseCardHeight =
                   (h > 260) ? 220.0 : (h - 60).clamp(170.0, 240.0);
 
@@ -719,7 +815,8 @@ class _PlayScreenState extends State<PlayScreen> {
                                 viewportFraction: viewportFraction);
 
                             return Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                              padding:
+                              const EdgeInsets.fromLTRB(16, 6, 16, 0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -731,52 +828,97 @@ class _PlayScreenState extends State<PlayScreen> {
                                     child: PageView.builder(
                                       controller: controller,
                                       padEnds: false,
-                                      physics: const BouncingScrollPhysics(),
+                                      physics:
+                                      const BouncingScrollPhysics(),
                                       itemCount: section.itemIndexes.length,
                                       itemBuilder: (context, pi) {
                                         final i = section.itemIndexes[pi];
                                         final item = _items[i];
                                         final trailing =
-                                        (pi == section.itemIndexes.length - 1)
+                                        (pi ==
+                                            section.itemIndexes.length -
+                                                1)
                                             ? 0.0
                                             : style.tileSpacing;
 
                                         final paletteColors =
                                         playIconColors(item.palette);
-                                        final iconColor = style.tileIconColor ??
-                                            (paletteColors.isNotEmpty
-                                                ? paletteColors.last
-                                                : textColor);
+                                        final iconColor =
+                                            style.tileIconColor ??
+                                                (paletteColors.isNotEmpty
+                                                    ? paletteColors.last
+                                                    : Colors.white);
 
-                                        final tile = _TileCard(
+                                        // --- Taille de la tuile vs légende (texte hors tuile)
+                                        const double captionHeight =
+                                        36.0; // zone texte
+                                        final double tileBodyHeight =
+                                        (itemHeight - captionHeight)
+                                            .clamp(110.0, itemHeight);
+
+                                        // --- Tuile avec icône/image seule
+                                        final iconOnlyTile = _TileCard(
                                           borderColor: style.borderColor,
                                           borderWidth: style.borderWidth,
                                           borderRadius: style.borderRadius,
                                           backgroundColor:
                                           style.tileBackgroundColor,
+                                          gradient: style.tileGradient,
                                           onTap: () => _navigate(context, i),
-                                          child: _BasicTile(
-                                            title: item.title,
+                                          child: _IconOnlyTile(
                                             icon: item.icon,
-                                            iconSize: scale * 48,
+                                            asset: item.asset,
+                                            iconSize: scale * 120,
                                             iconColor: iconColor,
-                                            titleStyle:
-                                            style.tileTitleTextStyle ??
-                                                const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight:
-                                                  FontWeight.w700,
-                                                  color: _titleColor,
-                                                ),
                                           ),
                                         );
 
+                                        // --- Légende (texte) sous la tuile : même couleur que la tuile
+                                        final Color captionColor =
+                                        _pickTileMainColor(style);
+
+                                        final captionStyle =
+                                        (style.tileTitleTextStyle ??
+                                            const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight:
+                                              FontWeight.w800,
+                                            ))
+                                            .copyWith(
+                                          color: captionColor,
+                                        );
+
                                         return Padding(
-                                          padding: EdgeInsets.only(right: trailing),
+                                          padding:
+                                          EdgeInsets.only(right: trailing),
                                           child: SizedBox(
                                             width: itemWidth,
                                             height: itemHeight,
-                                            child: tile,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                              children: [
+                                                SizedBox(
+                                                  height: tileBodyHeight,
+                                                  child: iconOnlyTile,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                SizedBox(
+                                                  height: captionHeight - 6,
+                                                  child: Center(
+                                                    child: Text(
+                                                      item.title,
+                                                      textAlign:
+                                                      TextAlign.center,
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                      style: captionStyle,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         );
                                       },
@@ -823,14 +965,17 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   /// Helper placeholder
-  Future<void> _showComingSoon(BuildContext context, String title, [String? body]) {
+  Future<void> _showComingSoon(BuildContext context, String title,
+      [String? body]) {
     return showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(title),
         content: Text(body ?? 'Bientôt disponible.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(_, null), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(_, null),
+              child: const Text('OK')),
         ],
       ),
     );
@@ -857,7 +1002,8 @@ class _PlayScreenState extends State<PlayScreen> {
             MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
         break;
       case 4:
-        await _showComingSoon(context, 'Comment ça marche ?', 'Fiches d’utilisation et tutoriels arrivent.');
+        await _showComingSoon(context, 'Comment ça marche ?',
+            'Fiches d’utilisation et tutoriels arrivent.');
         break;
       case 5:
         Navigator.push(context,
@@ -894,7 +1040,8 @@ class _PlayScreenState extends State<PlayScreen> {
                 if (!mounted) return;
                 messenger.showSnackBar(
                   const SnackBar(
-                    content: Text('Échec de l’enregistrement de l’historique des questions.'),
+                    content: Text(
+                        'Échec de l’enregistrement de l’historique des questions.'),
                   ),
                 );
               },
@@ -1077,6 +1224,7 @@ class _PlayScreenState extends State<PlayScreen> {
 /// ============================================================================
 /// === HELPERS / MODÈLES LOCAUX ===============================================
 /// ============================================================================
+
 class _Section {
   final String keyName;
   final String title;
@@ -1108,12 +1256,12 @@ class _BasicTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: iconSize, color: iconColor),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -1128,12 +1276,52 @@ class _BasicTile extends StatelessWidget {
   }
 }
 
+/// Nouveau : tuile icône OU image PNG
+class _IconOnlyTile extends StatelessWidget {
+  final IconData? icon;
+  final String? asset; // chemin PNG
+  final double iconSize;
+  final Color iconColor;
+
+  const _IconOnlyTile({
+    super.key,
+    required this.icon,
+    required this.asset,
+    required this.iconSize,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget child;
+    if (asset != null) {
+      child = Image.asset(
+        asset!,
+        height: iconSize,
+        width: iconSize,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      );
+    } else {
+      child = Icon(icon, size: iconSize, color: iconColor);
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: child,
+      ),
+    );
+  }
+}
+
 class _TileCard extends StatelessWidget {
   final Widget child;
   final Color borderColor;
   final double borderWidth;
   final double borderRadius;
   final Color backgroundColor;
+  final Gradient? gradient;
   final VoidCallback? onTap;
 
   const _TileCard({
@@ -1143,6 +1331,7 @@ class _TileCard extends StatelessWidget {
     required this.borderWidth,
     required this.borderRadius,
     required this.backgroundColor,
+    this.gradient,
     this.onTap,
   });
 
@@ -1153,18 +1342,26 @@ class _TileCard extends StatelessWidget {
       child: Ink(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: borderColor.withOpacity(0.85), width: borderWidth),
+          border: Border.all(color: borderColor, width: borderWidth),
+          gradient: gradient,
+          color: gradient == null ? backgroundColor : null,
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0D000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+              color: Color(0x1F000000),
+              blurRadius: 12,
+              offset: Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
             ),
           ],
-          color: backgroundColor,
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(borderRadius),
+          splashColor: Colors.white24,
+          highlightColor: Colors.white10,
           onTap: onTap,
           child: child,
         ),
@@ -1191,7 +1388,6 @@ class _PromoCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    // ⬆️ carrousel plus haut (26% de la hauteur écran), clamp 150–260px
     final double height = (mq.size.height * 0.26).clamp(150, 260);
 
     return Column(
@@ -1231,11 +1427,12 @@ class _PromoCarousel extends StatelessWidget {
                 height: 10,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: active ? _orange : _orange.withOpacity(0.35),
+                  color:
+                  active ? const Color(0xFFFFAB40) : const Color(0x33FFAB40),
                   boxShadow: active
                       ? const [
                     BoxShadow(
-                      color: Color(0x33EF6C00),
+                      color: Color(0x33FFAB40),
                       blurRadius: 6,
                       offset: Offset(0, 2),
                     ),
@@ -1254,47 +1451,66 @@ class _PromoCarousel extends StatelessWidget {
 /// ============================================================================
 /// === DONNÉES : tuiles affichées =============================================
 /// ============================================================================
+
 class _MenuItem {
   final String title;
-  final IconData icon;
   final String palette;
-  const _MenuItem(this.title, this.icon, this.palette);
+  final IconData? icon; // fallback
+  final String? asset; // PNG dans assets/images/tuiles/
+
+  const _MenuItem.icon(this.title, this.icon, this.palette) : asset = null;
+  const _MenuItem.asset(this.title, this.asset, this.palette) : icon = null;
 }
 
 // Indices : 0..6 existants, 7..26 nouveaux
 const _items = <_MenuItem>[
-  // Base existante
-  _MenuItem('Simulation concours ENA', Icons.school_rounded, 'violetRose'),     // 0
-  _MenuItem('Entraînement par matière', Icons.menu_book_rounded, 'sereneBlue'), // 1
-  _MenuItem('Historique examens', Icons.fact_check_rounded, 'lightGreen'),      // 2
-  _MenuItem('Historique entraînement', Icons.history_rounded, 'softYellow'),    // 3
-  _MenuItem('Comment ça marche ?', Icons.info_rounded, 'powderPink'),           // 4
-  _MenuItem('Classement', Icons.emoji_events_outlined, 'royalViolet'),          // 5
-  _MenuItem('Compétition', Icons.sports_kabaddi, 'forestGreen'),                // 6
+  // Base existante (branche les PNG disponibles)
+  _MenuItem.asset('Simulation concours ENA',
+      "assets/images/tuiles/Simulation concours ENA.png", 'violetRose'), // 0
+  _MenuItem.asset('Entraînement par matière',
+      "assets/images/tuiles/Entraînement par matière.png", 'sereneBlue'), // 1
+  _MenuItem.asset('Historique examens',
+      "assets/images/tuiles/Historique examens.png", 'lightGreen'), // 2
+  _MenuItem.asset('Historique entraînement',
+      "assets/images/tuiles/Historique entraînement.png", 'softYellow'), // 3
+  _MenuItem.asset('Comment ça marche ?',
+      "assets/images/tuiles/Comment ça marche.png", 'powderPink'), // 4
+  _MenuItem.asset('Classement',
+      "assets/images/tuiles/Classement.png", 'royalViolet'), // 5
+  _MenuItem.asset('Compétition',
+      "assets/images/tuiles/Compétition.png", 'forestGreen'), // 6
 
   // Cours ENA (CI)
-  _MenuItem('Culture générale (CI & Afrique)', Icons.auto_stories_rounded, 'sereneBlue'), // 7
-  _MenuItem('Droit public (Consti/Administratif)', Icons.gavel_rounded, 'royalViolet'),   // 8
-  _MenuItem('Finances publiques (CI)', Icons.account_balance_wallet_rounded, 'lightGreen'), // 9
-  _MenuItem('Économie & gestion', Icons.show_chart_rounded, 'softYellow'),                // 10
-  _MenuItem('Relations internationales & UE', Icons.public_rounded, 'violetRose'),        // 11
-  _MenuItem('Institutions de la Côte d’Ivoire', Icons.corporate_fare_rounded, 'sereneBlue'), // 12
-  _MenuItem('Note de synthèse', Icons.description_rounded, 'powderPink'),                 // 13
-  _MenuItem('Méthodo QRC / QCM', Icons.checklist_rtl_rounded, 'forestGreen'),             // 14
-  _MenuItem('Examens blancs ENA', Icons.timer_rounded, 'royalViolet'),                    // 15
-  _MenuItem('Communication administrative', Icons.record_voice_over_rounded, 'powderPink'), // 16
-  _MenuItem('TIC & Bureautique', Icons.computer_rounded, 'sereneBlue'),                   // 17
-  _MenuItem('Comptabilité publique', Icons.request_quote_rounded, 'lightGreen'),          // 18
-  _MenuItem('Anglais (option)', Icons.translate_rounded, 'softYellow'),                   // 19
+  _MenuItem.asset('Culture générale (CI & Afrique)',
+      "assets/images/tuiles/Culture générale (CI & Afrique).png", 'sereneBlue'), // 7
+  _MenuItem.asset('Droit public (Consti/Administratif)',
+      "assets/images/tuiles/Droit public Consti Administratif.png", 'royalViolet'), // 8
+  _MenuItem.asset('Finances publiques (CI)',
+      "assets/images/tuiles/Finances publiques (CI).png", 'lightGreen'), // 9
+  _MenuItem.asset('Économie & gestion',
+      "assets/images/tuiles/Économie & gestion.png", 'softYellow'), // 10
+  _MenuItem.asset('Relations internationales & UE',
+      "assets/images/tuiles/Relations internationales & UE.png", 'violetRose'), // 11
+  _MenuItem.asset('Institutions de la Côte d’Ivoire',
+      "assets/images/tuiles/Institutions de la Côte d'ivoire.png", 'sereneBlue'), // 12
+
+  // Pas encore d’assets → fallback icônes
+  _MenuItem.icon('Note de synthèse', Icons.description_rounded, 'powderPink'), // 13
+  _MenuItem.icon('Méthodo QRC / QCM', Icons.checklist_rtl_rounded, 'forestGreen'), // 14
+  _MenuItem.icon('Examens blancs ENA', Icons.timer_rounded, 'royalViolet'), // 15
+  _MenuItem.icon('Communication administrative', Icons.record_voice_over_rounded, 'powderPink'), // 16
+  _MenuItem.icon('TIC & Bureautique', Icons.computer_rounded, 'sereneBlue'), // 17
+  _MenuItem.icon('Comptabilité publique', Icons.request_quote_rounded, 'lightGreen'), // 18
+  _MenuItem.icon('Anglais (option)', Icons.translate_rounded, 'softYellow'), // 19
 
   // Banque de sujets & corrigés
-  _MenuItem('Banque de sujets ENA CI', Icons.folder_special_rounded, 'royalViolet'),      // 20
-  _MenuItem('Corrigés détaillés', Icons.task_rounded, 'violetRose'),                      // 21
-  _MenuItem('Sujets par filière (A/B/C)', Icons.view_module_rounded, 'forestGreen'),      // 22
+  _MenuItem.icon('Banque de sujets ENA CI', Icons.folder_special_rounded, 'royalViolet'), // 20
+  _MenuItem.icon('Corrigés détaillés', Icons.task_rounded, 'violetRose'), // 21
+  _MenuItem.icon('Sujets par filière (A/B/C)', Icons.view_module_rounded, 'forestGreen'), // 22
 
   // Ressources officielles (CI)
-  _MenuItem('Constitution & textes clés', Icons.menu_book_outlined, 'sereneBlue'),        // 23
-  _MenuItem('Programme officiel (PDF)', Icons.picture_as_pdf_rounded, 'powderPink'),      // 24
-  _MenuItem('Calendrier des concours', Icons.calendar_month_rounded, 'softYellow'),       // 25
-  _MenuItem('Textes ENA / Arrêtés / Guides', Icons.library_books_rounded, 'lightGreen'),  // 26
+  _MenuItem.icon('Constitution & textes clés', Icons.menu_book_outlined, 'sereneBlue'), // 23
+  _MenuItem.icon('Programme officiel (PDF)', Icons.picture_as_pdf_rounded, 'powderPink'), // 24
+  _MenuItem.icon('Calendrier des concours', Icons.calendar_month_rounded, 'softYellow'), // 25
+  _MenuItem.icon('Textes ENA / Arrêtés / Guides', Icons.library_books_rounded, 'lightGreen'), // 26
 ];

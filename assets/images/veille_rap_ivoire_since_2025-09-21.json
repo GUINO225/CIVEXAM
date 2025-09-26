@@ -1,0 +1,47 @@
+{
+  "query": "Sorties rap ivoire (clips/singles) publiées depuis hier",
+  "time_window": {
+    "since": "2025-09-21T00:00:00+00:00",
+    "until": "2025-09-22T22:19:13.395725+00:00",
+    "timezone": "Africa/Abidjan"
+  },
+  "checked_sources": [
+    {
+      "channel": "FIOR 2 BIOR",
+      "url": "https://www.youtube.com/@FIOR2BIOR",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "Didi B",
+      "url": "https://www.youtube.com/@DidiBOfficiel",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "Suspect 95 Officiel",
+      "url": "https://www.youtube.com/@Suspect95",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "KIFF NO BEAT",
+      "url": "https://www.youtube.com/@KIFFNOBEAT",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "MC ONE OFFICIEL",
+      "url": "https://www.youtube.com/@MCONEOfficiel",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "ELOW'N",
+      "url": "https://www.youtube.com/@ElownOfficiel",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    },
+    {
+      "channel": "HIMRA",
+      "url": "https://www.youtube.com/@HIMRAofficiel",
+      "notes": "aucune nouvelle vidéo détectée < 24h"
+    }
+  ],
+  "items": [],
+  "notes": "Aucune sortie 'officielle' repérée sur les chaînes majeures dans les dernières 24h. Si tu me donnes une liste d'artistes/canaux à surveiller, je peux élargir et re-générer le JSON."
+}

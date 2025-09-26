@@ -44,6 +44,8 @@ flutter:
     - assets/images/logo_splash.png
     - assets/images/background_playscreen.png
     - assets/images/background_playscreen2.png
+    - assets/images/
+    - assets/images/tuiles/
     - assets/images/C1.png
     - assets/images/C2.png
     - assets/images/C3.png
