@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:characters/characters.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
@@ -577,13 +578,10 @@ class _PlayScreenState extends State<PlayScreen> {
                   ),
                 ),
                 _buildHeader(
-                  logoHeight: logoHeight,
                   topInset: topInset,
                   hasName: hasName,
                   name: name,
-                  textColor: textColor,
                   welcomeFontSize: welcomeFontSize,
-                  nameColor: nameColor,
                   nameFontSize: nameFontSize,
                 ),
                 _buildSections(
@@ -691,58 +689,77 @@ class _PlayScreenState extends State<PlayScreen> {
 
   /// HEADER (logo + bienvenue)
   Widget _buildHeader({
-    required double logoHeight,
     required double topInset,
     required bool hasName,
     required String? name,
-    required Color textColor,
     required double welcomeFontSize,
-    required Color nameColor,
     required double nameFontSize,
   }) {
+    final displayName = hasName && (name?.trim().isNotEmpty ?? false)
+        ? name!.trim()
+        : 'Utilisateur';
+    final avatarLabel = displayName.isNotEmpty
+        ? displayName.characters.first.toUpperCase()
+        : '?';
+
     return Align(
       alignment: Alignment.topCenter,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(24, topInset + 4, 24, 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF6C4DFF),
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo_splash.png',
-              height: logoHeight,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(height: UI.spacingBetweenLogoAndWelcome),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Bienvenue 👋 ',
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: welcomeFontSize,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
-                      ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Good Morning',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: welcomeFontSize,
+                      fontWeight: FontWeight.w600,
+                      height: 1.1,
                     ),
-                    if (hasName)
-                      TextSpan(
-                        text: name!,
-                        style: TextStyle(
-                          color: nameColor,
-                          fontSize: nameFontSize,
-                          fontWeight: FontWeight.w800,
-                          height: 1.0,
-                        ),
-                      ),
-                  ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    displayName,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: nameFontSize,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.white,
+                child: Text(
+                  avatarLabel,
+                  style: const TextStyle(
+                    color: Color(0xFF6C4DFF),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: UI.spacingUnderWelcome),
           ],
         ),
       ),
