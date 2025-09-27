@@ -11,6 +11,7 @@ import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
+import '../services/ongoing_quiz_store.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -311,6 +312,19 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       abandoned: abandoned, // conservé
     );
     await HistoryStore.add(entry);
+
+    if (!abandoned && totalQuestions > 0) {
+      await OngoingQuickQuizStore.saveLastResult(
+        QuickQuizSummary(
+          title: 'Concours ENA — ${difficultyLabel(_difficulty)}',
+          completedAt: DateTime.now(),
+          correctAnswers: totalCorrect,
+          totalQuestions: totalQuestions,
+        ),
+      );
+    } else {
+      await OngoingQuickQuizStore.clearLastResult();
+    }
 
     await showDialog(
       context: context,
