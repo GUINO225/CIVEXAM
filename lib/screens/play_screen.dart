@@ -252,6 +252,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _promoTimer?.cancel();
     _promoTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || _promoImages.isEmpty) return;
+      if (!_promoController.hasClients) return;
       final next = (_promoIndex + 1) % _promoImages.length;
       _promoController.animateToPage(
         next,
@@ -767,6 +768,31 @@ class _PlayScreenState extends State<PlayScreen> {
                                 },
                               ),
                             ],
+                          ),
+                        ),
+                      ),
+
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _PromoCarousel(
+                            images: _promoImages,
+                            controller: _promoController,
+                            currentIndex: _promoIndex,
+                            onIndexTapped: (index) {
+                              if (index == _promoIndex) {
+                                return;
+                              }
+                              setState(() => _promoIndex = index);
+                              if (_promoController.hasClients) {
+                                _promoController.animateToPage(
+                                  index,
+                                  duration:
+                                      const Duration(milliseconds: 450),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            },
                           ),
                         ),
                       ),
