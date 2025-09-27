@@ -1106,42 +1106,53 @@ class _RecentQuizCard extends StatelessWidget {
           Row(
             mainAxisAlignment: mainAxisAlignment,
             children: [
-              Text(
-                progressLabel,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+              Expanded(
+                child: Text(
+                  progressLabel,
+                  softWrap: true,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
               ),
               if (showButton)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF4315C5),
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  onPressed: showResume
-                      ? (enableResume ? onContinue : null)
-                      : onLaunchQuiz,
-                  child: showResume
-                      ? (isBusy
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Continuer',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ))
-                      : const Text(
-                          'Jouer',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 12),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF4315C5),
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
                         ),
+                      ),
+                      onPressed: showResume
+                          ? (enableResume ? onContinue : null)
+                          : onLaunchQuiz,
+                      child: showResume
+                          ? (isBusy
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text(
+                                  'Continuer',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w700),
+                                ))
+                          : const Text(
+                              'Jouer',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                    ),
+                  ],
                 ),
             ],
           ),
