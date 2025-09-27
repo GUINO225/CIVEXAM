@@ -10,23 +10,22 @@ import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
-import 'official_intro_screen.dart';
-import 'subject_list_screen.dart';
-import 'training_history_screen.dart';
-import 'exam_history_screen.dart';
-import 'leaderboard_screen.dart';
 import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
-import 'competition_screen.dart';
+import 'subject_list_screen.dart';
+import 'exam_history_screen.dart';
 import 'profile_edit_screen.dart';
 import 'training_quick_start.dart';
-import 'courses/communication_administrative_screen.dart';
-import 'courses/culture_generale_screen.dart';
-import 'courses/droit_public_screen.dart';
-import '../services/question_loader.dart';
-import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
-import '../models/question.dart';
+
+// --- Catégories refactorisées (ENA CI) ---
+import 'categories/category_definitions.dart';
+import 'categories/prepa_ena_screen.dart';
+import 'categories/cours_ena_screen.dart';
+import 'categories/banque_sujets_screen.dart';
+import 'categories/ressources_officielles_screen.dart';
+import 'categories/historique_suivi_screen.dart';
+import 'categories/defis_classement_screen.dart';
+import 'categories/aide_themes_screen.dart';
 
 /// ============================================================================
 /// === CONFIG UI (éditable facilement) ========================================
@@ -136,6 +135,9 @@ class CalendarOverlayConfig {
 /// Couleurs de base
 const _titleColor = Color(0xFF0E1420);
 const _cardWhite = Colors.white;
+
+/// Petite constante manquante dans la branche “catégories”
+const double baseCardHeight = 180;
 
 /// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
@@ -347,9 +349,9 @@ class _PlayScreenState extends State<PlayScreen> {
 
   // Fonds
   late final AssetImage _screenBg =
-  const AssetImage('assets/images/background_playscreen.png');
+      const AssetImage('assets/images/background_playscreen.png');
   late final AssetImage _panelBg =
-  const AssetImage('assets/images/background_playscreen2.png');
+      const AssetImage('assets/images/background_playscreen2.png');
 
   // Horloge
   final ValueNotifier<DateTime> _now = ValueNotifier<DateTime>(DateTime.now());
@@ -446,7 +448,7 @@ class _PlayScreenState extends State<PlayScreen> {
       precacheImage(AssetImage(p), context);
     }
     // Précharger les PNG des tuiles disponibles
-    for (final it in _items) {
+    for (final it in kCategoryMenuItems) {
       if (it.asset != null) {
         precacheImage(AssetImage(it.asset!), context);
       }
@@ -472,10 +474,10 @@ class _PlayScreenState extends State<PlayScreen> {
         final hasName = name != null && name.isNotEmpty;
 
         final textColor =
-        textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
         final nameColor =
-        badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
+            badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
@@ -494,62 +496,22 @@ class _PlayScreenState extends State<PlayScreen> {
             screenH * (1 - UI.panelHeightFactor) - topInset;
 
         final desiredLogo =
-        scaledDimension(base: 200, scale: scale, min: 140, max: 220);
+            scaledDimension(base: 200, scale: scale, min: 140, max: 220);
         final maxLogoBySpace = (headerAvailableH * 0.65).clamp(100.0, 260.0);
         final logoHeight = desiredLogo.clamp(120.0, maxLogoBySpace);
 
         final overlay = cfg.darkMode
             ? SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
-        )
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: Colors.transparent,
+              )
             : SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
-        );
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: Colors.transparent,
+              );
 
         // ===== Orga des sections (ENA CI) =====
-        final sections = <_Section>[
-          _Section(
-              keyName: 'quick',
-              title: UI.quickPrepTitle,
-              itemIndexes: const [0, 15, 1]),
-          _Section(
-              keyName: 'courses',
-              title: UI.coursesTitle,
-              itemIndexes: const [
-                7,
-                16,
-                8,
-                17,
-                9,
-                10,
-                18,
-                11,
-                12,
-                13,
-                14,
-                19
-              ]),
-          _Section(
-              keyName: 'bank',
-              title: UI.bankTitle,
-              itemIndexes: const [20, 21, 22]),
-          _Section(
-              keyName: 'resources',
-              title: UI.resourcesTitle,
-              itemIndexes: const [23, 24, 25, 26]),
-          _Section(
-              keyName: 'history',
-              title: UI.historyTitle,
-              itemIndexes: const [2, 3]),
-          _Section(
-              keyName: 'challenge',
-              title: UI.challengeTitle,
-              itemIndexes: const [5, 6]),
-          _Section(
-              keyName: 'help', title: UI.helpTitle, itemIndexes: const [4]),
-        ];
+        final sections = kHomeCategories;
 
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: overlay,
@@ -585,10 +547,8 @@ class _PlayScreenState extends State<PlayScreen> {
                   nameFontSize: nameFontSize,
                 ),
                 _buildSections(
-                  cfg: cfg,
                   sections: sections,
                   scale: scale,
-                  textColor: textColor,
                   panelHeightFactor: UI.panelHeightFactor,
                 ),
               ],
@@ -768,10 +728,8 @@ class _PlayScreenState extends State<PlayScreen> {
 
   /// BOX BLANCHE + BACKGROUND_Playscreen2 + CONTENU SCROLLABLE
   Widget _buildSections({
-    required DesignConfig cfg,
-    required List<_Section> _sections,
+    required List<CategoryDefinition> sections,
     required double scale,
-    required Color textColor,
     required double panelHeightFactor,
   }) {
     final liveQuizItems = <_LiveQuizItem>[
@@ -858,22 +816,122 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                         ),
                       ),
+
+                      // Carte "Reprendre le quiz"
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
                           child: _RecentQuizCard(),
                         ),
                       ),
+
+                      // Carte "Invite tes amis"
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
                           child: _FeaturedCard(),
                         ),
                       ),
+
+                      // Liste “Live Quiz”
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
                         sliver: SliverToBoxAdapter(
                           child: _LiveQuizList(items: liveQuizItems),
+                        ),
+                      ),
+
+                      // Sections ENA (catégories)
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final section = sections[index];
+                            final style = UI.sectionStyles[section.keyName]!;
+                            final double cardHeight =
+                                style.itemHeight ?? baseCardHeight;
+                            final Color accentColor = _pickTileMainColor(style);
+                            final Color iconColor =
+                                style.tileIconColor ?? Colors.white;
+                            final Color descriptionColor =
+                                style.tileTitleTextStyle?.color ??
+                                    Colors.white.withOpacity(0.85);
+                            final modulesCount = section.itemIndexes.length;
+                            final modulesLabel =
+                                '$modulesCount module${modulesCount > 1 ? 's' : ''}';
+
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                              child: SizedBox(
+                                height: cardHeight,
+                                child: _TileCard(
+                                  borderColor: style.borderColor,
+                                  borderWidth: style.borderWidth,
+                                  borderRadius: style.borderRadius,
+                                  backgroundColor: style.tileBackgroundColor,
+                                  gradient: style.tileGradient,
+                                  onTap: () => _navigate(context, section.category),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                section.title,
+                                                style: style.sectionTitleStyle,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                section.description,
+                                                style: TextStyle(
+                                                  color: descriptionColor,
+                                                  fontSize: 15 * scale,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 12, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      accentColor.withOpacity(0.15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                ),
+                                                child: Text(
+                                                  modulesLabel,
+                                                  style: TextStyle(
+                                                    color: accentColor,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        _buildCategoryVisual(
+                                          section,
+                                          iconColor,
+                                          scale,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: sections.length,
                         ),
                       ),
                     ],
@@ -883,6 +941,36 @@ class _PlayScreenState extends State<PlayScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryVisual(
+    CategoryDefinition section,
+    Color iconColor,
+    double scale,
+  ) {
+    final double size = (120 * scale).clamp(80.0, 140.0);
+    if (section.asset != null) {
+      return SizedBox(
+        height: size,
+        width: size,
+        child: Image.asset(
+          section.asset!,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
+      );
+    }
+
+    return Container(
+      height: size,
+      width: size,
+      alignment: Alignment.center,
+      child: Icon(
+        section.icon ?? Icons.apps_rounded,
+        size: size * 0.7,
+        color: iconColor,
       ),
     );
   }
@@ -907,260 +995,71 @@ class _PlayScreenState extends State<PlayScreen> {
     return '$d/$m/$y  $time$suffix';
   }
 
-  /// Helper placeholder
-  Future<void> _showComingSoon(BuildContext context, String title,
-      [String? body]) {
-    return showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(body ?? 'Bientôt disponible.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(_, null),
-              child: const Text('OK')),
-        ],
-      ),
-    );
-  }
-
   /// NAVIGATION
-  Future<void> _navigate(BuildContext context, int index) async {
-    switch (index) {
-    // ===== Prépa rapide & existants
-      case 0: // Simulation concours
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const OfficialIntroScreen()));
-        break;
-      case 1: // Entraînement par matière
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const SubjectListScreen()));
-        break;
-      case 2:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
-        break;
-      case 3:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const TrainingHistoryScreen()));
-        break;
-      case 4:
-        await _showComingSoon(context, 'Comment ça marche ?',
-            'Fiches d’utilisation et tutoriels arrivent.');
-        break;
-      case 5:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-        break;
-      case 6:
-      // Compétition chronométrée (existant)
-        bool progressShown = false;
-        try {
-          const int desiredCount = 60;
-          final all = await QuestionLoader.loadENA();
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()),
-          );
-          progressShown = true;
-          final selected = await pickAndShuffle(
-            all,
-            desiredCount,
-            dedupeByQuestion: true,
-          );
-          if (progressShown && mounted) Navigator.pop(context);
+  Future<void> _navigate(BuildContext context, HomeCategory category) async {
+    final definition =
+        kHomeCategories.firstWhere((element) => element.category == category);
 
-          final proceed = await _handleShortDraw(selected, desiredCount);
-          if (!proceed) return;
-
-          if (!mounted) return;
-          final messenger = ScaffoldMessenger.of(context);
-          unawaited(
-            QuestionHistoryStore.addAll(selected.map((q) => q.id)).catchError(
-                  (Object error, _) {
-                if (!mounted) return;
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                        'Échec de l’enregistrement de l’historique des questions.'),
-                  ),
-                );
-              },
+    switch (category) {
+      case HomeCategory.quickPrep:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PrepaEnaScreen(definition: definition),
+          ),
+        );
+        break;
+      case HomeCategory.courses:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CoursEnaScreen(definition: definition),
+          ),
+        );
+        break;
+      case HomeCategory.bank:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BanqueSujetsScreen(definition: definition),
+          ),
+        );
+        break;
+      case HomeCategory.resources:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RessourcesOfficiellesScreen(
+              definition: definition,
             ),
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => CompetitionScreen(
-                questions: selected,
-                timePerQuestion: 5,
-                startTime: DateTime.now(),
-              ),
-            ),
-          );
-        } catch (e) {
-          if (progressShown && mounted) Navigator.pop(context);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Unable to load question bank: $e')),
-          );
-        }
-        break;
-      case 15: // Examens blancs (NOUVEAU)
-        await _showComingSoon(
-          context,
-          'Examens blancs ENA',
-          'Programmez des sessions complètes (durées, barèmes, corrigés).',
-        );
-        break;
-
-    // ===== Cours ENA (CI)
-      case 7:
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const CultureGeneraleScreen(),
           ),
         );
         break;
-      case 16:
-        if (!mounted) return;
-        Navigator.push(
+      case HomeCategory.history:
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const CommunicationAdministrativeScreen(),
+            builder: (_) => HistoriqueSuiviScreen(definition: definition),
           ),
         );
         break;
-      case 8:
-        if (!mounted) return;
-        Navigator.push(
+      case HomeCategory.challenge:
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const DroitPublicScreen(),
+            builder: (_) => DefisClassementScreen(definition: definition),
           ),
         );
         break;
-      case 17:
-        await _showComingSoon(context, 'TIC & Bureautique');
-        break;
-      case 9:
-        await _showComingSoon(context, 'Finances publiques (CI)');
-        break;
-      case 10:
-        await _showComingSoon(context, 'Économie & gestion');
-        break;
-      case 18:
-        await _showComingSoon(context, 'Comptabilité publique');
-        break;
-      case 11:
-        await _showComingSoon(context, 'Relations internationales & UE');
-        break;
-      case 12:
-        await _showComingSoon(context, 'Institutions de la Côte d’Ivoire');
-        break;
-      case 13:
-        await _showComingSoon(context, 'Note de synthèse');
-        break;
-      case 14:
-        await _showComingSoon(context, 'Méthodologie QRC / QCM');
-        break;
-      case 19:
-        await _showComingSoon(context, 'Anglais (option)');
-        break;
-
-    // ===== Banque de sujets & corrigés
-      case 20:
-        await _showComingSoon(context, 'Banque de sujets ENA CI');
-        break;
-      case 21:
-        await _showComingSoon(context, 'Corrigés détaillés');
-        break;
-      case 22:
-        await _showComingSoon(context, 'Sujets par filière (A/B/C)');
-        break;
-
-    // ===== Ressources officielles
-      case 23:
-        await _showComingSoon(context, 'Constitution & textes clés');
-        break;
-      case 24:
-        await _showComingSoon(context, 'Programme officiel (PDF)');
-        break;
-      case 25:
-        await _showComingSoon(context, 'Calendrier des concours');
-        break;
-      case 26:
-        await _showComingSoon(context, 'Textes ENA / Arrêtés / Guides');
-        break;
-
-      default:
-      // sécurité
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fonctionnalité à venir.')),
+      case HomeCategory.help:
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AideThemesScreen(definition: definition),
+          ),
         );
         break;
     }
-  }
-
-  Future<bool> _handleShortDraw(List<Question> selected, int requested) async {
-    if (selected.length >= requested) return true;
-    if (!mounted) return false;
-
-    if (selected.isEmpty) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Historique épuisé'),
-          content: const Text(
-              'Toutes les questions ont déjà été vues. Réinitialiser l\'historique pour recommencer.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(_, null),
-              child: const Text('Fermer'),
-            ),
-            TextButton(
-              onPressed: () {
-                QuestionHistoryStore.clear();
-                Navigator.pop(_, null);
-              },
-              child: const Text('Réinitialiser'),
-            ),
-          ],
-        ),
-      );
-      return false;
-    }
-
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Commencer ?'),
-        content: Text('Vous avez déjà vu la plupart des questions — '
-            '${selected.length}/$requested disponibles.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(_, false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              QuestionHistoryStore.clear();
-              Navigator.pop(_, false);
-            },
-            child: const Text('Réinitialiser'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(_, true),
-            child: const Text('Continuer'),
-          ),
-        ],
-      ),
-    );
-    return proceed == true;
   }
 }
 
@@ -1410,112 +1309,7 @@ class _LiveQuizItem {
   final String subtitle;
 }
 
-/// ============================================================================
-/// === HELPERS / MODÈLES LOCAUX ===============================================
-/// ============================================================================
-
-class _Section {
-  final String keyName;
-  final String title;
-  final List<int> itemIndexes;
-  const _Section({
-    required this.keyName,
-    required this.title,
-    required this.itemIndexes,
-  });
-}
-
-class _NavDestination {
-  final IconData icon;
-  final String label;
-  final WidgetBuilder? builder;
-
-  const _NavDestination({
-    required this.icon,
-    required this.label,
-    this.builder,
-  });
-}
-
-class _BasicTile extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final double iconSize;
-  final Color iconColor;
-  final TextStyle titleStyle;
-
-  const _BasicTile({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.iconSize,
-    required this.iconColor,
-    required this.titleStyle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: iconSize, color: iconColor),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Nouveau : tuile icône OU image PNG
-class _IconOnlyTile extends StatelessWidget {
-  final IconData? icon;
-  final String? asset; // chemin PNG
-  final double iconSize;
-  final Color iconColor;
-
-  const _IconOnlyTile({
-    super.key,
-    required this.icon,
-    required this.asset,
-    required this.iconSize,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Widget child;
-    if (asset != null) {
-      child = Image.asset(
-        asset!,
-        height: iconSize,
-        width: iconSize,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      );
-    } else {
-      child = Icon(icon, size: iconSize, color: iconColor);
-    }
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: child,
-      ),
-    );
-  }
-}
-
+/// Tuile card commune
 class _TileCard extends StatelessWidget {
   final Widget child;
   final Color borderColor;
@@ -1571,7 +1365,7 @@ class _TileCard extends StatelessWidget {
   }
 }
 
-/// Carrousel
+/// Carrousel (si besoin ailleurs)
 class _PromoCarousel extends StatelessWidget {
   final List<String> images;
   final PageController controller;
@@ -1629,15 +1423,15 @@ class _PromoCarousel extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                  active ? const Color(0xFFFFAB40) : const Color(0x33FFAB40),
+                      active ? const Color(0xFFFFAB40) : const Color(0x33FFAB40),
                   boxShadow: active
                       ? const [
-                    BoxShadow(
-                      color: Color(0x33FFAB40),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
-                    ),
-                  ]
+                          BoxShadow(
+                            color: Color(0x33FFAB40),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
                       : null,
                 ),
               ),
@@ -1649,69 +1443,14 @@ class _PromoCarousel extends StatelessWidget {
   }
 }
 
-/// ============================================================================
-/// === DONNÉES : tuiles affichées =============================================
-/// ============================================================================
+class _NavDestination {
+  final IconData icon;
+  final String label;
+  final WidgetBuilder? builder;
 
-class _MenuItem {
-  final String title;
-  final String palette;
-  final IconData? icon; // fallback
-  final String? asset; // PNG dans assets/images/tuiles/
-
-  const _MenuItem.icon(this.title, this.icon, this.palette) : asset = null;
-  const _MenuItem.asset(this.title, this.asset, this.palette) : icon = null;
+  const _NavDestination({
+    required this.icon,
+    required this.label,
+    this.builder,
+  });
 }
-
-// Indices : 0..6 existants, 7..26 nouveaux
-const _items = <_MenuItem>[
-  // Base existante (branche les PNG disponibles)
-  _MenuItem.asset('Simulation concours ENA',
-      "assets/images/tuiles/Simulation concours ENA.png", 'violetRose'), // 0
-  _MenuItem.asset('Entraînement par matière',
-      "assets/images/tuiles/Entraînement par matière.png", 'sereneBlue'), // 1
-  _MenuItem.asset('Historique examens',
-      "assets/images/tuiles/Historique examens.png", 'lightGreen'), // 2
-  _MenuItem.asset('Historique entraînement',
-      "assets/images/tuiles/Historique entraînement.png", 'softYellow'), // 3
-  _MenuItem.asset('Comment ça marche ?',
-      "assets/images/tuiles/Comment ça marche.png", 'powderPink'), // 4
-  _MenuItem.asset('Classement',
-      "assets/images/tuiles/Classement.png", 'royalViolet'), // 5
-  _MenuItem.asset('Compétition',
-      "assets/images/tuiles/Compétition.png", 'forestGreen'), // 6
-
-  // Cours ENA (CI)
-  _MenuItem.asset('Culture générale (CI & Afrique)',
-      "assets/images/tuiles/Culture générale (CI & Afrique).png", 'sereneBlue'), // 7
-  _MenuItem.asset('Droit public (Consti/Administratif)',
-      "assets/images/tuiles/Droit public Consti Administratif.png", 'royalViolet'), // 8
-  _MenuItem.asset('Finances publiques (CI)',
-      "assets/images/tuiles/Finances publiques (CI).png", 'lightGreen'), // 9
-  _MenuItem.asset('Économie & gestion',
-      "assets/images/tuiles/Économie & gestion.png", 'softYellow'), // 10
-  _MenuItem.asset('Relations internationales & UE',
-      "assets/images/tuiles/Relations internationales & UE.png", 'violetRose'), // 11
-  _MenuItem.asset('Institutions de la Côte d’Ivoire',
-      "assets/images/tuiles/Institutions de la Côte d'ivoire.png", 'sereneBlue'), // 12
-
-  // Pas encore d’assets → fallback icônes
-  _MenuItem.icon('Note de synthèse', Icons.description_rounded, 'powderPink'), // 13
-  _MenuItem.icon('Méthodo QRC / QCM', Icons.checklist_rtl_rounded, 'forestGreen'), // 14
-  _MenuItem.icon('Examens blancs ENA', Icons.timer_rounded, 'royalViolet'), // 15
-  _MenuItem.icon('Communication administrative', Icons.record_voice_over_rounded, 'powderPink'), // 16
-  _MenuItem.icon('TIC & Bureautique', Icons.computer_rounded, 'sereneBlue'), // 17
-  _MenuItem.icon('Comptabilité publique', Icons.request_quote_rounded, 'lightGreen'), // 18
-  _MenuItem.icon('Anglais (option)', Icons.translate_rounded, 'softYellow'), // 19
-
-  // Banque de sujets & corrigés
-  _MenuItem.icon('Banque de sujets ENA CI', Icons.folder_special_rounded, 'royalViolet'), // 20
-  _MenuItem.icon('Corrigés détaillés', Icons.task_rounded, 'violetRose'), // 21
-  _MenuItem.icon('Sujets par filière (A/B/C)', Icons.view_module_rounded, 'forestGreen'), // 22
-
-  // Ressources officielles (CI)
-  _MenuItem.icon('Constitution & textes clés', Icons.menu_book_outlined, 'sereneBlue'), // 23
-  _MenuItem.icon('Programme officiel (PDF)', Icons.picture_as_pdf_rounded, 'powderPink'), // 24
-  _MenuItem.icon('Calendrier des concours', Icons.calendar_month_rounded, 'softYellow'), // 25
-  _MenuItem.icon('Textes ENA / Arrêtés / Guides', Icons.library_books_rounded, 'lightGreen'), // 26
-];
