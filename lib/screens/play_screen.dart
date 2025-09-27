@@ -8,11 +8,13 @@ import 'package:characters/characters.dart';
 
 import '../models/design_config.dart';
 import '../models/exam_history_entry.dart';
+import '../models/leaderboard_entry.dart';
 import '../services/design_bus.dart';
 import '../services/ongoing_quiz_store.dart';
 import '../services/question_loader.dart';
 import '../services/scoring.dart';
 import '../services/history_store.dart';
+import '../services/competition_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
@@ -25,6 +27,7 @@ import 'exam_history_screen.dart';
 import 'profile_edit_screen.dart';
 import 'training_quick_start.dart';
 import 'exam_full_screen.dart';
+import 'leaderboard_screen.dart';
 
 // --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
@@ -190,6 +193,11 @@ class _PlayScreenState extends State<PlayScreen> {
   int _selectedNavIndex = 0;
   late final List<_NavDestination> _navItems;
 
+  final CompetitionService _competitionService = CompetitionService();
+  List<LeaderboardEntry> _topEntries = const [];
+  bool _topEntriesLoading = true;
+  String? _topEntriesError;
+
   // Carrousel
   final List<String> _promoImages = const [
     'assets/images/C1.png',
@@ -256,6 +264,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _startClock();
     unawaited(OngoingQuickQuizStore.load());
     unawaited(HistoryStore.load());
+    unawaited(_loadTopEntries());
   }
 
   void _startAutoPlay() {
@@ -280,6 +289,32 @@ class _PlayScreenState extends State<PlayScreen> {
     _clockTimer = Timer.periodic(interval, (_) {
       _now.value = DateTime.now();
     });
+  }
+
+  Future<void> _loadTopEntries() async {
+    setState(() {
+      _topEntriesLoading = true;
+      _topEntriesError = null;
+    });
+    try {
+      final entries = await _competitionService.topEntries(limit: 3);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _topEntries = entries;
+        _topEntriesLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _topEntries = const [];
+        _topEntriesLoading = false;
+        _topEntriesError = "Impossible de récupérer le classement.";
+      });
+    }
   }
 
   Future<void> _onNavItemSelected(int index) async {
@@ -307,6 +342,14 @@ class _PlayScreenState extends State<PlayScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const OfficialIntroScreen()),
     );
+  }
+
+  Future<void> _openLeaderboard() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+    );
+    if (!mounted) return;
+    unawaited(_loadTopEntries());
   }
 
   Future<void> _handleResumeQuickQuiz(OngoingQuickQuizState state) async {
@@ -857,7 +900,12 @@ class _PlayScreenState extends State<PlayScreen> {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
-                          child: _FeaturedCard(),
+                          child: _LeaderboardHighlightCard(
+                            entries: _topEntries,
+                            isLoading: _topEntriesLoading,
+                            error: _topEntriesError,
+                            onSeeAll: _openLeaderboard,
+                          ),
                         ),
                       ),
 
@@ -1163,11 +1211,71 @@ class _RecentQuizCard extends StatelessWidget {
   }
 }
 
-class _FeaturedCard extends StatelessWidget {
-  const _FeaturedCard();
+class _LeaderboardHighlightCard extends StatelessWidget {
+  const _LeaderboardHighlightCard({
+    required this.entries,
+    required this.isLoading,
+    required this.error,
+    required this.onSeeAll,
+  });
+
+  final List<LeaderboardEntry> entries;
+  final bool isLoading;
+  final String? error;
+  final VoidCallback onSeeAll;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    Widget body;
+    if (isLoading) {
+      body = Row(
+        children: [
+          const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Chargement du classement...',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF5F5A78),
+                  ),
+            ),
+          ),
+        ],
+      );
+    } else if (error != null) {
+      body = Text(
+        error!,
+        style: theme.textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF5F5A78),
+            ),
+      );
+    } else if (entries.isEmpty) {
+      body = Text(
+        'Aucun score pour le moment. Sois le premier à entrer dans le classement !',
+        style: theme.textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF5F5A78),
+            ),
+      );
+    } else {
+      body = Column(
+        children: [
+          for (int i = 0; i < entries.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            _LeaderboardEntryRow(entry: entries[i], rank: i + 1),
+          ],
+        ],
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF3F0FF),
@@ -1184,7 +1292,7 @@ class _FeaturedCard extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(16),
             child: const Icon(
-              Icons.group_add_rounded,
+              Icons.emoji_events_rounded,
               color: Colors.white,
               size: 34,
             ),
@@ -1195,19 +1303,14 @@ class _FeaturedCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Invite tes amis',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  'Top du classement',
+                  style: theme.textTheme.titleLarge?.copyWith(
                         color: const Color(0xFF2D1B5E),
                         fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Décuple ta motivation avec une préparation collective.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF5F5A78),
-                      ),
-                ),
+                body,
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -1223,9 +1326,9 @@ class _FeaturedCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: onSeeAll,
                     child: const Text(
-                      'Find Friends',
+                      'Voir tout le classement',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -1236,6 +1339,92 @@ class _FeaturedCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _LeaderboardEntryRow extends StatelessWidget {
+  const _LeaderboardEntryRow({required this.entry, required this.rank});
+
+  final LeaderboardEntry entry;
+  final int rank;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final displayName = entry.name.trim().isEmpty ? 'Anonyme' : entry.name.trim();
+    final percentText = _formatPercent(entry.percent);
+    final durationText = _formatDuration(entry.durationSec);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          '$rank.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFF2D1B5E),
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            displayName.characters.take(28).toString(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF2D1B5E),
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 72,
+          child: Text(
+            '$percentText%',
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF4315C5),
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 86,
+          child: Text(
+            durationText,
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF5F5A78),
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatPercent(double value) {
+    final decimals = value == value.roundToDouble() ? 0 : 1;
+    return value.toStringAsFixed(decimals);
+  }
+
+  String _formatDuration(int seconds) {
+    if (seconds <= 0) {
+      return '0s';
+    }
+    final duration = Duration(seconds: seconds);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final secs = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '${hours}h ${minutes.toString().padLeft(2, '0')}m';
+    }
+    if (minutes > 0) {
+      return '${minutes}m ${secs.toString().padLeft(2, '0')}s';
+    }
+    return '${secs}s';
   }
 }
 
