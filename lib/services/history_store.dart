@@ -10,11 +10,16 @@ class HistoryStore {
   static Future<void>? _loadingFuture;
   static bool _listenerRegistered = false;
   static String _activeUserKey = LocalHistoryPersistence.activeUserKey;
+  static final ValueNotifier<ExamHistoryEntry?> _latestEntryNotifier =
+      ValueNotifier<ExamHistoryEntry?>(null);
 
   static Future<List<ExamHistoryEntry>> load() async {
     await _ensureLoaded();
     return List<ExamHistoryEntry>.from(_cache);
   }
+
+  static ValueNotifier<ExamHistoryEntry?> latestEntryNotifier() =>
+      _latestEntryNotifier;
 
   static Future<void> add(ExamHistoryEntry entry) async {
     var attempts = 0;
@@ -30,6 +35,7 @@ class HistoryStore {
         continue;
       }
       _cache = updated;
+      _updateLatestEntry(entry);
       await _persistFor(targetKey, updated);
       return;
     }
@@ -39,6 +45,7 @@ class HistoryStore {
     await _ensureLoaded();
     final targetKey = _activeUserKey;
     _cache = <ExamHistoryEntry>[];
+    _updateLatestEntry(null);
     try {
       await LocalHistoryPersistence.clearExamRaw(targetKey);
     } catch (err, st) {
@@ -72,6 +79,7 @@ class HistoryStore {
     _cache = <ExamHistoryEntry>[];
     _loaded = false;
     _loadingFuture = null;
+    _updateLatestEntry(null);
   }
 
   static Future<void> _loadFromLocal() async {
@@ -101,6 +109,7 @@ class HistoryStore {
         return;
       }
       _cache = entries;
+      _updateLatestEntry(entries.isNotEmpty ? entries.first : null);
       _loaded = true;
     } catch (err, st) {
       if (kDebugMode) {
@@ -108,6 +117,7 @@ class HistoryStore {
       }
       if (_activeUserKey == targetKey) {
         _cache = <ExamHistoryEntry>[];
+        _updateLatestEntry(null);
         _loaded = true;
       }
     } finally {
@@ -141,4 +151,11 @@ class HistoryStore {
         'success': entry.success,
         'abandoned': entry.abandoned,
       };
+
+  static void _updateLatestEntry(ExamHistoryEntry? entry) {
+    if (_latestEntryNotifier.value == entry) {
+      return;
+    }
+    _latestEntryNotifier.value = entry;
+  }
 }
