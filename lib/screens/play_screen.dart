@@ -33,6 +33,7 @@ import 'categories/ressources_officielles_screen.dart';
 import 'categories/historique_suivi_screen.dart';
 import 'categories/defis_classement_screen.dart';
 import 'categories/aide_themes_screen.dart';
+import 'official_intro_screen.dart';
 
 /// ============================================================================
 /// === CONFIG UI (éditable facilement) ========================================
@@ -295,6 +296,12 @@ class _PlayScreenState extends State<PlayScreen> {
   Future<void> _handleCreateQuickQuiz() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
+    );
+  }
+
+  Future<void> _handleLaunchOfficialQuiz() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const OfficialIntroScreen()),
     );
   }
 
@@ -835,6 +842,8 @@ class _PlayScreenState extends State<PlayScreen> {
                                 onContinue: ongoing != null
                                     ? () => _handleResumeQuickQuiz(ongoing)
                                     : null,
+                                onLaunchQuiz:
+                                    ongoing == null ? _handleLaunchOfficialQuiz : null,
                                 isBusy: _resumingQuickQuiz,
                               );
                             },
@@ -985,17 +994,21 @@ class _RecentQuizCard extends StatelessWidget {
     required this.ongoingState,
     required this.lastSummary,
     required this.onContinue,
+    required this.onLaunchQuiz,
     required this.isBusy,
   });
 
   final OngoingQuickQuizState? ongoingState;
   final QuickQuizSummary? lastSummary;
   final VoidCallback? onContinue;
+  final VoidCallback? onLaunchQuiz;
   final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
     final hasQuiz = ongoingState != null && ongoingState!.questionIds.isNotEmpty;
+    final bool showResume = hasQuiz && onContinue != null;
+    final bool showLaunch = !hasQuiz && onLaunchQuiz != null;
     final summary = lastSummary;
     final double rawProgress = hasQuiz
         ? ongoingState!.completionRatio
@@ -1014,8 +1027,8 @@ class _RecentQuizCard extends StatelessWidget {
     } else {
       progressLabel = 'Aucun quiz en cours';
     }
-    final bool showButton = hasQuiz && onContinue != null;
-    final bool enabled = showButton && !isBusy;
+    final bool showButton = showResume || showLaunch;
+    final bool enableResume = showResume && !isBusy;
     final mainAxisAlignment =
         showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
     return Container(
@@ -1085,15 +1098,22 @@ class _RecentQuizCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
-                  onPressed: enabled ? onContinue : null,
-                  child: isBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                  onPressed: showResume
+                      ? (enableResume ? onContinue : null)
+                      : onLaunchQuiz,
+                  child: showResume
+                      ? (isBusy
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'Continuer',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ))
                       : const Text(
-                          'Continuer',
+                          'Jouer',
                           style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                 ),
