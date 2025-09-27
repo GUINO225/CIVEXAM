@@ -429,59 +429,66 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Niveau de difficulté',
-                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  _difficultyPicker(),
-                  const SizedBox(height: 12),
-                  if (perQ == null)
-                    Text(
-                      'Mode Normal : timings officiels des épreuves (réaliste).',
-                      style: textTheme.bodyLarge,
-                    )
-                  else
-                    Text(
-                      'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                      style: textTheme.bodyLarge,
-                    ),
-                  const SizedBox(height: 16),
-                  Card(
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final s in sections)
-                          ListTile(
-                            leading: Icon(_iconForSection(s.title)),
-                            title: Text(
-                              s.title,
-                              style: textTheme.titleMedium,
-                            ),
-                            subtitle: Text(
-                              'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
-                              style: textTheme.bodyLarge,
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
+                        Text(
+                          'Niveau de difficulté',
+                          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        _difficultyPicker(),
+                        const SizedBox(height: 12),
+                        if (perQ == null)
+                          Text(
+                            'Mode Normal : timings officiels des épreuves (réaliste).',
+                            style: textTheme.bodyLarge,
+                          )
+                        else
+                          Text(
+                            'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                            style: textTheme.bodyLarge,
                           ),
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Column(
+                            children: [
+                              for (final s in sections)
+                                ListTile(
+                                  leading: Icon(_iconForSection(s.title)),
+                                  title: Text(
+                                    s.title,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                  subtitle: Text(
+                                    'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
+                                    style: textTheme.bodyLarge,
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _startFlow,
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('Démarrer le parcours'),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _startFlow,
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Démarrer le parcours'),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
     );
   }
