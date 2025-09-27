@@ -10,6 +10,7 @@ import '../models/training_history_entry.dart';
 import '../services/training_history_store.dart';
 import 'exam_full_screen.dart';
 import '../services/leaderboard_hooks.dart';
+import '../services/ongoing_quiz_store.dart';
 import '../widgets/chip_selector.dart';
 
 class TrainingQuickStartScreen extends StatefulWidget {
@@ -65,6 +66,14 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
 
       final totalSeconds = _perQuestionSeconds * selected.length;
       final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
+      final title = 'Entraînement (${_perQuestionSeconds}s/question)';
+      final quickState = OngoingQuickQuizState(
+        title: title,
+        questionIds: selected.map((q) => q.id).toList(growable: false),
+        answers: List<int?>.filled(selected.length, null, growable: false),
+        remainingSeconds: totalSeconds,
+      );
+      await OngoingQuickQuizStore.save(quickState);
 
       final startTime = DateTime.now();
       final res = await Navigator.push<ExamResult?>(context, MaterialPageRoute(
@@ -72,10 +81,26 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           questions: selected,
           duration: Duration(seconds: totalSeconds),
           scoring: scoring,
-          title: 'Entraînement (${_perQuestionSeconds}s/question)',
+          title: title,
           showLocalSummary: true,
+          initialAnswers: quickState.answers,
+          initialRemainingSeconds: quickState.remainingSeconds,
+          onStateChanged: (remaining, answers) {
+            unawaited(
+              OngoingQuickQuizStore.save(
+                quickState.copyWith(
+                  remainingSeconds: remaining,
+                  answers: answers,
+                ),
+              ),
+            );
+          },
+          onStateCleared: () {
+            unawaited(OngoingQuickQuizStore.clear());
+          },
         ),
       ));
+      await OngoingQuickQuizStore.clear();
       final elapsedSeconds = DateTime.now().difference(startTime).inSeconds;
 
       if (res != null) {
@@ -131,6 +156,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
+      unawaited(OngoingQuickQuizStore.clear());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec du lancement de l\'entraînement : $e')),

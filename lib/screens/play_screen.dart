@@ -7,8 +7,13 @@ import 'package:characters/characters.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../services/ongoing_quiz_store.dart';
+import '../services/question_loader.dart';
+import '../services/scoring.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
+
+import '../models/question.dart';
 
 import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
@@ -16,6 +21,7 @@ import 'subject_list_screen.dart';
 import 'exam_history_screen.dart';
 import 'profile_edit_screen.dart';
 import 'training_quick_start.dart';
+import 'exam_full_screen.dart';
 
 // --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
@@ -191,6 +197,8 @@ class _PlayScreenState extends State<PlayScreen> {
   Timer? _promoTimer;
   int _promoIndex = 0;
 
+  bool _resumingQuickQuiz = false;
+
   // Fonds
   late final AssetImage _screenBg =
       const AssetImage('assets/images/background_playscreen.png');
@@ -237,6 +245,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
     _startClock();
+    unawaited(OngoingQuickQuizStore.load());
   }
 
   void _startAutoPlay() {
@@ -281,6 +290,113 @@ class _PlayScreenState extends State<PlayScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
     );
+  }
+
+  Future<void> _handleResumeQuickQuiz(OngoingQuickQuizState state) async {
+    if (_resumingQuickQuiz) {
+      return;
+    }
+    setState(() => _resumingQuickQuiz = true);
+    bool dialogShown = false;
+    void closeDialog() {
+      if (!dialogShown) {
+        return;
+      }
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      dialogShown = false;
+    }
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      dialogShown = true;
+
+      final all = await QuestionLoader.loadENA();
+      if (!mounted) {
+        closeDialog();
+        return;
+      }
+      final byId = <String, Question>{for (final q in all) q.id: q};
+      final questions = <Question>[];
+      for (final id in state.questionIds) {
+        final question = byId[id];
+        if (question != null) {
+          questions.add(question);
+        }
+      }
+
+      closeDialog();
+
+      if (questions.isEmpty || questions.length != state.questionIds.length) {
+        await OngoingQuickQuizStore.clear();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de reprendre le quiz en cours.')),
+        );
+        return;
+      }
+
+      final initialAnswers = List<int?>.filled(questions.length, null, growable: false);
+      for (int i = 0; i < initialAnswers.length && i < state.answers.length; i++) {
+        initialAnswers[i] = state.answers[i];
+      }
+      final remaining = state.remainingSeconds > 0 ? state.remainingSeconds : 1;
+      final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
+
+      final result = await Navigator.push<ExamResult?>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ExamFullScreen(
+            questions: questions,
+            duration: Duration(seconds: remaining),
+            scoring: scoring,
+            title: state.title,
+            showLocalSummary: true,
+            initialAnswers: initialAnswers,
+            initialRemainingSeconds: remaining,
+            onStateChanged: (newRemaining, answers) {
+              unawaited(
+                OngoingQuickQuizStore.save(
+                  state.copyWith(
+                    remainingSeconds: newRemaining,
+                    answers: answers,
+                  ),
+                ),
+              );
+            },
+            onStateCleared: () {
+              unawaited(OngoingQuickQuizStore.clear());
+            },
+          ),
+        ),
+      );
+      await OngoingQuickQuizStore.clear();
+
+      if (!mounted) {
+        return;
+      }
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quiz interrompu.')),
+        );
+      }
+    } catch (err) {
+      closeDialog();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Impossible de reprendre le quiz : $err')),
+      );
+    } finally {
+      closeDialog();
+      if (mounted) {
+        setState(() => _resumingQuickQuiz = false);
+      }
+    }
   }
 
   @override
@@ -659,7 +775,31 @@ class _PlayScreenState extends State<PlayScreen> {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
-                          child: _RecentQuizCard(),
+                          child: ValueListenableBuilder<OngoingQuickQuizState?>(
+                            valueListenable: OngoingQuickQuizStore.notifier,
+                            builder: (_, state, __) {
+                              final hasQuiz =
+                                  state != null && state.questionIds.isNotEmpty;
+                              final progress = hasQuiz
+                                  ? state!.completionRatio.clamp(0.0, 1.0)
+                                  : 0.0;
+                              final percentLabel = hasQuiz
+                                  ? '${(progress * 100).round()} % complété'
+                                  : 'Aucun quiz en cours';
+                              final subtitle = hasQuiz
+                                  ? state!.title
+                                  : 'Lancez un entraînement rapide pour continuer.';
+                              return _RecentQuizCard(
+                                subtitle: subtitle,
+                                progress: progress,
+                                progressLabel: percentLabel,
+                                onContinue: hasQuiz
+                                    ? () => _handleResumeQuickQuiz(state!)
+                                    : null,
+                                isBusy: _resumingQuickQuiz,
+                              );
+                            },
+                          ),
                         ),
                       ),
 
@@ -802,10 +942,24 @@ class _PlayScreenState extends State<PlayScreen> {
 }
 
 class _RecentQuizCard extends StatelessWidget {
-  const _RecentQuizCard();
+  const _RecentQuizCard({
+    required this.subtitle,
+    required this.progress,
+    required this.progressLabel,
+    required this.onContinue,
+    required this.isBusy,
+  });
+
+  final String subtitle;
+  final double progress;
+  final String progressLabel;
+  final VoidCallback? onContinue;
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
+    final clampedProgress = progress.clamp(0.0, 1.0);
+    final bool enabled = onContinue != null && !isBusy;
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -835,7 +989,7 @@ class _RecentQuizCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Préparation concours ENA',
+            subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white70,
                   fontWeight: FontWeight.w600,
@@ -845,7 +999,7 @@ class _RecentQuizCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(18),
             child: LinearProgressIndicator(
-              value: 0.65,
+              value: clampedProgress,
               minHeight: 14,
               backgroundColor: Colors.white.withOpacity(0.2),
               valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD740)),
@@ -856,7 +1010,7 @@ class _RecentQuizCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '65 % complété',
+                progressLabel,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -872,11 +1026,17 @@ class _RecentQuizCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-                onPressed: () {},
-                child: const Text(
-                  'Continuer',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
+                onPressed: enabled ? onContinue : null,
+                child: isBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Continuer',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
               ),
             ],
           ),

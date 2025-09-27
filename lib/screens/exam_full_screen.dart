@@ -45,6 +45,10 @@ class ExamFullScreen extends StatefulWidget {
   /// We hard-limit it to 5..10s now.
   final int? overridePerQuestionSeconds;
   final bool competitionMode;
+  final List<int?>? initialAnswers;
+  final int? initialRemainingSeconds;
+  final void Function(int remainingSeconds, List<int?> answers)? onStateChanged;
+  final VoidCallback? onStateCleared;
 
   const ExamFullScreen({
     super.key,
@@ -55,6 +59,10 @@ class ExamFullScreen extends StatefulWidget {
     this.showLocalSummary = true,
     this.overridePerQuestionSeconds,
     this.competitionMode = false,
+    this.initialAnswers,
+    this.initialRemainingSeconds,
+    this.onStateChanged,
+    this.onStateCleared,
   });
 
   @override
@@ -92,6 +100,11 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       _pageController = PageController();
     }
     answers = List<int?>.filled(widget.questions.length, null);
+    if (widget.initialAnswers != null) {
+      for (int i = 0; i < answers.length && i < widget.initialAnswers!.length; i++) {
+        answers[i] = widget.initialAnswers![i];
+      }
+    }
 
     // Base: provided duration
     remaining = widget.duration.inSeconds;
@@ -102,7 +115,12 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       remaining = perQ * widget.questions.length;
     }
 
+    if (widget.initialRemainingSeconds != null && widget.initialRemainingSeconds! > 0) {
+      remaining = widget.initialRemainingSeconds!;
+    }
+
     _startTimer();
+    Future.microtask(_notifyStateChanged);
   }
 
   @override
@@ -164,6 +182,19 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     debugPrintStack(stackTrace: stackTrace);
   }
 
+  void _notifyStateChanged() {
+    final callback = widget.onStateChanged;
+    if (callback == null) {
+      return;
+    }
+    callback(remaining, List<int?>.from(answers));
+  }
+
+  void _leaveExam(ExamResult? result) {
+    widget.onStateCleared?.call();
+    Navigator.of(context).pop(result);
+  }
+
   void _startTimer() {
     timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -176,6 +207,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         _submit(auto: true);
       } else {
         setState(() => remaining--);
+        _notifyStateChanged();
         if (widget.competitionMode && remaining <= 10) {
           if (remaining <= 3) {
             HapticFeedback.heavyImpact();
@@ -204,6 +236,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
 
   void _onAnswer(int index, int choice) {
     setState(() => answers[index] = choice);
+    _notifyStateChanged();
     if (widget.competitionMode) {
       if (index < widget.questions.length - 1) {
         _currentIndex = index + 1;
@@ -291,11 +324,12 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         remaining -= 30;
         if (remaining < 0) remaining = 0;
       });
+      _notifyStateChanged();
       await _showAlert('Pénalité', '30 secondes retirées du temps restant.');
     } else if (_exitCount >= 3) {
       await _showAlert('Exclusion', 'Vous avez quitté l’application trop souvent.');
       if (mounted) {
-        Navigator.of(context).pop(null);
+        _leaveExam(null);
       }
     }
   }
@@ -390,14 +424,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     setState(() => _submitted = true);
 
     if (!widget.showLocalSummary) {
-      Navigator.of(context).pop(_lastResult);
+      _leaveExam(_lastResult);
       return;
     }
 
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(auto ? 'Temps écoulé' : 'Résultats'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -415,8 +449,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(_lastResult);
+              Navigator.of(dialogContext).pop();
+              _leaveExam(_lastResult);
             },
             child: const Text('Terminer'),
           ),
@@ -563,7 +597,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                     child: OutlinedButton.icon(
                       onPressed: () async {
                         if (_submitted) {
-                          Navigator.of(context).pop(_lastResult);
+                          _leaveExam(_lastResult);
                           return;
                         }
                         final confirm = await showDialog<bool>(
@@ -583,7 +617,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                           ),
                         );
                         if (confirm == true) {
-                          Navigator.of(context).pop(null);
+                          _leaveExam(null);
                         }
                       },
                       icon: Icon(_submitted ? Icons.check : Icons.close),
@@ -611,7 +645,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       onWillPop: () async {
         if (widget.competitionMode) return false;
         if (_submitted) {
-          Navigator.of(context).pop(_lastResult);
+          _leaveExam(_lastResult);
           return false;
         }
         final ok = await showDialog<bool>(
@@ -630,7 +664,10 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
             ],
           ),
         );
-        return ok == true;
+        if (ok == true) {
+          _leaveExam(null);
+        }
+        return false;
       },
       child: content,
     );
