@@ -1031,14 +1031,21 @@ class _RecentQuizCard extends StatelessWidget {
     final int percentValue = (clampedProgress * 100).round();
     final String subtitle;
     if (hasQuiz) {
-      subtitle = ongoingState!.title;
+      final rawTitle = ongoingState!.title.trim();
+      subtitle = rawTitle.isNotEmpty
+          ? 'Vous étiez sur « $rawTitle »'
+          : 'Vous étiez sur votre quiz rapide en cours.';
     } else if (summary != null) {
-      subtitle = summary.title ??
-          'Lancez un entraînement rapide pour continuer.';
-    } else if (showExamResult) {
-      subtitle = 'Résultat de votre dernière simulation complète.';
+      final rawTitle = summary.title?.trim();
+      subtitle = (rawTitle != null && rawTitle.isNotEmpty)
+          ? 'Dernier quiz rapide : $rawTitle'
+          : 'Commencez un quiz rapide pour vous entraîner.';
+    } else if (showExamResult && examEntry != null) {
+      final localization = MaterialLocalizations.of(context);
+      final formattedDate = localization.formatMediumDate(examEntry.date);
+      subtitle = 'Dernière simulation ENA : $formattedDate';
     } else {
-      subtitle = 'Lancez un entraînement rapide pour continuer.';
+      subtitle = 'Commencez un quiz rapide pour vous entraîner.';
     }
     final String progressLabel;
     if (hasQuiz) {
@@ -1048,11 +1055,18 @@ class _RecentQuizCard extends StatelessWidget {
           'Dernier score : $percentValue % – ${summary.correctAnswers}/${summary.totalQuestions}';
     } else if (showExamResult) {
       progressLabel = examRatio != null
-          ? 'Dernière simulation : $percentValue % de réussite'
-          : 'Dernière simulation : données indisponibles';
+          ? 'Dernière simulation ENA : $percentValue % de réussite'
+          : 'Dernière simulation ENA : données indisponibles';
     } else {
       progressLabel = 'Aucun quiz en cours';
     }
+    final String titleText = hasQuiz ? 'Reprendre le quiz' : 'Quiz rapide ENA';
+    final bool hasHistory = summary != null || showExamResult;
+    final String buttonLabel = showResume
+        ? 'Reprendre'
+        : hasHistory
+            ? 'Relancer'
+            : 'Lancer';
     final bool showButton = showResume || showLaunch;
     final bool enableResume = showResume && !isBusy;
     final mainAxisAlignment =
@@ -1078,7 +1092,7 @@ class _RecentQuizCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Reprendre le quiz',
+            titleText,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
@@ -1127,20 +1141,15 @@ class _RecentQuizCard extends StatelessWidget {
                   onPressed: showResume
                       ? (enableResume ? onContinue : null)
                       : onLaunchQuiz,
-                  child: showResume
-                      ? (isBusy
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Continuer',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ))
-                      : const Text(
-                          'Jouer',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                  child: showResume && isBusy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          buttonLabel,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                 ),
             ],
