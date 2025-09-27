@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../utils/palette_utils.dart';
 import '../category_definitions.dart';
 
 class CategoryMenuList extends StatelessWidget {
@@ -44,14 +43,9 @@ class _CategoryMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = playIconColors(item.palette);
     final theme = Theme.of(context);
-    final Color accent = colors.isNotEmpty
-        ? colors.last
-        : theme.colorScheme.primary;
-    final Color background = colors.isNotEmpty
-        ? colors.first.withOpacity(0.15)
-        : theme.colorScheme.primary.withOpacity(0.08);
+    final Color accent = item.accentColor;
+    final Color background = accent.withOpacity(0.12);
     final textStyle = theme.textTheme.titleMedium?.copyWith(
       fontWeight: FontWeight.w700,
       color: theme.colorScheme.onSurface,
@@ -104,25 +98,20 @@ class _VisualIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double size = 64;
-    if (item.asset != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.asset(
-          item.asset!,
-          height: size,
-          width: size,
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.high,
-        ),
-      );
-    }
-
     return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: accent.withOpacity(0.15),
+        color: Colors.white.withOpacity(0.92),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        border: Border.all(color: accent.withOpacity(0.18), width: 1.2),
       ),
       alignment: Alignment.center,
       child: Icon(item.icon, size: 32, color: accent),
