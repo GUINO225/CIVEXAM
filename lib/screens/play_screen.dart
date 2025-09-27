@@ -699,11 +699,32 @@ class _PlayScreenState extends State<PlayScreen> {
   /// BOX BLANCHE + BACKGROUND_Playscreen2 + CONTENU SCROLLABLE
   Widget _buildSections({
     required DesignConfig cfg,
-    required List<_Section> sections,
+    required List<_Section> _sections,
     required double scale,
     required Color textColor,
     required double panelHeightFactor,
   }) {
+    final liveQuizItems = <_LiveQuizItem>[
+      const _LiveQuizItem(
+        icon: Icons.flash_on_rounded,
+        iconColor: Color(0xFF7C4DFF),
+        title: 'Sprint Express',
+        subtitle: '20 questions en 5 minutes',
+      ),
+      const _LiveQuizItem(
+        icon: Icons.people_alt_rounded,
+        iconColor: Color(0xFF5336C6),
+        title: 'Duel du soir',
+        subtitle: 'Affronte un candidat au hasard',
+      ),
+      const _LiveQuizItem(
+        icon: Icons.workspace_premium_rounded,
+        iconColor: Color(0xFF9C6BFF),
+        title: 'Marathon Officiel',
+        subtitle: 'Sujet d’entraînement en conditions réelles',
+      ),
+    ];
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
@@ -728,20 +749,13 @@ class _PlayScreenState extends State<PlayScreen> {
 
               // === CONTENU (carrousel + tuiles) ===
               LayoutBuilder(
-                builder: (context, constraints) {
-                  final w = constraints.maxWidth;
-                  final h = constraints.maxHeight;
-
-                  final baseCardHeight =
-                  (h > 260) ? 220.0 : (h - 60).clamp(170.0, 240.0);
-
+                builder: (context, _) {
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
-                      // Barre calendrier
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                           child: Row(
                             children: [
                               const Spacer(),
@@ -754,7 +768,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                     decoration: BoxDecoration(
                                       color: CAL.bgColor,
                                       borderRadius:
-                                      BorderRadius.circular(CAL.borderRadius),
+                                          BorderRadius.circular(CAL.borderRadius),
                                       boxShadow: CAL.shadows,
                                     ),
                                     child: Row(
@@ -774,165 +788,24 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                         ),
                       ),
-
-                      // Carrousel
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                          child: _PromoCarousel(
-                            images: _promoImages,
-                            controller: _promoController,
-                            currentIndex: _promoIndex,
-                            onIndexTapped: (idx) {
-                              _promoController.animateToPage(
-                                idx,
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeOut,
-                              );
-                              setState(() => _promoIndex = idx);
-                            },
-                          ),
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _RecentQuizCard(),
                         ),
                       ),
-
-                      // Sections
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                            if (index.isOdd) return const SizedBox(height: 12);
-                            final si = index ~/ 2;
-                            final section = sections[si];
-                            final style = UI.sectionStyles[section.keyName]!;
-
-                            final double itemWidth =
-                            (w * style.itemWidthFraction).clamp(80.0, w);
-                            final double itemHeight =
-                                style.itemHeight ?? baseCardHeight;
-
-                            final double viewportFraction =
-                            (itemWidth / w).clamp(0.1, 1.0);
-                            final controller = PageController(
-                                viewportFraction: viewportFraction);
-
-                            return Padding(
-                              padding:
-                              const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(section.title,
-                                      style: style.sectionTitleStyle),
-                                  const SizedBox(height: 10),
-                                  SizedBox(
-                                    height: itemHeight,
-                                    child: PageView.builder(
-                                      controller: controller,
-                                      padEnds: false,
-                                      physics:
-                                      const BouncingScrollPhysics(),
-                                      itemCount: section.itemIndexes.length,
-                                      itemBuilder: (context, pi) {
-                                        final i = section.itemIndexes[pi];
-                                        final item = _items[i];
-                                        final trailing =
-                                        (pi ==
-                                            section.itemIndexes.length -
-                                                1)
-                                            ? 0.0
-                                            : style.tileSpacing;
-
-                                        final paletteColors =
-                                        playIconColors(item.palette);
-                                        final iconColor =
-                                            style.tileIconColor ??
-                                                (paletteColors.isNotEmpty
-                                                    ? paletteColors.last
-                                                    : Colors.white);
-
-                                        // --- Taille de la tuile vs légende (texte hors tuile)
-                                        const double captionHeight =
-                                        36.0; // zone texte
-                                        final double tileBodyHeight =
-                                        (itemHeight - captionHeight)
-                                            .clamp(110.0, itemHeight);
-
-                                        // --- Tuile avec icône/image seule
-                                        final iconOnlyTile = _TileCard(
-                                          borderColor: style.borderColor,
-                                          borderWidth: style.borderWidth,
-                                          borderRadius: style.borderRadius,
-                                          backgroundColor:
-                                          style.tileBackgroundColor,
-                                          gradient: style.tileGradient,
-                                          onTap: () => _navigate(context, i),
-                                          child: _IconOnlyTile(
-                                            icon: item.icon,
-                                            asset: item.asset,
-                                            iconSize: scale * 120,
-                                            iconColor: iconColor,
-                                          ),
-                                        );
-
-                                        // --- Légende (texte) sous la tuile : même couleur que la tuile
-                                        final Color captionColor =
-                                        _pickTileMainColor(style);
-
-                                        final captionStyle =
-                                        (style.tileTitleTextStyle ??
-                                            const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight:
-                                              FontWeight.w800,
-                                            ))
-                                            .copyWith(
-                                          color: captionColor,
-                                        );
-
-                                        return Padding(
-                                          padding:
-                                          EdgeInsets.only(right: trailing),
-                                          child: SizedBox(
-                                            width: itemWidth,
-                                            height: itemHeight,
-                                            child: Column(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                              children: [
-                                                SizedBox(
-                                                  height: tileBodyHeight,
-                                                  child: iconOnlyTile,
-                                                ),
-                                                const SizedBox(height: 6),
-                                                SizedBox(
-                                                  height: captionHeight - 6,
-                                                  child: Center(
-                                                    child: Text(
-                                                      item.title,
-                                                      textAlign:
-                                                      TextAlign.center,
-                                                      maxLines: 2,
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
-                                                      style: captionStyle,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          childCount: sections.length * 2 - 1,
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _FeaturedCard(),
                         ),
                       ),
-
-                      const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                        sliver: SliverToBoxAdapter(
+                          child: _LiveQuizList(items: liveQuizItems),
+                        ),
+                      ),
                     ],
                   );
                 },
@@ -1219,6 +1092,252 @@ class _PlayScreenState extends State<PlayScreen> {
     );
     return proceed == true;
   }
+}
+
+class _RecentQuizCard extends StatelessWidget {
+  const _RecentQuizCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF8856FF), Color(0xFF6C3BFF)],
+        ),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 14,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Reprendre le quiz',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Préparation concours ENA',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: LinearProgressIndicator(
+              value: 0.65,
+              minHeight: 14,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD740)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '65 % complété',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF4315C5),
+                  backgroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                onPressed: () {},
+                child: const Text(
+                  'Continuer',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedCard extends StatelessWidget {
+  const _FeaturedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C4DFF),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: const Icon(
+              Icons.group_add_rounded,
+              color: Colors.white,
+              size: 34,
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Invite tes amis',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: const Color(0xFF2D1B5E),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Décuple ta motivation avec une préparation collective.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: const Color(0xFF5F5A78),
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF7C4DFF),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    onPressed: () {},
+                    child: const Text(
+                      'Find Friends',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveQuizList extends StatelessWidget {
+  const _LiveQuizList({required this.items});
+
+  final List<_LiveQuizItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const Divider(
+          height: 1,
+          thickness: 1,
+          color: Color(0xFFE8E6F3),
+        ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return ListTile(
+            leading: Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: item.iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(item.icon, color: item.iconColor, size: 26),
+            ),
+            title: Text(
+              item.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFF1F1A3D),
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            subtitle: Text(
+              item.subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF6F6A89),
+                  ),
+            ),
+            trailing: const Icon(Icons.chevron_right_rounded,
+                color: Color(0xFF7C4DFF)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            onTap: () {},
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LiveQuizItem {
+  const _LiveQuizItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
 }
 
 /// ============================================================================
