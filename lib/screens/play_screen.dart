@@ -3,17 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:characters/characters.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
-import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
-import 'leaderboard_screen.dart';
 import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
-import 'login_screen.dart';
+import 'subject_list_screen.dart';
+import 'exam_history_screen.dart';
+import 'profile_edit_screen.dart';
+import 'training_quick_start.dart';
+
+// --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
 import 'categories/prepa_ena_screen.dart';
 import 'categories/cours_ena_screen.dart';
@@ -131,6 +135,9 @@ class CalendarOverlayConfig {
 /// Couleurs de base
 const _titleColor = Color(0xFF0E1420);
 const _cardWhite = Colors.white;
+
+/// Petite constante manquante dans la branche “catégories”
+const double baseCardHeight = 180;
 
 /// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
@@ -322,8 +329,12 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  final _auth = AuthService();
-  bool _signingOut = false;
+  static const Color _bottomBarColor = Color(0xFF5B2E91);
+  static const Color _bottomBarHighlight = Color(0x29FFFFFF);
+  static const Color _fabForeground = Color(0xFF5B2E91);
+
+  int _selectedNavIndex = 0;
+  late final List<_NavDestination> _navItems;
 
   // Carrousel
   final List<String> _promoImages = const [
@@ -338,9 +349,9 @@ class _PlayScreenState extends State<PlayScreen> {
 
   // Fonds
   late final AssetImage _screenBg =
-  const AssetImage('assets/images/background_playscreen.png');
+      const AssetImage('assets/images/background_playscreen.png');
   late final AssetImage _panelBg =
-  const AssetImage('assets/images/background_playscreen2.png');
+      const AssetImage('assets/images/background_playscreen2.png');
 
   // Horloge
   final ValueNotifier<DateTime> _now = ValueNotifier<DateTime>(DateTime.now());
@@ -350,6 +361,34 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    _navItems = [
+      _NavDestination(
+        icon: Icons.dashboard_outlined,
+        label: 'Dashboard',
+        builder: (_) => const DashboardScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.quiz_outlined,
+        label: 'Quiz',
+        builder: (_) => const SubjectListScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.history,
+        label: 'Historique',
+        builder: (_) => const ExamHistoryScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.person_outline,
+        label: 'Profil',
+        builder: (_) => const ProfileEditScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.settings_outlined,
+        label: 'Paramètres',
+        builder: (_) => const DesignSettingsScreen(),
+      ),
+    ];
 
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
@@ -373,10 +412,31 @@ class _PlayScreenState extends State<PlayScreen> {
   void _startClock() {
     _clockTimer?.cancel();
     final interval =
-    CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
+        CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
     _clockTimer = Timer.periodic(interval, (_) {
       _now.value = DateTime.now();
     });
+  }
+
+  Future<void> _onNavItemSelected(int index) async {
+    setState(() => _selectedNavIndex = index);
+    final builder = _navItems[index].builder;
+
+    if (builder != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: builder),
+      );
+    }
+
+    if (!mounted) return;
+
+    setState(() => _selectedNavIndex = 0);
+  }
+
+  Future<void> _handleCreateQuickQuiz() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
+    );
   }
 
   @override
@@ -414,10 +474,10 @@ class _PlayScreenState extends State<PlayScreen> {
         final hasName = name != null && name.isNotEmpty;
 
         final textColor =
-        textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final badgeColors = playIconColors(cfg.bgPaletteName);
         final nameColor =
-        badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
+            badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
@@ -436,19 +496,19 @@ class _PlayScreenState extends State<PlayScreen> {
             screenH * (1 - UI.panelHeightFactor) - topInset;
 
         final desiredLogo =
-        scaledDimension(base: 200, scale: scale, min: 140, max: 220);
+            scaledDimension(base: 200, scale: scale, min: 140, max: 220);
         final maxLogoBySpace = (headerAvailableH * 0.65).clamp(100.0, 260.0);
         final logoHeight = desiredLogo.clamp(120.0, maxLogoBySpace);
 
         final overlay = cfg.darkMode
             ? SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
-        )
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: Colors.transparent,
+              )
             : SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
-        );
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: Colors.transparent,
+              );
 
         // ===== Orga des sections (ENA CI) =====
         final sections = kHomeCategories;
@@ -465,7 +525,10 @@ class _PlayScreenState extends State<PlayScreen> {
               foregroundColor: textColor,
               toolbarHeight: 0,
             ),
-            bottomNavigationBar: _buildBottomNav(),
+            floatingActionButton: _buildMainFab(),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            bottomNavigationBar: _buildBottomAppBar(),
             body: Stack(
               fit: StackFit.expand,
               children: [
@@ -477,13 +540,10 @@ class _PlayScreenState extends State<PlayScreen> {
                   ),
                 ),
                 _buildHeader(
-                  logoHeight: logoHeight,
                   topInset: topInset,
                   hasName: hasName,
                   name: name,
-                  textColor: textColor,
                   welcomeFontSize: welcomeFontSize,
-                  nameColor: nameColor,
                   nameFontSize: nameFontSize,
                 ),
                 _buildSections(
@@ -500,150 +560,166 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   /// NAV BAR
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A000000),
-            offset: Offset(0, -2),
-            blurRadius: 12,
-          ),
-        ],
-      ),
+  Widget _buildBottomAppBar() {
+    final buttons = <Widget>[];
+
+    for (var i = 0; i < _navItems.length; i++) {
+      if (i == 2) {
+        buttons.add(const SizedBox(width: 68));
+      }
+      buttons.add(
+        Expanded(
+          child: _buildNavButton(i),
+        ),
+      );
+    }
+
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      color: _bottomBarColor,
+      elevation: 16,
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout, color: Color(0xFF0D47A1)),
-                tooltip: 'Déconnexion',
-                onPressed: _signingOut
-                    ? null
-                    : () async {
-                  setState(() => _signingOut = true);
-                  try {
-                    await _auth.signOut();
-                    if (!mounted) return;
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const LoginScreen()),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-                    final message = e is AuthException
-                        ? e.message
-                        : 'Déconnexion échouée';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message)),
-                    );
-                  } finally {
-                    if (mounted) setState(() => _signingOut = false);
-                  }
-                },
-              ),
-              IconButton(
-                icon:
-                const Icon(Icons.person_outline, color: Color(0xFF0D47A1)),
-                tooltip: 'Tableau de bord',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DashboardScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.emoji_events_outlined,
-                    color: Color(0xFF0D47A1)),
-                tooltip: 'Classement',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const LeaderboardScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.palette_outlined,
-                    color: Color(0xFF0D47A1)),
-                tooltip: 'Choisir un thème',
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DesignSettingsScreen()),
-                  );
-                },
-              ),
-            ],
+            mainAxisSize: MainAxisSize.max,
+            children: buttons,
           ),
         ),
       ),
     );
   }
 
+  Widget _buildNavButton(int index) {
+    final item = _navItems[index];
+    final isSelected = _selectedNavIndex == index;
+    final Color foreground =
+        isSelected ? Colors.white : Colors.white.withOpacity(0.72);
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onNavItemSelected(index),
+          borderRadius: BorderRadius.circular(20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? _bottomBarHighlight : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(item.icon, color: foreground, size: 22),
+                const SizedBox(height: 4),
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 12,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainFab() {
+    return FloatingActionButton(
+      heroTag: 'play_screen_fab',
+      backgroundColor: Colors.white,
+      foregroundColor: _fabForeground,
+      elevation: 8,
+      onPressed: _handleCreateQuickQuiz,
+      tooltip: 'Nouveau quiz',
+      child: const Icon(Icons.add, size: 30),
+    );
+  }
+
   /// HEADER (logo + bienvenue)
   Widget _buildHeader({
-    required double logoHeight,
     required double topInset,
     required bool hasName,
     required String? name,
-    required Color textColor,
     required double welcomeFontSize,
-    required Color nameColor,
     required double nameFontSize,
   }) {
+    final displayName = hasName && (name?.trim().isNotEmpty ?? false)
+        ? name!.trim()
+        : 'Utilisateur';
+    final avatarLabel = displayName.isNotEmpty
+        ? displayName.characters.first.toUpperCase()
+        : '?';
+
     return Align(
       alignment: Alignment.topCenter,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(24, topInset + 4, 24, 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF6C4DFF),
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo_splash.png',
-              height: logoHeight,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(height: UI.spacingBetweenLogoAndWelcome),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Bienvenue 👋 ',
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: welcomeFontSize,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
-                      ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Good Morning',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: welcomeFontSize,
+                      fontWeight: FontWeight.w600,
+                      height: 1.1,
                     ),
-                    if (hasName)
-                      TextSpan(
-                        text: name!,
-                        style: TextStyle(
-                          color: nameColor,
-                          fontSize: nameFontSize,
-                          fontWeight: FontWeight.w800,
-                          height: 1.0,
-                        ),
-                      ),
-                  ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    displayName,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: nameFontSize,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.white,
+                child: Text(
+                  avatarLabel,
+                  style: const TextStyle(
+                    color: Color(0xFF6C4DFF),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: UI.spacingUnderWelcome),
           ],
         ),
       ),
@@ -656,6 +732,27 @@ class _PlayScreenState extends State<PlayScreen> {
     required double scale,
     required double panelHeightFactor,
   }) {
+    final liveQuizItems = <_LiveQuizItem>[
+      const _LiveQuizItem(
+        icon: Icons.flash_on_rounded,
+        iconColor: Color(0xFF7C4DFF),
+        title: 'Sprint Express',
+        subtitle: '20 questions en 5 minutes',
+      ),
+      const _LiveQuizItem(
+        icon: Icons.people_alt_rounded,
+        iconColor: Color(0xFF5336C6),
+        title: 'Duel du soir',
+        subtitle: 'Affronte un candidat au hasard',
+      ),
+      const _LiveQuizItem(
+        icon: Icons.workspace_premium_rounded,
+        iconColor: Color(0xFF9C6BFF),
+        title: 'Marathon Officiel',
+        subtitle: 'Sujet d’entraînement en conditions réelles',
+      ),
+    ];
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
@@ -680,20 +777,13 @@ class _PlayScreenState extends State<PlayScreen> {
 
               // === CONTENU (carrousel + tuiles) ===
               LayoutBuilder(
-                builder: (context, constraints) {
-                  final w = constraints.maxWidth;
-                  final h = constraints.maxHeight;
-
-                  final baseCardHeight =
-                  (h > 260) ? 220.0 : (h - 60).clamp(170.0, 240.0);
-
+                builder: (context, _) {
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
-                      // Barre calendrier
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                           child: Row(
                             children: [
                               const Spacer(),
@@ -706,7 +796,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                     decoration: BoxDecoration(
                                       color: CAL.bgColor,
                                       borderRadius:
-                                      BorderRadius.circular(CAL.borderRadius),
+                                          BorderRadius.circular(CAL.borderRadius),
                                       boxShadow: CAL.shadows,
                                     ),
                                     child: Row(
@@ -727,27 +817,31 @@ class _PlayScreenState extends State<PlayScreen> {
                         ),
                       ),
 
-                      // Carrousel
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                          child: _PromoCarousel(
-                            images: _promoImages,
-                            controller: _promoController,
-                            currentIndex: _promoIndex,
-                            onIndexTapped: (idx) {
-                              _promoController.animateToPage(
-                                idx,
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeOut,
-                              );
-                              setState(() => _promoIndex = idx);
-                            },
-                          ),
+                      // Carte "Reprendre le quiz"
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _RecentQuizCard(),
                         ),
                       ),
 
-                      // Sections
+                      // Carte "Invite tes amis"
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _FeaturedCard(),
+                        ),
+                      ),
+
+                      // Liste “Live Quiz”
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                        sliver: SliverToBoxAdapter(
+                          child: _LiveQuizList(items: liveQuizItems),
+                        ),
+                      ),
+
+                      // Sections ENA (catégories)
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -755,8 +849,7 @@ class _PlayScreenState extends State<PlayScreen> {
                             final style = UI.sectionStyles[section.keyName]!;
                             final double cardHeight =
                                 style.itemHeight ?? baseCardHeight;
-                            final Color accentColor =
-                                _pickTileMainColor(style);
+                            final Color accentColor = _pickTileMainColor(style);
                             final Color iconColor =
                                 style.tileIconColor ?? Colors.white;
                             final Color descriptionColor =
@@ -767,8 +860,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 '$modulesCount module${modulesCount > 1 ? 's' : ''}';
 
                             return Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
                               child: SizedBox(
                                 height: cardHeight,
                                 child: _TileCard(
@@ -781,8 +873,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(20.0),
                                     child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Expanded(
                                           child: Column(
@@ -804,28 +895,23 @@ class _PlayScreenState extends State<PlayScreen> {
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                                 maxLines: 2,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 12),
                                               Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 6),
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 12, vertical: 6),
                                                 decoration: BoxDecoration(
-                                                  color: accentColor
-                                                      .withOpacity(0.15),
+                                                  color:
+                                                      accentColor.withOpacity(0.15),
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          30),
+                                                      BorderRadius.circular(30),
                                                 ),
                                                 child: Text(
                                                   modulesLabel,
                                                   style: TextStyle(
                                                     color: accentColor,
-                                                    fontWeight:
-                                                        FontWeight.w700,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
@@ -848,8 +934,6 @@ class _PlayScreenState extends State<PlayScreen> {
                           childCount: sections.length,
                         ),
                       ),
-
-                      const SliverToBoxAdapter(child: SizedBox(height: 16)),
                     ],
                   );
                 },
@@ -979,6 +1063,253 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 }
 
+class _RecentQuizCard extends StatelessWidget {
+  const _RecentQuizCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF8856FF), Color(0xFF6C3BFF)],
+        ),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 14,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Reprendre le quiz',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Préparation concours ENA',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: LinearProgressIndicator(
+              value: 0.65,
+              minHeight: 14,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD740)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '65 % complété',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF4315C5),
+                  backgroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                onPressed: () {},
+                child: const Text(
+                  'Continuer',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedCard extends StatelessWidget {
+  const _FeaturedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C4DFF),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: const Icon(
+              Icons.group_add_rounded,
+              color: Colors.white,
+              size: 34,
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Invite tes amis',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: const Color(0xFF2D1B5E),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Décuple ta motivation avec une préparation collective.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: const Color(0xFF5F5A78),
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF7C4DFF),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    onPressed: () {},
+                    child: const Text(
+                      'Find Friends',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveQuizList extends StatelessWidget {
+  const _LiveQuizList({required this.items});
+
+  final List<_LiveQuizItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const Divider(
+          height: 1,
+          thickness: 1,
+          color: Color(0xFFE8E6F3),
+        ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return ListTile(
+            leading: Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: item.iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(item.icon, color: item.iconColor, size: 26),
+            ),
+            title: Text(
+              item.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFF1F1A3D),
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            subtitle: Text(
+              item.subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF6F6A89),
+                  ),
+            ),
+            trailing: const Icon(Icons.chevron_right_rounded,
+                color: Color(0xFF7C4DFF)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            onTap: () {},
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LiveQuizItem {
+  const _LiveQuizItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+}
+
+/// Tuile card commune
 class _TileCard extends StatelessWidget {
   final Widget child;
   final Color borderColor;
@@ -1034,7 +1365,7 @@ class _TileCard extends StatelessWidget {
   }
 }
 
-/// Carrousel
+/// Carrousel (si besoin ailleurs)
 class _PromoCarousel extends StatelessWidget {
   final List<String> images;
   final PageController controller;
@@ -1092,15 +1423,15 @@ class _PromoCarousel extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                  active ? const Color(0xFFFFAB40) : const Color(0x33FFAB40),
+                      active ? const Color(0xFFFFAB40) : const Color(0x33FFAB40),
                   boxShadow: active
                       ? const [
-                    BoxShadow(
-                      color: Color(0x33FFAB40),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
-                    ),
-                  ]
+                          BoxShadow(
+                            color: Color(0x33FFAB40),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
                       : null,
                 ),
               ),
@@ -1112,3 +1443,14 @@ class _PromoCarousel extends StatelessWidget {
   }
 }
 
+class _NavDestination {
+  final IconData icon;
+  final String label;
+  final WidgetBuilder? builder;
+
+  const _NavDestination({
+    required this.icon,
+    required this.label,
+    this.builder,
+  });
+}
