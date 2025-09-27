@@ -87,6 +87,35 @@ class ExamHistoryEntry {
     return <ExamHistoryEntry>[];
   }
 
+  double? overallSuccessRatio() {
+    if (correctBySubject.isEmpty && totalBySubject.isEmpty) {
+      return null;
+    }
+    var totalCorrect = 0;
+    var totalQuestions = 0;
+    final subjects = <String>{
+      ...correctBySubject.keys,
+      ...totalBySubject.keys,
+    };
+    for (final subject in subjects) {
+      final total = totalBySubject[subject] ?? 0;
+      final correct = correctBySubject[subject] ?? 0;
+      if (total <= 0) {
+        continue;
+      }
+      totalQuestions += total;
+      final adjustedCorrect = correct < 0
+          ? 0
+          : (correct > total ? total : correct);
+      totalCorrect += adjustedCorrect;
+    }
+    if (totalQuestions <= 0) {
+      return null;
+    }
+    final ratio = totalCorrect / totalQuestions;
+    return ratio.clamp(0.0, 1.0).toDouble();
+  }
+
   static DateTime _parseDate(dynamic raw) {
     if (raw is Timestamp) {
       final value = raw.toDate();

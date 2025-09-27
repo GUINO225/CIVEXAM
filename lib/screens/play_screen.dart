@@ -7,10 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:characters/characters.dart';
 
 import '../models/design_config.dart';
+import '../models/exam_history_entry.dart';
 import '../services/design_bus.dart';
 import '../services/ongoing_quiz_store.dart';
 import '../services/question_loader.dart';
 import '../services/scoring.dart';
+import '../services/history_store.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
@@ -203,6 +205,7 @@ class _PlayScreenState extends State<PlayScreen> {
   late final Listenable _quickQuizListenable = Listenable.merge([
     OngoingQuickQuizStore.notifier,
     OngoingQuickQuizStore.lastResultNotifier,
+    HistoryStore.latestEntryNotifier(),
   ]);
 
   // Fonds
@@ -252,6 +255,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _startAutoPlay();
     _startClock();
     unawaited(OngoingQuickQuizStore.load());
+    unawaited(HistoryStore.load());
   }
 
   void _startAutoPlay() {
@@ -832,6 +836,8 @@ class _PlayScreenState extends State<PlayScreen> {
                               final state = OngoingQuickQuizStore.notifier.value;
                               final summary =
                                   OngoingQuickQuizStore.lastResultNotifier.value;
+                              final lastExam =
+                                  HistoryStore.latestEntryNotifier().value;
                               final ongoing = (state != null &&
                                       state.questionIds.isNotEmpty)
                                   ? state
@@ -839,6 +845,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               return _RecentQuizCard(
                                 ongoingState: ongoing,
                                 lastSummary: summary,
+                                lastExamEntry: lastExam,
                                 onContinue: ongoing != null
                                     ? () => _handleResumeQuickQuiz(ongoing)
                                     : null,
@@ -993,6 +1000,7 @@ class _RecentQuizCard extends StatelessWidget {
   const _RecentQuizCard({
     required this.ongoingState,
     required this.lastSummary,
+    required this.lastExamEntry,
     required this.onContinue,
     required this.onLaunchQuiz,
     required this.isBusy,
@@ -1000,6 +1008,7 @@ class _RecentQuizCard extends StatelessWidget {
 
   final OngoingQuickQuizState? ongoingState;
   final QuickQuizSummary? lastSummary;
+  final ExamHistoryEntry? lastExamEntry;
   final VoidCallback? onContinue;
   final VoidCallback? onLaunchQuiz;
   final bool isBusy;
@@ -1010,20 +1019,37 @@ class _RecentQuizCard extends StatelessWidget {
     final bool showResume = hasQuiz && onContinue != null;
     final bool showLaunch = !hasQuiz && onLaunchQuiz != null;
     final summary = lastSummary;
+    final examEntry = lastExamEntry;
+    final double? examRatio = examEntry?.overallSuccessRatio();
+    final bool showExamResult = !hasQuiz && summary == null && examEntry != null;
     final double rawProgress = hasQuiz
         ? ongoingState!.completionRatio
-        : (summary?.completionRatio ?? 0.0);
+        : summary != null
+            ? summary.completionRatio
+            : (examRatio ?? 0.0);
     final double clampedProgress = rawProgress.clamp(0.0, 1.0);
     final int percentValue = (clampedProgress * 100).round();
-    final String subtitle = hasQuiz
-        ? ongoingState!.title
-        : summary?.title ?? 'Lancez un entraînement rapide pour continuer.';
+    final String subtitle;
+    if (hasQuiz) {
+      subtitle = ongoingState!.title;
+    } else if (summary != null) {
+      subtitle = summary.title ??
+          'Lancez un entraînement rapide pour continuer.';
+    } else if (showExamResult) {
+      subtitle = 'Résultat de votre dernière simulation complète.';
+    } else {
+      subtitle = 'Lancez un entraînement rapide pour continuer.';
+    }
     final String progressLabel;
     if (hasQuiz) {
       progressLabel = '$percentValue % complété';
     } else if (summary != null) {
       progressLabel =
           'Dernier score : $percentValue % – ${summary.correctAnswers}/${summary.totalQuestions}';
+    } else if (showExamResult) {
+      progressLabel = examRatio != null
+          ? 'Dernière simulation : $percentValue % de réussite'
+          : 'Dernière simulation : données indisponibles';
     } else {
       progressLabel = 'Aucun quiz en cours';
     }
