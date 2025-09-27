@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
-import '../services/auth_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
@@ -18,7 +17,8 @@ import 'leaderboard_screen.dart';
 import 'dashboard_screen.dart';
 import 'design_settings_screen.dart';
 import 'competition_screen.dart';
-import 'login_screen.dart';
+import 'profile_edit_screen.dart';
+import 'training_quick_start.dart';
 import 'courses/communication_administrative_screen.dart';
 import 'courses/culture_generale_screen.dart';
 import 'courses/droit_public_screen.dart';
@@ -326,8 +326,12 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  final _auth = AuthService();
-  bool _signingOut = false;
+  static const Color _bottomBarColor = Color(0xFF5B2E91);
+  static const Color _bottomBarHighlight = Color(0x29FFFFFF);
+  static const Color _fabForeground = Color(0xFF5B2E91);
+
+  int _selectedNavIndex = 0;
+  late final List<_NavDestination> _navItems;
 
   // Carrousel
   final List<String> _promoImages = const [
@@ -355,6 +359,34 @@ class _PlayScreenState extends State<PlayScreen> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
+    _navItems = [
+      _NavDestination(
+        icon: Icons.dashboard_outlined,
+        label: 'Dashboard',
+        builder: (_) => const DashboardScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.quiz_outlined,
+        label: 'Quiz',
+        builder: (_) => const SubjectListScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.history,
+        label: 'Historique',
+        builder: (_) => const ExamHistoryScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.person_outline,
+        label: 'Profil',
+        builder: (_) => const ProfileEditScreen(),
+      ),
+      _NavDestination(
+        icon: Icons.settings_outlined,
+        label: 'Paramètres',
+        builder: (_) => const DesignSettingsScreen(),
+      ),
+    ];
+
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
     _startClock();
@@ -377,10 +409,31 @@ class _PlayScreenState extends State<PlayScreen> {
   void _startClock() {
     _clockTimer?.cancel();
     final interval =
-    CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
+        CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
     _clockTimer = Timer.periodic(interval, (_) {
       _now.value = DateTime.now();
     });
+  }
+
+  Future<void> _onNavItemSelected(int index) async {
+    setState(() => _selectedNavIndex = index);
+    final builder = _navItems[index].builder;
+
+    if (builder != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: builder),
+      );
+    }
+
+    if (!mounted) return;
+
+    setState(() => _selectedNavIndex = 0);
+  }
+
+  Future<void> _handleCreateQuickQuiz() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
+    );
   }
 
   @override
@@ -509,7 +562,10 @@ class _PlayScreenState extends State<PlayScreen> {
               foregroundColor: textColor,
               toolbarHeight: 0,
             ),
-            bottomNavigationBar: _buildBottomNav(),
+            floatingActionButton: _buildMainFab(),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            bottomNavigationBar: _buildBottomAppBar(),
             body: Stack(
               fit: StackFit.expand,
               children: [
@@ -546,93 +602,90 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   /// NAV BAR
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A000000),
-            offset: Offset(0, -2),
-            blurRadius: 12,
-          ),
-        ],
-      ),
+  Widget _buildBottomAppBar() {
+    final buttons = <Widget>[];
+
+    for (var i = 0; i < _navItems.length; i++) {
+      if (i == 2) {
+        buttons.add(const SizedBox(width: 68));
+      }
+      buttons.add(
+        Expanded(
+          child: _buildNavButton(i),
+        ),
+      );
+    }
+
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      color: _bottomBarColor,
+      elevation: 16,
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout, color: Color(0xFF0D47A1)),
-                tooltip: 'Déconnexion',
-                onPressed: _signingOut
-                    ? null
-                    : () async {
-                  setState(() => _signingOut = true);
-                  try {
-                    await _auth.signOut();
-                    if (!mounted) return;
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const LoginScreen()),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-                    final message = e is AuthException
-                        ? e.message
-                        : 'Déconnexion échouée';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message)),
-                    );
-                  } finally {
-                    if (mounted) setState(() => _signingOut = false);
-                  }
-                },
-              ),
-              IconButton(
-                icon:
-                const Icon(Icons.person_outline, color: Color(0xFF0D47A1)),
-                tooltip: 'Tableau de bord',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DashboardScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.emoji_events_outlined,
-                    color: Color(0xFF0D47A1)),
-                tooltip: 'Classement',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const LeaderboardScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.palette_outlined,
-                    color: Color(0xFF0D47A1)),
-                tooltip: 'Choisir un thème',
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const DesignSettingsScreen()),
-                  );
-                },
-              ),
-            ],
+            mainAxisSize: MainAxisSize.max,
+            children: buttons,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNavButton(int index) {
+    final item = _navItems[index];
+    final isSelected = _selectedNavIndex == index;
+    final Color foreground =
+        isSelected ? Colors.white : Colors.white.withOpacity(0.72);
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onNavItemSelected(index),
+          borderRadius: BorderRadius.circular(20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? _bottomBarHighlight : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(item.icon, color: foreground, size: 22),
+                const SizedBox(height: 4),
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 12,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainFab() {
+    return FloatingActionButton(
+      heroTag: 'play_screen_fab',
+      backgroundColor: Colors.white,
+      foregroundColor: _fabForeground,
+      elevation: 8,
+      onPressed: _handleCreateQuickQuiz,
+      tooltip: 'Nouveau quiz',
+      child: const Icon(Icons.add, size: 30),
     );
   }
 
@@ -1352,6 +1405,18 @@ class _Section {
     required this.keyName,
     required this.title,
     required this.itemIndexes,
+  });
+}
+
+class _NavDestination {
+  final IconData icon;
+  final String label;
+  final WidgetBuilder? builder;
+
+  const _NavDestination({
+    required this.icon,
+    required this.label,
+    this.builder,
   });
 }
 
