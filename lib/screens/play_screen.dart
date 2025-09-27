@@ -32,52 +32,17 @@ import 'categories/aide_themes_screen.dart';
 /// ============================================================================
 
 class SectionStyle {
-  final double itemWidthFraction;
   final double? itemHeight;
-  final Color borderColor;
-  final double borderWidth;
-  final double borderRadius;
-
-  /// Couleur de fond… si `tileGradient` est null.
-  final Color tileBackgroundColor;
-
-  /// Dégradé vibrant (prioritaire si défini)
-  final Gradient? tileGradient;
-
-  final TextStyle sectionTitleStyle;
-
-  /// Couleur du texte sur la tuile (par défaut: blanc sur dégradé sombre)
-  final TextStyle? tileTitleTextStyle;
-
-  /// Couleur de l’icône (par défaut: blanc)
-  final Color? tileIconColor;
-
-  final double tileSpacing;
+  final TextStyle titleTextStyle;
 
   const SectionStyle({
-    required this.itemWidthFraction,
-    required this.itemHeight,
-    required this.borderColor,
-    this.borderWidth = 1.25,
-    this.borderRadius = 18,
-    required this.tileBackgroundColor,
-    this.tileGradient,
-    required this.sectionTitleStyle,
-    this.tileTitleTextStyle,
-    this.tileIconColor,
-    this.tileSpacing = 12,
+    this.itemHeight,
+    required this.titleTextStyle,
   });
 }
 
 class PlayUIConfig {
   final double panelHeightFactor;
-  final String quickPrepTitle;
-  final String coursesTitle;
-  final String bankTitle;
-  final String resourcesTitle;
-  final String historyTitle;
-  final String challengeTitle;
-  final String helpTitle;
   final Map<String, SectionStyle> sectionStyles;
 
   /// Espace sous le message de bienvenue (déjà existant)
@@ -88,13 +53,6 @@ class PlayUIConfig {
 
   const PlayUIConfig({
     required this.panelHeightFactor,
-    required this.quickPrepTitle,
-    required this.coursesTitle,
-    required this.bankTitle,
-    required this.resourcesTitle,
-    required this.historyTitle,
-    required this.challengeTitle,
-    required this.helpTitle,
     required this.sectionStyles,
     this.spacingUnderWelcome = 16.0,
     this.spacingBetweenLogoAndWelcome = 1.0,
@@ -142,182 +100,68 @@ const double baseCardHeight = 180;
 /// ========= CONFIG GLOBALE =========
 final PlayUIConfig UI = PlayUIConfig(
   panelHeightFactor: 0.72,
-  quickPrepTitle: 'Prépa rapide',
-  coursesTitle: 'Cours ENA (Côte d’Ivoire)',
-  bankTitle: 'Sujets & corrigés',
-  resourcesTitle: 'Ressources officielles (CI)',
-  historyTitle: 'Historique & suivi',
-  challengeTitle: 'Défis & classement',
-  helpTitle: 'Aide & thèmes',
   sectionStyles: {
-    'quick': SectionStyle(
-      itemWidthFraction: 0.50,
+    'quick': const SectionStyle(
       itemHeight: 200,
-      borderColor: const Color(0x887C4DFF),
-      borderWidth: 1.0,
-      borderRadius: 10,
-      tileBackgroundColor: const Color(0xFF7C4DFF),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)],
+      titleTextStyle: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 24, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
-
-    'courses': SectionStyle(
-      itemWidthFraction: 0.46,
-      itemHeight: 200.0,
-      borderColor: const Color(0xFF21295C),
-      borderWidth: 1.0,
-      borderRadius: 10,
-      tileBackgroundColor: const Color(0xFF00E5FF),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)], ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
+    'courses': const SectionStyle(
+      itemHeight: 200,
+      titleTextStyle: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 10.0,
     ),
-
-    'bank': SectionStyle(
-      itemWidthFraction: 0.55,
-      itemHeight: 160.0,
-      borderColor: const Color(0x88FFC400),
-      borderWidth: 1.0,
-      borderRadius: 10,
-      tileBackgroundColor: const Color(0xFFFFC400),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFA200), Color(0xFFFF8800)],
+    'bank': const SectionStyle(
+      itemHeight: 170,
+      titleTextStyle: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
-
-    'resources': SectionStyle(
-      itemWidthFraction: 0.55,
-      itemHeight: 160.0,
-      borderColor: const Color(0x8800C853),
-      borderWidth: 1.0,
-      borderRadius: 0,
-      tileBackgroundColor: const Color(0xFF00C853),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFF5A00), Color(0xFFFF4C00)],
+    'resources': const SectionStyle(
+      itemHeight: 170,
+      titleTextStyle: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 22, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
-
-    'history': SectionStyle(
-      itemWidthFraction: 0.55,
+    'history': const SectionStyle(
       itemHeight: 190,
-      borderColor: const Color(0x88FF6D00),
-      borderWidth: 1.0,
-      borderRadius: 2,
-      tileBackgroundColor: const Color(0xFFFF6D00),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF006507), Color(0xFF2F5C00)],
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
-
-    'challenge': SectionStyle(
-      itemWidthFraction: 0.55,
+    'challenge': const SectionStyle(
       itemHeight: 205,
-      borderColor: const Color(0x882962FF),
-      borderWidth: 1.0,
-      borderRadius: 2,
-      tileBackgroundColor: const Color(0xFF2962FF),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF264653), Color(0xFF264653)],
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
-
-    'help': SectionStyle(
-      itemWidthFraction: 1,
-      itemHeight: null,
-      borderColor: const Color(0x88AA00FF),
-      borderWidth: 1.0,
-      borderRadius: 2,
-      tileBackgroundColor: const Color(0xFFAA00FF),
-      tileGradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF4DBBFF), Color(0xFF3182EA)],
+    'help': const SectionStyle(
+      titleTextStyle: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        color: _titleColor,
       ),
-      sectionTitleStyle: const TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w800, color: _titleColor,
-      ),
-      tileTitleTextStyle: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
-      ),
-      tileIconColor: Colors.white,
-      tileSpacing: 12.0,
     ),
   },
-
   spacingUnderWelcome: 16.0,
   spacingBetweenLogoAndWelcome: 1.0,
 );
 
 const CalendarOverlayConfig CAL = CalendarOverlayConfig();
-
-/// === Helper: couleur principale de la tuile (dernier stop du gradient sinon fond) ===
-Color _pickTileMainColor(SectionStyle style) {
-  final g = style.tileGradient;
-  if (g is LinearGradient && g.colors.isNotEmpty) return g.colors.last;
-  if (g is RadialGradient && g.colors.isNotEmpty) return g.colors.last;
-  if (g is SweepGradient && g.colors.isNotEmpty) return g.colors.last;
-  return style.tileBackgroundColor;
-}
 
 /// ============================================================================
 /// === ÉCRAN ==================================================================
@@ -446,12 +290,6 @@ class _PlayScreenState extends State<PlayScreen> {
     precacheImage(_panelBg, context);
     for (final p in _promoImages) {
       precacheImage(AssetImage(p), context);
-    }
-    // Précharger les PNG des tuiles disponibles
-    for (final it in kCategoryMenuItems) {
-      if (it.asset != null) {
-        precacheImage(AssetImage(it.asset!), context);
-      }
     }
   }
 
@@ -847,87 +685,17 @@ class _PlayScreenState extends State<PlayScreen> {
                           (context, index) {
                             final section = sections[index];
                             final style = UI.sectionStyles[section.keyName]!;
-                            final double cardHeight =
-                                style.itemHeight ?? baseCardHeight;
-                            final Color accentColor = _pickTileMainColor(style);
-                            final Color iconColor =
-                                style.tileIconColor ?? Colors.white;
-                            final Color descriptionColor =
-                                style.tileTitleTextStyle?.color ??
-                                    Colors.white.withOpacity(0.85);
                             final modulesCount = section.itemIndexes.length;
-                            final modulesLabel =
-                                '$modulesCount module${modulesCount > 1 ? 's' : ''}';
 
                             return Padding(
                               padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                              child: SizedBox(
-                                height: cardHeight,
-                                child: _TileCard(
-                                  borderColor: style.borderColor,
-                                  borderWidth: style.borderWidth,
-                                  borderRadius: style.borderRadius,
-                                  backgroundColor: style.tileBackgroundColor,
-                                  gradient: style.tileGradient,
-                                  onTap: () => _navigate(context, section.category),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                section.title,
-                                                style: style.sectionTitleStyle,
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                section.description,
-                                                style: TextStyle(
-                                                  color: descriptionColor,
-                                                  fontSize: 15 * scale,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 12),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      accentColor.withOpacity(0.15),
-                                                  borderRadius:
-                                                      BorderRadius.circular(30),
-                                                ),
-                                                child: Text(
-                                                  modulesLabel,
-                                                  style: TextStyle(
-                                                    color: accentColor,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        _buildCategoryVisual(
-                                          section,
-                                          iconColor,
-                                          scale,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                              child: HomeCategoryTile(
+                                definition: section,
+                                style: style,
+                                modulesCount: modulesCount,
+                                scale: scale,
+                                height: style.itemHeight ?? baseCardHeight,
+                                onTap: () => _navigate(context, section.category),
                               ),
                             );
                           },
@@ -941,36 +709,6 @@ class _PlayScreenState extends State<PlayScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryVisual(
-    CategoryDefinition section,
-    Color iconColor,
-    double scale,
-  ) {
-    final double size = (120 * scale).clamp(80.0, 140.0);
-    if (section.asset != null) {
-      return SizedBox(
-        height: size,
-        width: size,
-        child: Image.asset(
-          section.asset!,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        ),
-      );
-    }
-
-    return Container(
-      height: size,
-      width: size,
-      alignment: Alignment.center,
-      child: Icon(
-        section.icon ?? Icons.apps_rounded,
-        size: size * 0.7,
-        color: iconColor,
       ),
     );
   }
@@ -1295,6 +1033,138 @@ class _LiveQuizList extends StatelessWidget {
   }
 }
 
+class HomeCategoryTile extends StatelessWidget {
+  const HomeCategoryTile({
+    super.key,
+    required this.definition,
+    required this.style,
+    required this.modulesCount,
+    required this.scale,
+    required this.height,
+    required this.onTap,
+  });
+
+  final CategoryDefinition definition;
+  final SectionStyle style;
+  final int modulesCount;
+  final double scale;
+  final double height;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Color accent = definition.accentColor;
+    final double iconContainerSize = (72 * scale).clamp(56.0, 86.0);
+    final double iconSize = (48 * scale).clamp(36.0, 56.0);
+    final String modulesLabel =
+        '$modulesCount module${modulesCount > 1 ? 's' : ''}';
+    final TextStyle descriptionStyle =
+        theme.textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF5F5A78),
+              fontWeight: FontWeight.w500,
+            ) ??
+            const TextStyle(
+              color: Color(0xFF5F5A78),
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+            );
+    final TextStyle badgeStyle =
+        theme.textTheme.labelLarge?.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w700,
+            ) ??
+            TextStyle(
+              color: accent,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            );
+
+    return SizedBox(
+      height: height,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(26),
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: accent.withOpacity(0.16), width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: iconContainerSize,
+                    width: iconContainerSize,
+                    decoration: BoxDecoration(
+                      color: accent.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Icon(
+                      definition.icon,
+                      color: accent,
+                      size: iconSize,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          definition.title,
+                          style: style.titleTextStyle,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          definition.description,
+                          style: descriptionStyle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Text(modulesLabel, style: badgeStyle),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: accent.withOpacity(0.8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveQuizItem {
   const _LiveQuizItem({
     required this.icon,
@@ -1309,63 +1179,7 @@ class _LiveQuizItem {
   final String subtitle;
 }
 
-/// Tuile card commune
-class _TileCard extends StatelessWidget {
-  final Widget child;
-  final Color borderColor;
-  final double borderWidth;
-  final double borderRadius;
-  final Color backgroundColor;
-  final Gradient? gradient;
-  final VoidCallback? onTap;
-
-  const _TileCard({
-    super.key,
-    required this.child,
-    required this.borderColor,
-    required this.borderWidth,
-    required this.borderRadius,
-    required this.backgroundColor,
-    this.gradient,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: borderColor, width: borderWidth),
-          gradient: gradient,
-          color: gradient == null ? backgroundColor : null,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1F000000),
-              blurRadius: 12,
-              offset: Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Color(0x14000000),
-              blurRadius: 24,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(borderRadius),
-          splashColor: Colors.white24,
-          highlightColor: Colors.white10,
-          onTap: onTap,
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-/// Carrousel (si besoin ailleurs)
+  /// Carrousel (si besoin ailleurs)
 class _PromoCarousel extends StatelessWidget {
   final List<String> images;
   final PageController controller;
