@@ -16,7 +16,7 @@ class OngoingQuickQuizState {
     required this.title,
     required List<String> questionIds,
     required List<int?> answers,
-    required this.remainingSeconds,
+    required int remainingSeconds,
   })  : questionIds = List<String>.unmodifiable(questionIds),
         answers = List<int?>.unmodifiable(_normalizeAnswers(questionIds, answers)),
         remainingSeconds = remainingSeconds < 0 ? 0 : remainingSeconds;
