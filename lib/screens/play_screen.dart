@@ -1,5 +1,6 @@
 // lib/screens/play_screen.dart
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -198,6 +199,10 @@ class _PlayScreenState extends State<PlayScreen> {
   int _promoIndex = 0;
 
   bool _resumingQuickQuiz = false;
+  late final Listenable _quickQuizListenable = Listenable.merge([
+    OngoingQuickQuizStore.notifier,
+    OngoingQuickQuizStore.lastResultNotifier,
+  ]);
 
   // Fonds
   late final AssetImage _screenBg =
@@ -376,6 +381,19 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
         ),
       );
+      final completedAt = DateTime.now();
+      if (result != null) {
+        await OngoingQuickQuizStore.saveLastResult(
+          QuickQuizSummary(
+            title: state.title,
+            completedAt: completedAt,
+            correctAnswers: result.correctCount,
+            totalQuestions: result.total,
+          ),
+        );
+      } else {
+        await OngoingQuickQuizStore.clearLastResult();
+      }
       await OngoingQuickQuizStore.clear();
 
       if (!mounted) {
@@ -801,26 +819,21 @@ class _PlayScreenState extends State<PlayScreen> {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
-                          child: ValueListenableBuilder<OngoingQuickQuizState?>(
-                            valueListenable: OngoingQuickQuizStore.notifier,
-                            builder: (_, state, __) {
-                              final hasQuiz =
-                                  state != null && state.questionIds.isNotEmpty;
-                              final progress = hasQuiz
-                                  ? state!.completionRatio.clamp(0.0, 1.0)
-                                  : 0.0;
-                              final percentLabel = hasQuiz
-                                  ? '${(progress * 100).round()} % complété'
-                                  : 'Aucun quiz en cours';
-                              final subtitle = hasQuiz
-                                  ? state!.title
-                                  : 'Lancez un entraînement rapide pour continuer.';
+                          child: AnimatedBuilder(
+                            animation: _quickQuizListenable,
+                            builder: (_, __) {
+                              final state = OngoingQuickQuizStore.notifier.value;
+                              final summary =
+                                  OngoingQuickQuizStore.lastResultNotifier.value;
+                              final ongoing = (state != null &&
+                                      state.questionIds.isNotEmpty)
+                                  ? state
+                                  : null;
                               return _RecentQuizCard(
-                                subtitle: subtitle,
-                                progress: progress,
-                                progressLabel: percentLabel,
-                                onContinue: hasQuiz
-                                    ? () => _handleResumeQuickQuiz(state!)
+                                ongoingState: ongoing,
+                                lastSummary: summary,
+                                onContinue: ongoing != null
+                                    ? () => _handleResumeQuickQuiz(ongoing)
                                     : null,
                                 isBusy: _resumingQuickQuiz,
                               );
@@ -969,23 +982,42 @@ class _PlayScreenState extends State<PlayScreen> {
 
 class _RecentQuizCard extends StatelessWidget {
   const _RecentQuizCard({
-    required this.subtitle,
-    required this.progress,
-    required this.progressLabel,
+    required this.ongoingState,
+    required this.lastSummary,
     required this.onContinue,
     required this.isBusy,
   });
 
-  final String subtitle;
-  final double progress;
-  final String progressLabel;
+  final OngoingQuickQuizState? ongoingState;
+  final QuickQuizSummary? lastSummary;
   final VoidCallback? onContinue;
   final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
-    final clampedProgress = progress.clamp(0.0, 1.0);
-    final bool enabled = onContinue != null && !isBusy;
+    final hasQuiz = ongoingState != null && ongoingState!.questionIds.isNotEmpty;
+    final summary = lastSummary;
+    final double rawProgress = hasQuiz
+        ? ongoingState!.completionRatio
+        : (summary?.completionRatio ?? 0.0);
+    final double clampedProgress = rawProgress.clamp(0.0, 1.0);
+    final int percentValue = (clampedProgress * 100).round();
+    final String subtitle = hasQuiz
+        ? ongoingState!.title
+        : summary?.title ?? 'Lancez un entraînement rapide pour continuer.';
+    final String progressLabel;
+    if (hasQuiz) {
+      progressLabel = '$percentValue % complété';
+    } else if (summary != null) {
+      progressLabel =
+          'Dernier score : $percentValue % – ${summary.correctAnswers}/${summary.totalQuestions}';
+    } else {
+      progressLabel = 'Aucun quiz en cours';
+    }
+    final bool showButton = hasQuiz && onContinue != null;
+    final bool enabled = showButton && !isBusy;
+    final mainAxisAlignment =
+        showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -1033,7 +1065,7 @@ class _RecentQuizCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: mainAxisAlignment,
             children: [
               Text(
                 progressLabel,
@@ -1042,28 +1074,29 @@ class _RecentQuizCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
               ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF4315C5),
-                  backgroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+              if (showButton)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF4315C5),
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
+                  onPressed: enabled ? onContinue : null,
+                  child: isBusy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Continuer',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
-                onPressed: enabled ? onContinue : null,
-                child: isBusy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Continuer',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-              ),
             ],
           ),
         ],
