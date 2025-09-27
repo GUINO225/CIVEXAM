@@ -100,8 +100,21 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           },
         ),
       ));
+      final completedAt = DateTime.now();
+      if (res != null) {
+        await OngoingQuickQuizStore.saveLastResult(
+          QuickQuizSummary(
+            title: title,
+            completedAt: completedAt,
+            correctAnswers: res.correctCount,
+            totalQuestions: res.total,
+          ),
+        );
+      } else {
+        await OngoingQuickQuizStore.clearLastResult();
+      }
       await OngoingQuickQuizStore.clear();
-      final elapsedSeconds = DateTime.now().difference(startTime).inSeconds;
+      final elapsedSeconds = completedAt.difference(startTime).inSeconds;
 
       if (res != null) {
         final bool success = res.total > 0 && (res.correctCount / res.total) >= 0.5; // ≥50% de bonnes réponses
@@ -157,6 +170,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     } catch (e) {
       if (mounted) Navigator.pop(context);
       unawaited(OngoingQuickQuizStore.clear());
+      unawaited(OngoingQuickQuizStore.clearLastResult());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec du lancement de l\'entraînement : $e')),
