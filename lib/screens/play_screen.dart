@@ -316,9 +316,7 @@ class _PlayScreenState extends State<PlayScreen> {
     setState(() => _resumingQuickQuiz = true);
     bool dialogShown = false;
     void closeDialog() {
-      if (!dialogShown) {
-        return;
-      }
+      if (!dialogShown) return;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
@@ -407,9 +405,7 @@ class _PlayScreenState extends State<PlayScreen> {
       }
       await OngoingQuickQuizStore.clear();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz interrompu.')),
@@ -816,8 +812,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               if (_promoController.hasClients) {
                                 _promoController.animateToPage(
                                   index,
-                                  duration:
-                                      const Duration(milliseconds: 450),
+                                  duration: const Duration(milliseconds: 450),
                                   curve: Curves.easeOut,
                                 );
                               }
@@ -1071,6 +1066,7 @@ class _RecentQuizCard extends StatelessWidget {
     final bool enableResume = showResume && !isBusy;
     final mainAxisAlignment =
         showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -1120,37 +1116,44 @@ class _RecentQuizCard extends StatelessWidget {
           Row(
             mainAxisAlignment: mainAxisAlignment,
             children: [
-              Text(
-                progressLabel,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+              Expanded(
+                child: Text(
+                  progressLabel,
+                  softWrap: true,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
               ),
               if (showButton)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF4315C5),
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF4315C5),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
+                    onPressed:
+                        showResume ? (enableResume ? onContinue : null) : onLaunchQuiz,
+                    child: showResume && isBusy
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            buttonLabel,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
                   ),
-                  onPressed: showResume
-                      ? (enableResume ? onContinue : null)
-                      : onLaunchQuiz,
-                  child: showResume && isBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          buttonLabel,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
                 ),
             ],
           ),
@@ -1453,7 +1456,7 @@ class _LiveQuizItem {
   final String subtitle;
 }
 
-  /// Carrousel (si besoin ailleurs)
+/// Carrousel (si besoin ailleurs)
 class _PromoCarousel extends StatelessWidget {
   final List<String> images;
   final PageController controller;
