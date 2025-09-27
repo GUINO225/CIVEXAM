@@ -316,9 +316,7 @@ class _PlayScreenState extends State<PlayScreen> {
     setState(() => _resumingQuickQuiz = true);
     bool dialogShown = false;
     void closeDialog() {
-      if (!dialogShown) {
-        return;
-      }
+      if (!dialogShown) return;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
@@ -407,9 +405,7 @@ class _PlayScreenState extends State<PlayScreen> {
       }
       await OngoingQuickQuizStore.clear();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Quiz interrompu.')),
@@ -816,8 +812,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               if (_promoController.hasClients) {
                                 _promoController.animateToPage(
                                   index,
-                                  duration:
-                                      const Duration(milliseconds: 450),
+                                  duration: const Duration(milliseconds: 450),
                                   curve: Curves.easeOut,
                                 );
                               }
@@ -1031,14 +1026,21 @@ class _RecentQuizCard extends StatelessWidget {
     final int percentValue = (clampedProgress * 100).round();
     final String subtitle;
     if (hasQuiz) {
-      subtitle = ongoingState!.title;
+      final rawTitle = ongoingState!.title.trim();
+      subtitle = rawTitle.isNotEmpty
+          ? 'Vous étiez sur « $rawTitle »'
+          : 'Vous étiez sur votre quiz rapide en cours.';
     } else if (summary != null) {
-      subtitle = summary.title ??
-          'Lancez un entraînement rapide pour continuer.';
-    } else if (showExamResult) {
-      subtitle = 'Résultat de votre dernière simulation complète.';
+      final rawTitle = summary.title?.trim();
+      subtitle = (rawTitle != null && rawTitle.isNotEmpty)
+          ? 'Dernier quiz rapide : $rawTitle'
+          : 'Commencez un quiz rapide pour vous entraîner.';
+    } else if (showExamResult && examEntry != null) {
+      final localization = MaterialLocalizations.of(context);
+      final formattedDate = localization.formatMediumDate(examEntry.date);
+      subtitle = 'Dernière simulation ENA : $formattedDate';
     } else {
-      subtitle = 'Lancez un entraînement rapide pour continuer.';
+      subtitle = 'Commencez un quiz rapide pour vous entraîner.';
     }
     final String progressLabel;
     if (hasQuiz) {
@@ -1048,15 +1050,23 @@ class _RecentQuizCard extends StatelessWidget {
           'Dernier score : $percentValue % – ${summary.correctAnswers}/${summary.totalQuestions}';
     } else if (showExamResult) {
       progressLabel = examRatio != null
-          ? 'Dernière simulation : $percentValue % de réussite'
-          : 'Dernière simulation : données indisponibles';
+          ? 'Dernière simulation ENA : $percentValue % de réussite'
+          : 'Dernière simulation ENA : données indisponibles';
     } else {
       progressLabel = 'Aucun quiz en cours';
     }
+    final String titleText = hasQuiz ? 'Reprendre le quiz' : 'Quiz rapide ENA';
+    final bool hasHistory = summary != null || showExamResult;
+    final String buttonLabel = showResume
+        ? 'Reprendre'
+        : hasHistory
+            ? 'Relancer'
+            : 'Lancer';
     final bool showButton = showResume || showLaunch;
     final bool enableResume = showResume && !isBusy;
     final mainAxisAlignment =
         showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -1078,7 +1088,7 @@ class _RecentQuizCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Reprendre le quiz',
+            titleText,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
@@ -1117,42 +1127,33 @@ class _RecentQuizCard extends StatelessWidget {
                 ),
               ),
               if (showButton)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(width: 12),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF4315C5),
-                        backgroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF4315C5),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
                       ),
-                      onPressed: showResume
-                          ? (enableResume ? onContinue : null)
-                          : onLaunchQuiz,
-                      child: showResume
-                          ? (isBusy
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text(
-                                  'Continuer',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.w700),
-                                ))
-                          : const Text(
-                              'Jouer',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                  ],
+                    onPressed:
+                        showResume ? (enableResume ? onContinue : null) : onLaunchQuiz,
+                    child: showResume && isBusy
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            buttonLabel,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                  ),
                 ),
             ],
           ),
@@ -1455,7 +1456,7 @@ class _LiveQuizItem {
   final String subtitle;
 }
 
-  /// Carrousel (si besoin ailleurs)
+/// Carrousel (si besoin ailleurs)
 class _PromoCarousel extends StatelessWidget {
   final List<String> images;
   final PageController controller;
