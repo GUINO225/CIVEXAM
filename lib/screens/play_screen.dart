@@ -674,67 +674,95 @@ class _PlayScreenState extends State<PlayScreen> {
         ? displayName.characters.first.toUpperCase()
         : '?';
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF6C4DFF),
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(24),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Hello',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
-                      fontSize: welcomeFontSize,
-                      fontWeight: FontWeight.w600,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    displayName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: nameFontSize,
-                      fontWeight: FontWeight.w800,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
+    return ValueListenableBuilder<DateTime>(
+      valueListenable: _now,
+      builder: (_, now, __) {
+        final greeting = now.hour < 18 ? 'Bonjour' : 'Bonsoir';
+        final icon = (now.hour >= 6 && now.hour < 18)
+            ? Icons.wb_sunny_rounded
+            : Icons.nights_stay_rounded;
+        final formattedDate = _formatDateTime(now);
+
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF6C4DFF),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
             ),
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.white.withOpacity(0.2),
-              child: CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.white,
-                child: Text(
-                  avatarLabel,
-                  style: const TextStyle(
-                    color: Color(0xFF6C4DFF),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, size: 16, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        greeting,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: welcomeFontSize,
+                          fontWeight: FontWeight.w600,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        displayName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: nameFontSize,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      avatarLabel,
+                      style: const TextStyle(
+                        color: Color(0xFF6C4DFF),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -796,42 +824,6 @@ class _PlayScreenState extends State<PlayScreen> {
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                          child: Row(
-                            children: [
-                              const Spacer(),
-                              ValueListenableBuilder<DateTime>(
-                                valueListenable: _now,
-                                builder: (_, now, __) {
-                                  final text = _formatDateTime(now);
-                                  return Container(
-                                    padding: CAL.padding,
-                                    decoration: BoxDecoration(
-                                      color: CAL.bgColor,
-                                      borderRadius:
-                                          BorderRadius.circular(CAL.borderRadius),
-                                      boxShadow: CAL.shadows,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.calendar_today_rounded,
-                                            size: CAL.iconSize,
-                                            color: CAL.iconColor),
-                                        SizedBox(width: CAL.spacing),
-                                        Text(text, style: CAL.textStyle),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                         sliver: SliverToBoxAdapter(
