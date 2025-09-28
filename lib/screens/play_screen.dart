@@ -711,7 +711,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Good Morning',
+                    'Hello',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.75),
                       fontSize: welcomeFontSize,
