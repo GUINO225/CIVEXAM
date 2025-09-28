@@ -187,9 +187,9 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  static const Color _bottomBarColor = Color(0xFF5B2E91);
+  static const Color _bottomBarColor = Color(0xFF6C4DFF);
   static const Color _bottomBarHighlight = Color(0x29FFFFFF);
-  static const Color _fabForeground = Color(0xFF5B2E91);
+  static const Color _fabForeground = Color(0xFF6C4DFF);
 
   int _selectedNavIndex = 0;
   late final List<_NavDestination> _navItems;
@@ -632,31 +632,15 @@ class _PlayScreenState extends State<PlayScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _onNavItemSelected(index),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSelected ? _bottomBarHighlight : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(item.icon, color: foreground, size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  item.label,
-                  style: TextStyle(
-                    color: foreground,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
-                    fontSize: 12,
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              ],
-            ),
+            child: Icon(item.icon, color: foreground, size: 24),
           ),
         ),
       ),
