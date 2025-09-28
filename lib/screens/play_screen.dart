@@ -15,6 +15,7 @@ import '../services/question_loader.dart';
 import '../services/scoring.dart';
 import '../services/history_store.dart';
 import '../services/competition_service.dart';
+import '../services/competition_quiz_launcher.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 
@@ -342,6 +343,10 @@ class _PlayScreenState extends State<PlayScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const OfficialIntroScreen()),
     );
+  }
+
+  Future<void> _handleLaunchCompetition() async {
+    await CompetitionQuizLauncher.launch(context);
   }
 
   Future<void> _openLeaderboard() async {
@@ -756,23 +761,26 @@ class _PlayScreenState extends State<PlayScreen> {
     required double panelHeightFactor,
   }) {
     final liveQuizItems = <_LiveQuizItem>[
-      const _LiveQuizItem(
+      _LiveQuizItem(
         icon: Icons.flash_on_rounded,
-        iconColor: Color(0xFF7C4DFF),
-        title: 'Sprint Express',
-        subtitle: '20 questions en 5 minutes',
+        iconColor: const Color(0xFF7C4DFF),
+        title: 'Quiz rapide',
+        subtitle: 'Démarre un entraînement instantané',
+        onTap: _handleCreateQuickQuiz,
       ),
-      const _LiveQuizItem(
+      _LiveQuizItem(
         icon: Icons.people_alt_rounded,
-        iconColor: Color(0xFF5336C6),
-        title: 'Duel du soir',
-        subtitle: 'Affronte un candidat au hasard',
+        iconColor: const Color(0xFF5336C6),
+        title: 'Défi compétition',
+        subtitle: '60 questions pour grimper au classement',
+        onTap: _handleLaunchCompetition,
       ),
-      const _LiveQuizItem(
+      _LiveQuizItem(
         icon: Icons.workspace_premium_rounded,
-        iconColor: Color(0xFF9C6BFF),
-        title: 'Marathon Officiel',
+        iconColor: const Color(0xFF9C6BFF),
+        title: 'Simulation officielle',
         subtitle: 'Sujet d’entraînement en conditions réelles',
+        onTap: _handleLaunchOfficialQuiz,
       ),
     ];
 
@@ -1428,10 +1436,17 @@ class _LeaderboardEntryRow extends StatelessWidget {
   }
 }
 
-class _LiveQuizList extends StatelessWidget {
+class _LiveQuizList extends StatefulWidget {
   const _LiveQuizList({required this.items});
 
   final List<_LiveQuizItem> items;
+
+  @override
+  State<_LiveQuizList> createState() => _LiveQuizListState();
+}
+
+class _LiveQuizListState extends State<_LiveQuizList> {
+  int? _loadingIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -1451,14 +1466,16 @@ class _LiveQuizList extends StatelessWidget {
       child: ListView.separated(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
-        itemCount: items.length,
+        itemCount: widget.items.length,
         separatorBuilder: (_, __) => const Divider(
           height: 1,
           thickness: 1,
           color: Color(0xFFE8E6F3),
         ),
         itemBuilder: (context, index) {
-          final item = items[index];
+          final item = widget.items[index];
+          final isLoading = _loadingIndex == index;
+          final hasAction = item.onTap != null;
           return ListTile(
             leading: Container(
               height: 48,
@@ -1482,8 +1499,18 @@ class _LiveQuizList extends StatelessWidget {
                     color: const Color(0xFF6F6A89),
                   ),
             ),
-            trailing: const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFF7C4DFF)),
+            trailing: isLoading
+                ? SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(item.iconColor),
+                    ),
+                  )
+                : const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF7C4DFF),
+                  ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 6,
@@ -1491,7 +1518,20 @@ class _LiveQuizList extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            onTap: () {},
+            enabled: hasAction && !isLoading,
+            onTap: hasAction
+                ? () async {
+                    if (_loadingIndex != null) return;
+                    setState(() => _loadingIndex = index);
+                    try {
+                      await item.onTap?.call();
+                    } finally {
+                      if (mounted) {
+                        setState(() => _loadingIndex = null);
+                      }
+                    }
+                  }
+                : null,
           );
         },
       ),
@@ -1637,12 +1677,14 @@ class _LiveQuizItem {
     required this.iconColor,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
+  final Future<void> Function()? onTap;
 }
 
 /// Carrousel (si besoin ailleurs)
