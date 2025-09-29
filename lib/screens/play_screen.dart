@@ -184,13 +184,23 @@ const CalendarOverlayConfig CAL = CalendarOverlayConfig();
 /// ============================================================================
 /// === ÉCRAN ==================================================================
 /// ============================================================================
-class PlayScreen extends StatefulWidget {
+class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
+
   @override
-  State<PlayScreen> createState() => _PlayScreenState();
+  Widget build(BuildContext context) {
+    return const HomeShell();
+  }
 }
 
-class _PlayScreenState extends State<PlayScreen> {
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
+
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
   static const Color _bottomBarColor = Color(0xFF6C4DFF);
   static const Color _bottomBarHighlight = Color(0x29FFFFFF);
   static const Color _fabForeground = Color(0xFF6C4DFF);
@@ -240,31 +250,30 @@ class _PlayScreenState extends State<PlayScreen> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    _navItems = [
+    _navItems = const [
+      _NavDestination(
+        icon: Icons.home_outlined,
+        label: 'Accueil',
+      ),
       _NavDestination(
         icon: Icons.dashboard_outlined,
         label: 'Dashboard',
-        builder: (_) => const DashboardScreen(),
       ),
       _NavDestination(
         icon: Icons.quiz_outlined,
         label: 'Quiz',
-        builder: (_) => const SubjectListScreen(),
       ),
       _NavDestination(
         icon: Icons.history,
         label: 'Historique',
-        builder: (_) => const ExamHistoryScreen(),
       ),
       _NavDestination(
         icon: Icons.person_outline,
         label: 'Profil',
-        builder: (_) => const ProfileEditScreen(),
       ),
       _NavDestination(
         icon: Icons.settings_outlined,
         label: 'Paramètres',
-        builder: (_) => const DesignSettingsScreen(),
       ),
     ];
 
@@ -352,19 +361,11 @@ class _PlayScreenState extends State<PlayScreen> {
     }
   }
 
-  Future<void> _onNavItemSelected(int index) async {
-    setState(() => _selectedNavIndex = index);
-    final builder = _navItems[index].builder;
-
-    if (builder != null) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: builder),
-      );
+  void _onNavItemSelected(int index) {
+    if (_selectedNavIndex == index) {
+      return;
     }
-
-    if (!mounted) return;
-
-    setState(() => _selectedNavIndex = 0);
+    setState(() => _selectedNavIndex = index);
   }
 
   Future<void> _handleCreateQuickQuiz() async {
@@ -595,35 +596,22 @@ class _PlayScreenState extends State<PlayScreen> {
               foregroundColor: textColor,
               toolbarHeight: 0,
             ),
-            floatingActionButton: _buildMainFab(),
+            floatingActionButton:
+                _selectedNavIndex == 0 ? _buildMainFab() : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             bottomNavigationBar: _buildBottomAppBar(),
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Background écran
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    image: DecorationImage(image: _screenBg, fit: BoxFit.cover),
-                  ),
-                ),
-                _buildHeader(
-                  topInset: topInset,
-                  hasName: hasName,
-                  name: name,
-                  welcomeFontSize: welcomeFontSize,
-                  nameFontSize: nameFontSize,
-                  arcadeProgress: _arcadeProgress,
-                  arcadeProgressLoading: _arcadeProgressLoading,
-                ),
-                _buildSections(
-                  sections: sections,
-                  scale: scale,
-                  panelHeightFactor: UI.panelHeightFactor,
-                ),
-              ],
+            body: _buildShellBody(
+              backgroundColor: bgColor,
+              surfaceColor: Theme.of(context).scaffoldBackgroundColor,
+              topInset: topInset,
+              hasName: hasName,
+              name: name,
+              welcomeFontSize: welcomeFontSize,
+              nameFontSize: nameFontSize,
+              sections: sections,
+              scale: scale,
+              panelHeightFactor: UI.panelHeightFactor,
             ),
           ),
         );
@@ -631,12 +619,135 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
+  Widget _buildShellBody({
+    required Color backgroundColor,
+    required Color surfaceColor,
+    required double topInset,
+    required bool hasName,
+    required String? name,
+    required double welcomeFontSize,
+    required double nameFontSize,
+    required List<CategoryDefinition> sections,
+    required double scale,
+    required double panelHeightFactor,
+  }) {
+    final tabChildren = <Widget>[
+      KeyedSubtree(
+        key: const ValueKey('home_tab'),
+        child: _buildHomeTab(
+          backgroundColor: backgroundColor,
+          topInset: topInset,
+          hasName: hasName,
+          name: name,
+          welcomeFontSize: welcomeFontSize,
+          nameFontSize: nameFontSize,
+          sections: sections,
+          scale: scale,
+          panelHeightFactor: panelHeightFactor,
+        ),
+      ),
+      _buildSurfaceTab(
+        key: const ValueKey('dashboard_tab'),
+        backgroundColor: surfaceColor,
+        child: const DashboardScreen(
+          key: PageStorageKey<String>('dashboard_tab'),
+        ),
+      ),
+      _buildSurfaceTab(
+        key: const ValueKey('subjects_tab'),
+        backgroundColor: surfaceColor,
+        child: const SubjectListScreen(
+          key: PageStorageKey<String>('subject_list_tab'),
+        ),
+      ),
+      _buildSurfaceTab(
+        key: const ValueKey('history_tab'),
+        backgroundColor: surfaceColor,
+        child: const ExamHistoryScreen(
+          key: PageStorageKey<String>('history_tab'),
+        ),
+      ),
+      _buildSurfaceTab(
+        key: const ValueKey('profile_tab'),
+        backgroundColor: surfaceColor,
+        child: const ProfileEditScreen(
+          key: PageStorageKey<String>('profile_tab'),
+        ),
+      ),
+      _buildSurfaceTab(
+        key: const ValueKey('design_tab'),
+        backgroundColor: surfaceColor,
+        child: const DesignSettingsScreen(
+          key: PageStorageKey<String>('design_tab'),
+        ),
+      ),
+    ];
+
+    return IndexedStack(
+      index: _selectedNavIndex,
+      children: tabChildren,
+    );
+  }
+
+  Widget _buildHomeTab({
+    required Color backgroundColor,
+    required double topInset,
+    required bool hasName,
+    required String? name,
+    required double welcomeFontSize,
+    required double nameFontSize,
+    required List<CategoryDefinition> sections,
+    required double scale,
+    required double panelHeightFactor,
+  }) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            image: DecorationImage(image: _screenBg, fit: BoxFit.cover),
+          ),
+        ),
+        _buildHeader(
+          topInset: topInset,
+          hasName: hasName,
+          name: name,
+          welcomeFontSize: welcomeFontSize,
+          nameFontSize: nameFontSize,
+          arcadeProgress: _arcadeProgress,
+          arcadeProgressLoading: _arcadeProgressLoading,
+        ),
+        _buildSections(
+          sections: sections,
+          scale: scale,
+          panelHeightFactor: panelHeightFactor,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSurfaceTab({
+    required Key key,
+    required Color backgroundColor,
+    required Widget child,
+  }) {
+    return KeyedSubtree(
+      key: key,
+      child: ColoredBox(
+        color: backgroundColor,
+        child: child,
+      ),
+    );
+  }
+
   /// NAV BAR
   Widget _buildBottomAppBar() {
     final buttons = <Widget>[];
 
+    final notchIndex = (_navItems.length / 2).floor();
     for (var i = 0; i < _navItems.length; i++) {
-      if (i == 2) {
+      if (i == notchIndex) {
         buttons.add(const SizedBox(width: 68));
       }
       buttons.add(
@@ -672,19 +783,28 @@ class _PlayScreenState extends State<PlayScreen> {
         isSelected ? Colors.white : Colors.white.withOpacity(0.72);
 
     return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _onNavItemSelected(index),
-          borderRadius: BorderRadius.circular(18),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isSelected ? _bottomBarHighlight : Colors.transparent,
+      child: Semantics(
+        label: item.label,
+        selected: isSelected,
+        button: true,
+        child: Material(
+          color: Colors.transparent,
+          child: Tooltip(
+            message: item.label,
+            child: InkWell(
+              onTap: () => _onNavItemSelected(index),
               borderRadius: BorderRadius.circular(18),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected ? _bottomBarHighlight : Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(item.icon, color: foreground, size: 24),
+              ),
             ),
-            child: Icon(item.icon, color: foreground, size: 24),
           ),
         ),
       ),
@@ -1826,11 +1946,9 @@ class _PromoCarousel extends StatelessWidget {
 class _NavDestination {
   final IconData icon;
   final String label;
-  final WidgetBuilder? builder;
 
   const _NavDestination({
     required this.icon,
     required this.label,
-    this.builder,
   });
 }

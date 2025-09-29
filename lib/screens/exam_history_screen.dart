@@ -78,134 +78,154 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
         final theme = Theme.of(context);
         final cs = theme.colorScheme;
         final textTheme = theme.textTheme;
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: const Text('Historique des examens'),
-            actions: [
-              if (_items.isNotEmpty)
-                IconButton(
-                  onPressed: _clearAll,
-                  icon: const Icon(Icons.delete_forever),
-                  tooltip: 'Effacer l’historique',
-                )
-            ],
-          ),
-          body: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _items.isEmpty
-                  ? const Center(
-                      child: Text('Aucun examen enregistré pour le moment.'))
-                  : ListView.builder(
-                  itemCount: _items.length,
-                  itemBuilder: (context, i) {
-                    final e = _items[i];
-                    final weak = e.weakSubjects();
-                    Color chipBg;
-                    Color chipFg;
-                    String chipText;
-                    if (e.abandoned) {
-                      chipBg = cs.tertiaryContainer;
-                      chipFg = cs.onTertiaryContainer;
-                      chipText = 'Abandonné';
-                    } else if (e.success) {
-                      chipBg = cs.primaryContainer;
-                      chipFg = cs.onPrimaryContainer;
-                      chipText = 'Réussi';
-                    } else {
-                      chipBg = cs.errorContainer;
-                      chipFg = cs.onErrorContainer;
-                      chipText = 'Échoué';
-                    }
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Examen du ${_fmt(e.date)}',
-                                    style: textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                Chip(
-                                  label: Text(
-                                    chipText,
-                                    style: textTheme.labelLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: chipFg,
-                                    ),
-                                  ),
-                                  backgroundColor: chipBg,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                ),
-                              ],
+        Widget buildList() {
+          if (_loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (_items.isEmpty) {
+            return const Center(
+              child: Text('Aucun examen enregistré pour le moment.'),
+            );
+          }
+          return ListView.builder(
+            itemCount: _items.length,
+            itemBuilder: (context, i) {
+              final e = _items[i];
+              final weak = e.weakSubjects();
+              Color chipBg;
+              Color chipFg;
+              String chipText;
+              if (e.abandoned) {
+                chipBg = cs.tertiaryContainer;
+                chipFg = cs.onTertiaryContainer;
+                chipText = 'Abandonné';
+              } else if (e.success) {
+                chipBg = cs.primaryContainer;
+                chipFg = cs.onPrimaryContainer;
+                chipText = 'Réussi';
+              } else {
+                chipBg = cs.errorContainer;
+                chipFg = cs.onErrorContainer;
+                chipText = 'Échoué';
+              }
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Examen du ${_fmt(e.date)}',
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Total pondéré : ${e.totalPondere}',
-                              style: textTheme.bodyLarge?.copyWith(
+                          ),
+                          Chip(
+                            label: Text(
+                              chipText,
+                              style: textTheme.labelLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
+                                color: chipFg,
                               ),
                             ),
-                            const Divider(height: 16),
-                            Text(
-                              'Détails par matière :',
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            for (final s in e.scoresBruts.keys) ...[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      s,
-                                      style: textTheme.bodyLarge,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Brut ${e.scoresBruts[s]} • Pondéré ${e.scoresPonderes[s]}',
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '(${e.correctBySubject[s]}/${e.totalBySubject[s]})',
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                            ],
-                            if (weak.isNotEmpty) ...[
-                              const Divider(height: 16),
-                              Text(
-                                'À renforcer : ${weak.join(', ')}',
-                                style: textTheme.bodyLarge?.copyWith(
-                                  color: cs.tertiary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ],
+                            backgroundColor: chipBg,
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Total pondéré : ${e.totalPondere}',
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    );
-                  },
+                      const Divider(height: 16),
+                      Text(
+                        'Détails par matière :',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      for (final s in e.scoresBruts.keys) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s,
+                                style: textTheme.bodyLarge,
+                              ),
+                            ),
+                            Text(
+                              'Brut ${e.scoresBruts[s]} • Pondéré ${e.scoresPonderes[s]}',
+                              style: textTheme.bodyLarge,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '(${e.correctBySubject[s]}/${e.totalBySubject[s]})',
+                              style: textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      if (weak.isNotEmpty) ...[
+                        const Divider(height: 16),
+                        Text(
+                          'À renforcer : ${weak.join(', ')}',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: cs.tertiary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
+              );
+            },
+          );
+        }
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Historique des examens',
+                        style: theme.textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    if (_items.isNotEmpty)
+                      IconButton(
+                        onPressed: _clearAll,
+                        icon: const Icon(Icons.delete_forever),
+                        tooltip: 'Effacer l’historique',
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Expanded(child: buildList()),
+              ],
+            ),
+          ),
         );
       },
     );

@@ -238,85 +238,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final rankText = rank != null ? '$rank' : 'Non renseigné';
     final badgeLabel = normalizeArcadeLevel(profile?.arcadeLevel ?? entry?.arcadeLevel);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mon dashboard'),
-        actions: [
+    final titleStyle = Theme.of(context).textTheme.headlineSmall;
+
+    final header = Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Mon dashboard',
+              style: titleStyle?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
           IconButton(
-              onPressed: _pickPhoto,
-              icon: const Icon(Icons.camera_alt),
-              tooltip: 'Changer la photo'),
+            onPressed: _pickPhoto,
+            icon: const Icon(Icons.camera_alt),
+            tooltip: 'Changer la photo',
+          ),
           IconButton(
-              onPressed: _openProfileEdit,
-              icon: const Icon(Icons.edit),
-              tooltip: 'Modifier le profil'),
+            onPressed: _openProfileEdit,
+            icon: const Icon(Icons.edit),
+            tooltip: 'Modifier le profil',
+          ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Image.asset('assets/images/logo_splash.png', height: 150),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    _buildAvatar(),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Pseudo : ${profile?.nickname ?? ''}',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
+    );
+
+    final content = _loading
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              Align(
+                child: Image.asset('assets/images/logo_splash.png', height: 150),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  _buildAvatar(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Pseudo : ${profile?.nickname ?? ''}',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.person),
-                    title: const Text('Prénom'),
-                    subtitle: Text(profile?.firstName ?? ''),
                   ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Prénom'),
+                  subtitle: Text(profile?.firstName ?? ''),
                 ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: const Text('Nom'),
-                    subtitle: Text(profile?.lastName ?? ''),
-                  ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Nom'),
+                  subtitle: Text(profile?.lastName ?? ''),
                 ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.work),
-                    title: const Text('Profession'),
-                    subtitle: Text(profile?.profession ?? ''),
-                  ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.work),
+                  title: const Text('Profession'),
+                  subtitle: Text(profile?.profession ?? ''),
                 ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.emoji_events),
-                    title: const Text('Score'),
-                    subtitle: Text(scoreText),
-                  ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.emoji_events),
+                  title: const Text('Score'),
+                  subtitle: Text(scoreText),
                 ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.military_tech),
-                    title: const Text('Badge arcade'),
-                    subtitle: Text(badgeLabel),
-                    trailing: ArcadeBadgeChip(label: badgeLabel),
-                  ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.military_tech),
+                  title: const Text('Badge arcade'),
+                  subtitle: Text(badgeLabel),
+                  trailing: ArcadeBadgeChip(label: badgeLabel),
                 ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.leaderboard),
-                    title: const Text('Classement global'),
-                    subtitle: Text(rankText),
-                  ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.leaderboard),
+                  title: const Text('Classement global'),
+                  subtitle: Text(rankText),
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            header,
+            Expanded(child: content),
+          ],
+        ),
+      ),
     );
   }
 }
