@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:characters/characters.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/design_config.dart';
 import '../models/exam_history_entry.dart';
@@ -17,6 +18,7 @@ import '../services/history_store.dart';
 import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
 import '../services/arcade_progress_store.dart';
+import '../services/user_profile_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/rank_display_helper.dart';
 import '../utils/responsive_utils.dart';
@@ -215,6 +217,8 @@ class _HomeShellState extends State<HomeShell> {
   String? _topEntriesError;
   LeaderboardEntry? _currentUserEntry;
   int? _currentUserRank;
+  final UserProfileService _profileService = UserProfileService();
+  String? _profileNickname;
 
   final ArcadeProgressStore _arcadeProgressStore = ArcadeProgressStore();
   ArcadeProgressData? _arcadeProgress;
@@ -287,6 +291,49 @@ class _HomeShellState extends State<HomeShell> {
     unawaited(HistoryStore.load());
     unawaited(_loadTopEntries());
     unawaited(_loadArcadeProgress());
+    unawaited(_loadProfileNickname());
+  }
+
+  Future<void> _loadProfileNickname() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    SharedPreferences? prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (e, st) {
+      debugPrint('Failed to get SharedPreferences: $e\n$st');
+    }
+
+    String? cachedNickname;
+    if (prefs != null) {
+      final cached = prefs.getString('nickname');
+      if (cached != null && cached.trim().isNotEmpty) {
+        cachedNickname = cached.trim();
+      }
+    }
+
+    String? resolvedNickname = cachedNickname;
+
+    if (uid != null) {
+      try {
+        final profile = await _profileService.loadProfile(uid);
+        final profileNickname = profile?.nickname;
+        final trimmed = profileNickname?.trim();
+        if (trimmed != null && trimmed.isNotEmpty) {
+          resolvedNickname = trimmed;
+          if (prefs != null) {
+            await prefs.setString('nickname', trimmed);
+          }
+        }
+      } catch (e, st) {
+        debugPrint('Failed to load profile nickname for $uid: $e\n$st');
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      final trimmed = resolvedNickname?.trim();
+      _profileNickname = (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
+    });
   }
 
   Future<void> _loadArcadeProgress() async {
@@ -630,6 +677,7 @@ class _HomeShellState extends State<HomeShell> {
               topInset: topInset,
               hasName: hasName,
               name: name,
+              profileNickname: _profileNickname,
               welcomeFontSize: welcomeFontSize,
               nameFontSize: nameFontSize,
               sections: sections,
@@ -648,6 +696,7 @@ class _HomeShellState extends State<HomeShell> {
     required double topInset,
     required bool hasName,
     required String? name,
+    required String? profileNickname,
     required double welcomeFontSize,
     required double nameFontSize,
     required List<CategoryDefinition> sections,
@@ -662,6 +711,7 @@ class _HomeShellState extends State<HomeShell> {
           topInset: topInset,
           hasName: hasName,
           name: name,
+          profileNickname: profileNickname,
           welcomeFontSize: welcomeFontSize,
           nameFontSize: nameFontSize,
           sections: sections,
@@ -717,6 +767,7 @@ class _HomeShellState extends State<HomeShell> {
     required double topInset,
     required bool hasName,
     required String? name,
+    required String? profileNickname,
     required double welcomeFontSize,
     required double nameFontSize,
     required List<CategoryDefinition> sections,
@@ -736,6 +787,7 @@ class _HomeShellState extends State<HomeShell> {
           topInset: topInset,
           hasName: hasName,
           name: name,
+          profileNickname: profileNickname,
           welcomeFontSize: welcomeFontSize,
           nameFontSize: nameFontSize,
           arcadeProgress: _arcadeProgress,
@@ -851,18 +903,23 @@ class _HomeShellState extends State<HomeShell> {
     required double topInset,
     required bool hasName,
     required String? name,
+    required String? profileNickname,
     required double welcomeFontSize,
     required double nameFontSize,
     required ArcadeProgressData? arcadeProgress,
     required bool arcadeProgressLoading,
   }) {
+    final trimmedProfileNickname = profileNickname?.trim();
     final entryName = _currentUserEntry?.name.trim();
-    final fallbackName = entryName != null && entryName.isNotEmpty
-        ? entryName
-        : 'Utilisateur';
-    final displayName = hasName && (name?.trim().isNotEmpty ?? false)
+    final leaderboardName =
+        entryName != null && entryName.isNotEmpty ? entryName : null;
+    final userName = hasName && (name?.trim().isNotEmpty ?? false)
         ? name!.trim()
-        : fallbackName;
+        : null;
+    final displayName = (trimmedProfileNickname != null &&
+            trimmedProfileNickname.isNotEmpty)
+        ? trimmedProfileNickname
+        : (leaderboardName ?? userName ?? 'Utilisateur');
     final avatarLabel = displayName.isNotEmpty
         ? displayName.characters.first.toUpperCase()
         : '?';
