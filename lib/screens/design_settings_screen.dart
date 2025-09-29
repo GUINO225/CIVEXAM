@@ -88,137 +88,146 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       max: 22,
     );
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Personnalisation')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Aperçu dynamique du thème actuel
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: previewColors),
+    final titleStyle = Theme.of(context)
+        .textTheme
+        .headlineSmall
+        ?.copyWith(fontWeight: FontWeight.w700);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Personnalisation', style: titleStyle),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 32),
+                children: [
+                  Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: previewColors),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Aperçu',
+                      style: TextStyle(
+                        color: previewTextColor,
+                        fontSize: previewFontSize,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _sectionTitle('Thème', sectionTitleSize),
+                  SwitchListTile(
+                    title: const Text('Mode sombre'),
+                    value: _cfg.darkMode,
+                    onChanged: (v) => _apply(_cfg.copyWith(darkMode: v)),
+                  ),
+                  SwitchListTile(
+                    title: const Text('Fond dégradé'),
+                    value: _cfg.bgGradient,
+                    onChanged: (v) => _apply(_cfg.copyWith(bgGradient: v)),
+                  ),
+                  const Divider(height: 32),
+                  _sectionTitle('Palette de couleurs', sectionTitleSize),
+                  SizedBox(
+                    height: 200,
+                    child: GridView.count(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        for (final p in _palettes) _colorChoice(p),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 32),
+                  _sectionTitle('Options', sectionTitleSize),
+                  SwitchListTile(
+                    title: const Text('Effet "wave" (halo)'),
+                    value: _cfg.waveEnabled,
+                    onChanged: (v) => _apply(_cfg.copyWith(waveEnabled: v)),
+                  ),
+                  SwitchListTile(
+                    title: const Text('Icônes monochromes'),
+                    value: _cfg.useMono,
+                    onChanged: (v) => _apply(
+                      _cfg.copyWith(
+                        useMono: v,
+                        monoColor: v
+                            ? complementaryColor(_cfg.bgPaletteName)
+                            : _cfg.monoColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ExpansionTile(
+                    title: const Text('Verre (glassmorphism)'),
+                    children: [
+                      _sliderTile(
+                        label: 'Blur',
+                        value: _cfg.glassBlur,
+                        min: 8,
+                        max: 28,
+                        divisions: 20,
+                        onChanged: (v) => _apply(_cfg.copyWith(glassBlur: v)),
+                      ),
+                      _sliderTile(
+                        label: 'Opacité fond',
+                        value: _cfg.glassBgOpacity,
+                        min: 0.08,
+                        max: 0.30,
+                        divisions: 22,
+                        onChanged: (v) =>
+                            _apply(_cfg.copyWith(glassBgOpacity: v)),
+                      ),
+                      _sliderTile(
+                        label: 'Opacité bordure',
+                        value: _cfg.glassBorderOpacity,
+                        min: 0.0,
+                        max: 0.5,
+                        divisions: 25,
+                        onChanged: (v) =>
+                            _apply(_cfg.copyWith(glassBorderOpacity: v)),
+                      ),
+                    ],
+                  ),
+                  ExpansionTile(
+                    title: const Text('Tuiles'),
+                    children: [
+                      _sliderTile(
+                        label: 'Taille icône (px)',
+                        value: _cfg.tileIconSize,
+                        min: 36,
+                        max: 100,
+                        divisions: 64,
+                        onChanged: (v) =>
+                            _apply(_cfg.copyWith(tileIconSize: v)),
+                      ),
+                      SwitchListTile(
+                        title: const Text('Centrer icône + texte'),
+                        value: _cfg.tileCenter,
+                        onChanged: (v) =>
+                            _apply(_cfg.copyWith(tileCenter: v)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.save),
+                    label: const Text('Enregistrer et revenir'),
+                  ),
+                ],
+              ),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              'Aperçu',
-              style: TextStyle(
-                color: previewTextColor,
-                fontSize: previewFontSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _sectionTitle('Thème', sectionTitleSize),
-          SwitchListTile(
-            title: const Text('Mode sombre'),
-            value: _cfg.darkMode,
-            onChanged: (v) => _apply(_cfg.copyWith(darkMode: v)),
-          ),
-          SwitchListTile(
-            title: const Text('Fond dégradé'),
-            value: _cfg.bgGradient,
-            onChanged: (v) => _apply(_cfg.copyWith(bgGradient: v)),
-          ),
-          const Divider(height: 32),
-
-          _sectionTitle('Palette de couleurs', sectionTitleSize),
-          SizedBox(
-            height: 200,
-            child: GridView.count(
-              crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                for (final p in _palettes) _colorChoice(p),
-              ],
-            ),
-          ),
-          const Divider(height: 32),
-
-          _sectionTitle('Options', sectionTitleSize),
-          SwitchListTile(
-            title: const Text('Effet "wave" (halo)'),
-            value: _cfg.waveEnabled,
-            onChanged: (v) => _apply(_cfg.copyWith(waveEnabled: v)),
-          ),
-          SwitchListTile(
-            title: const Text('Icônes monochromes'),
-            value: _cfg.useMono,
-            onChanged: (v) => _apply(
-              _cfg.copyWith(
-                useMono: v,
-                monoColor: v
-                    ? complementaryColor(_cfg.bgPaletteName)
-                    : _cfg.monoColor,
-              ),
-            ),
-          ),
-
-          // Sections avancées repliables
-          const SizedBox(height: 8),
-          ExpansionTile(
-            title: const Text('Verre (glassmorphism)'),
-            children: [
-              _sliderTile(
-                label: 'Blur',
-                value: _cfg.glassBlur,
-                min: 8,
-                max: 28,
-                divisions: 20,
-                onChanged: (v) => _apply(_cfg.copyWith(glassBlur: v)),
-              ),
-              _sliderTile(
-                label: 'Opacité fond',
-                value: _cfg.glassBgOpacity,
-                min: 0.08,
-                max: 0.30,
-                divisions: 22,
-                onChanged: (v) => _apply(_cfg.copyWith(glassBgOpacity: v)),
-              ),
-              _sliderTile(
-                label: 'Opacité bordure',
-                value: _cfg.glassBorderOpacity,
-                min: 0.0,
-                max: 0.5,
-                divisions: 25,
-                onChanged: (v) =>
-                    _apply(_cfg.copyWith(glassBorderOpacity: v)),
-              ),
-            ],
-          ),
-
-          ExpansionTile(
-            title: const Text('Tuiles'),
-            children: [
-              _sliderTile(
-                label: 'Taille icône (px)',
-                value: _cfg.tileIconSize,
-                min: 36,
-                max: 100,
-                divisions: 64,
-                onChanged: (v) =>
-                    _apply(_cfg.copyWith(tileIconSize: v)),
-              ),
-              SwitchListTile(
-                title: const Text('Centrer icône + texte'),
-                value: _cfg.tileCenter,
-                onChanged: (v) =>
-                    _apply(_cfg.copyWith(tileCenter: v)),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.check),
-            label: const Text('Terminer'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

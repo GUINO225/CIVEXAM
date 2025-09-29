@@ -24,59 +24,65 @@ class SubjectListScreen extends StatelessWidget {
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
         final mediaQuery = MediaQuery.of(context);
         final scale = computeScaleFactor(mediaQuery);
-        return Scaffold(
-          extendBody: true,
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            foregroundColor: textColor,
-            title: const Text('Modules ENA'),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 1.05,
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Modules ENA',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(color: textColor, fontWeight: FontWeight.w700),
                 ),
-                itemCount: subjectsENA.length,
-                itemBuilder: (context, index) {
-                  final subject = subjectsENA[index];
-                  final item = _subjectItems[index];
-                  return GlassTile(
-                    title: subject.name,
-                    icon: item.icon,
-                    gradientColors: item.gradientColors,
-                    blur: cfg.glassBlur,
-                    bgOpacity: cfg.glassBgOpacity,
-                    borderOpacity: cfg.glassBorderOpacity,
-                    iconSize: cfg.tileIconSize,
-                    scaleFactor: scale,
-                    centerContent: cfg.tileCenter,
-                    useMono: cfg.useMono,
-                    monoColor: cfg.monoColor,
-                    textColor: textColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChapterListScreen(
-                            subjectName: subject.name,
-                            chapterName: subject.chapters.isNotEmpty
-                                ? subject.chapters.first.name
-                                : '',
-                          ),
-                        ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 1.05,
+                    ),
+                    itemCount: subjectsENA.length,
+                    itemBuilder: (context, index) {
+                      final subject = subjectsENA[index];
+                      final item = _subjectItems[index];
+                      return GlassTile(
+                        title: subject.name,
+                        icon: item.icon,
+                        gradientColors: item.gradientColors,
+                        blur: cfg.glassBlur,
+                        bgOpacity: cfg.glassBgOpacity,
+                        borderOpacity: cfg.glassBorderOpacity,
+                        iconSize: cfg.tileIconSize,
+                        scaleFactor: scale,
+                        centerContent: cfg.tileCenter,
+                        useMono: cfg.useMono,
+                        monoColor: cfg.monoColor,
+                        textColor: textColor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChapterListScreen(
+                                subjectName: subject.name,
+                                chapterName: subject.chapters.isNotEmpty
+                                    ? subject.chapters.first.name
+                                    : '',
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
