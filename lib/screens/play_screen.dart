@@ -1,655 +1,108 @@
-import 'dart:async';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../data/ena_taxonomy.dart';
-import '../models/calendar_overlay_config.dart';
-import '../models/exam_history_entry.dart';
-import '../models/question.dart';
-import '../services/exam_blueprint.dart';
-import '../services/history_store.dart';
-import '../services/question_history_store.dart';
-import '../services/question_loader.dart';
-import '../services/question_randomizer.dart';
-import '../services/scoring.dart';
-import '../utils/palette_utils.dart';
-import '../utils/responsive_utils.dart';
-import '../viewmodels/play_header_view_model.dart';
-import '../widgets/play_greeting_header.dart';
 import '../widgets/play_bottom_navigation.dart';
-import '../widgets/play_mode_panels.dart';
 import '../widgets/play_themed_scaffold.dart';
-import 'exam_full_screen.dart';
+import 'dashboard_screen.dart';
+import 'design_settings_screen.dart';
 import 'exam_history_screen.dart';
-import 'play_screen.dart';
+import 'multi_exam_flow.dart';
+import 'profile_edit_screen.dart';
+import 'training_quick_start.dart';
 
-enum ExamDifficulty { facile, normal, difficile, expert }
-
-String difficultyLabel(ExamDifficulty d) {
-  switch (d) {
-    case ExamDifficulty.facile:
-      return 'Facile';
-    case ExamDifficulty.normal:
-      return 'Normal (examen)';
-    case ExamDifficulty.difficile:
-      return 'Difficile';
-    case ExamDifficulty.expert:
-      return 'Expert';
-  }
-}
-
-String difficultyHint(ExamDifficulty d) {
-  switch (d) {
-    case ExamDifficulty.facile:
-      return 'Temps confort (+50% env.)';
-    case ExamDifficulty.normal:
-      return 'Timing réel de l’examen';
-    case ExamDifficulty.difficile:
-      return 'Temps serré (−25% env.)';
-    case ExamDifficulty.expert:
-      return 'Très rapide (−50% env.)';
-  }
-}
-
-/// Retourne le nombre de secondes par question pour la difficulté donnée.
-/// - Normal -> `null` pour garder la durée officielle de l’épreuve (sec.duration)
-/// - Autres -> on utilise sec/question et on calcule un temps total = sec/question × nb de questions
-int? secondsPerQuestion(ExamDifficulty d) {
-  switch (d) {
-    case ExamDifficulty.facile:
-      return 90; // 1 min 30 par question
-    case ExamDifficulty.normal:
-      return null; // garder les durées officielles des épreuves
-    case ExamDifficulty.difficile:
-      return 45; // 45s par question
-    case ExamDifficulty.expert:
-      return 30; // 30s par question
-  }
-}
-
-final Map<ExamDifficulty, Color> _difficultyPalette = <ExamDifficulty, Color>{
-  ExamDifficulty.facile: accentColor('forestGreen'),
-  ExamDifficulty.normal: accentColor('sereneBlue'),
-  ExamDifficulty.difficile: accentColor('civFlag'),
-  ExamDifficulty.expert: accentColor('violetRose'),
-};
-
-List<Question> _filterQuestions(List<Question> all, String subject, String chapter) {
-  final s0 = QuestionLoader.canon(subject);
-  final c0 = QuestionLoader.canon(chapter);
-  final subjectAliases = {
-    QuestionLoader.canon('droit (ohada)'): QuestionLoader.canon('droit constitutionnel'),
-    QuestionLoader.canon('logique'): QuestionLoader.canon('organisation & logique'),
-  };
-  final chapterAliases = {
-    QuestionLoader.canon('institutions'): QuestionLoader.canon('institutions & principes'),
-    QuestionLoader.canon('geographie de la ci'): QuestionLoader.canon("côte d’Ivoire"),
-    QuestionLoader.canon('geographie de la côte d’ivoire'): QuestionLoader.canon("côte d’Ivoire"),
-  };
-  final s = subjectAliases[s0] ?? s0;
-  final c = chapterAliases[c0] ?? c0;
-  final exact = all
-      .where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c)
-      .toList(growable: false);
-  if (exact.isNotEmpty) return exact;
-  final bySubject = all.where((q) => QuestionLoader.canon(q.subject) == s).toList(growable: false);
-  return bySubject;
-}
-
-class ExamSection {
-  final String title;
-  final String subject;
-  final String chapter;
-  final Duration duration; // durée "officielle" de l’épreuve
-  final ExamScoring scoring;
-  final int targetCount;
-
-  ExamSection({
-    required this.title,
-    required this.subject,
-    required this.chapter,
-    required this.duration,
-    required this.scoring,
-    required this.targetCount,
+class PlayScreen extends StatefulWidget {
+  const PlayScreen({
+    super.key,
+    this.initialTabIndex = kPlayBottomNavQuizIndex,
   });
-}
 
-class MultiExamFlowScreen extends StatefulWidget {
-  const MultiExamFlowScreen({super.key});
+  final int initialTabIndex;
 
   @override
-  State<MultiExamFlowScreen> createState() => _MultiExamFlowScreenState();
+  State<PlayScreen> createState() => _PlayScreenState();
 }
 
-class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
-  late List<ExamSection> sections;
-  final results = <ExamResult>[];
-  List<Question> all = const [];
-  bool loading = true;
-  bool abandoned = false;
+class _PlayScreenState extends State<PlayScreen> {
+  late final List<WidgetBuilder> _tabBuilders;
+  final Map<int, Widget> _tabCache = <int, Widget>{};
 
-  ExamDifficulty _difficulty = ExamDifficulty.normal;
-
-  late final PlayHeaderViewModel _headerViewModel;
-
-  /// Minimum success rate required to pass the exam.
-  /// Expressed as a fraction of correct answers over total questions.
-  static const double PASS_MIN_SUCCESS_RATE = 0.5;
-
-  void _handleBottomNavSelection(BuildContext context, int index) {
-    if (index == kPlayBottomNavQuizIndex) {
-      return;
-    }
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => PlayScreen(initialTabIndex: index),
-      ),
-      (route) => false,
-    );
-  }
+  late int _bodyIndex;
+  late int _navIndex;
 
   @override
   void initState() {
     super.initState();
 
-    _headerViewModel = PlayHeaderViewModel(
-      clockTick:
-          defaultCalendarOverlayConfig.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1),
-    );
-    _headerViewModel.start();
-
-    final counts = {
-      'Culture Générale': ExamBlueprint.cultureGenerale,
-      'Droit Constitutionnel': ExamBlueprint.droitConstitutionnel,
-      'Problèmes Économiques & Sociaux': ExamBlueprint.problemesEconomiquesSociaux,
-      'Aptitude Numérique': ExamBlueprint.aptitudeNumerique,
-      'Aptitude Verbale': ExamBlueprint.aptitudeVerbale,
-      'Organisation & Logique': ExamBlueprint.organisationLogique,
-    };
-
-    sections = [
-      for (final subj in subjectsENA)
-        ExamSection(
-          title: subj.name,
-          subject: subj.name,
-          chapter: subj.chapters.first.name,
-          duration: const Duration(minutes: 60),
-          scoring: const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2),
-          targetCount: counts[subj.name] ?? ExamBlueprint.perSection,
-        ),
+    _tabBuilders = <WidgetBuilder>[
+      (_) => const TrainingQuickStartScreen(),
+      (_) => const DashboardScreen(),
+      (_) => const MultiExamFlowScreen(),
+      (_) => const ExamHistoryScreen(),
+      (_) => const ProfileEditScreen(),
+      (_) => const DesignSettingsScreen(),
     ];
-    _loadAll();
+
+    final int normalizedIndex =
+        widget.initialTabIndex.clamp(0, _tabBuilders.length - 1) as int;
+
+    if (normalizedIndex == kPlayBottomNavQuizIndex) {
+      _bodyIndex = 0;
+      _navIndex = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _openQuiz(previousNavIndex: _bodyIndex);
+      });
+    } else {
+      _bodyIndex = normalizedIndex;
+      _navIndex = normalizedIndex;
+    }
   }
 
-  @override
-  void dispose() {
-    _headerViewModel.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadAll() async {
-    try {
-      final data = await QuestionLoader.loadENA();
+  void _openQuiz({required int previousNavIndex}) {
+    setState(() {
+      _navIndex = kPlayBottomNavQuizIndex;
+    });
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: _tabBuilders[kPlayBottomNavQuizIndex]))
+        .whenComplete(() {
       if (!mounted) return;
       setState(() {
-        all = data;
-        loading = false;
+        _navIndex = previousNavIndex;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
+    });
   }
 
-  Future<void> _startFlow() async {
-    results.clear();
-    abandoned = false;
-    final perQ = secondsPerQuestion(_difficulty);
-
-    await QuestionHistoryStore.clear();
-
-    for (final sec in sections) {
-      final pool = _filterQuestions(all, sec.subject, sec.chapter);
-      var takeCount = sec.targetCount;
-      if (pool.length < sec.targetCount) {
-        if (!mounted) return;
-        final reason = await ScaffoldMessenger.of(context)
-            .showSnackBar(
-              SnackBar(
-                content: Text('Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
-                action: SnackBarAction(
-                  label: 'Continuer',
-                  onPressed: () {},
-                ),
-              ),
-            )
-            .closed;
-        if (!mounted) return;
-        if (reason != SnackBarClosedReason.action) {
-          return;
-        }
-        takeCount = pool.length;
-      }
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-      List<Question> qs;
-      try {
-        qs = await pickAndShuffle(
-          pool,
-          takeCount,
-          dedupeByQuestion: true,
-        );
-      } finally {
-        if (mounted) Navigator.pop(context);
-      }
-      if (qs.isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Toutes les questions ont été vues.'),
-            action: SnackBarAction(
-              label: 'Réinitialiser',
-              onPressed: () => QuestionHistoryStore.clear(),
-            ),
-          ),
-        );
-        return;
-      }
-      if (!mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
-      unawaited(
-        QuestionHistoryStore.addAll(qs.map((q) => q.id)).catchError(
-          (Object error, _) {
-            if (!mounted) return;
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('Échec de l’enregistrement de l’historique des questions.'),
-              ),
-            );
-          },
-        ),
-      );
-
-      // Choisir la durée en fonction de la difficulté
-      final Duration effDuration;
-      if (perQ == null) {
-        effDuration = sec.duration; // Normal : garder la durée officielle
-      } else {
-        effDuration = Duration(seconds: perQ * qs.length); // autres niveaux
-      }
-
-      if (!mounted) return;
-      final res = await Navigator.push<ExamResult?>(context, MaterialPageRoute(
-        builder: (_) => ExamFullScreen(
-          questions: qs,
-          duration: effDuration,
-          scoring: sec.scoring,
-          title: 'Épreuve : ${sec.title} • ${difficultyLabel(_difficulty)}',
-          showLocalSummary: false,
-        ),
-      ));
-      if (res != null) {
-        results.add(res);
-      } else {
-        // Abandon de la session
-        abandoned = true;
-        break;
-      }
+  void _handleBottomNavSelection(int index) {
+    if (index == kPlayBottomNavQuizIndex) {
+      _openQuiz(previousNavIndex: _bodyIndex);
+      return;
     }
-    if (!mounted) return;
-    _showSummaryAndSave();
+
+    if (_bodyIndex == index && _navIndex == index) {
+      return;
+    }
+
+    setState(() {
+      _bodyIndex = index;
+      _navIndex = index;
+    });
   }
 
-  Future<void> _showSummaryAndSave() async {
-    final Map<String, int> bruts = {};
-    final Map<String, int> ponders = {};
-    final Map<String, int> corrects = {};
-    final Map<String, int> totals = {};
-    int totalWeighted = 0;
-    int totalCorrect = 0;
-    int totalQuestions = 0;
-
-    for (int i = 0; i < results.length; i++) {
-      final sec = sections[i];
-      final r = results[i];
-      bruts[sec.title] = (bruts[sec.title] ?? 0) + r.rawScore;
-      ponders[sec.title] = (ponders[sec.title] ?? 0) + r.weightedScore;
-      corrects[sec.title] = (corrects[sec.title] ?? 0) + r.correctCount;
-      totals[sec.title] = (totals[sec.title] ?? 0) + r.total;
-      totalWeighted += r.weightedScore;
-      totalCorrect += r.correctCount;
-      totalQuestions += r.total;
-    }
-
-    final double successRate = totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
-    final bool success = !abandoned && totalQuestions > 0 && successRate >= PASS_MIN_SUCCESS_RATE;
-
-    final entry = ExamHistoryEntry(
-      date: DateTime.now(),
-      correctBySubject: corrects,
-      totalBySubject: totals,
-      scoresBruts: bruts,
-      scoresPonderes: ponders,
-      totalPondere: totalWeighted,
-      success: success,
-      abandoned: abandoned, // conservé
+  Widget _buildCurrentTab(BuildContext context) {
+    return _tabCache.putIfAbsent(
+      _bodyIndex,
+      () => _tabBuilders[_bodyIndex](context),
     );
-    await HistoryStore.add(entry);
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(abandoned ? 'Concours abandonné' : 'Résumé du concours — ${difficultyLabel(_difficulty)}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final s in bruts.keys)
-              Text('$s — Brut ${bruts[s]} • Pondéré ${ponders[s]} (${corrects[s]}/${totals[s]})'),
-            const SizedBox(height: 8),
-            Text('Total pondéré : $totalWeighted'),
-            Text('Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %'),
-            Text('Résultat : ${abandoned ? "Abandonné 🟠" : (success ? "Réussi ✅" : "Échoué ❌")}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
-            },
-            child: const Text('Voir l’historique'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _difficultyPicker() {
-    final items = ExamDifficulty.values;
-    final theme = Theme.of(context);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: items.map((d) {
-        final selected = _difficulty == d;
-        late final IconData icon;
-        final accent = _difficultyPalette[d] ?? theme.colorScheme.primary;
-        final isDark = theme.brightness == Brightness.dark;
-        final backgroundColor = accent.withOpacity(isDark ? 0.24 : 0.12);
-        final selectedColor = accent.withOpacity(isDark ? 0.36 : 0.2);
-        switch (d) {
-          case ExamDifficulty.facile:
-            icon = Icons.sentiment_satisfied_alt;
-            break;
-          case ExamDifficulty.normal:
-            icon = Icons.sentiment_neutral;
-            break;
-          case ExamDifficulty.difficile:
-            icon = Icons.sentiment_dissatisfied;
-            break;
-          case ExamDifficulty.expert:
-            icon = Icons.bolt;
-            break;
-        }
-        return ChoiceChip(
-          avatar: Icon(icon, size: 18, color: accent),
-          label: Text(difficultyLabel(d)),
-          selected: selected,
-          tooltip: difficultyHint(d),
-          labelStyle: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: selected ? FontWeight.w600 : null,
-          ),
-          backgroundColor: backgroundColor,
-          selectedColor: selectedColor,
-          onSelected: (_) => setState(() => _difficulty = d),
-        );
-      }).toList(),
-    );
-  }
-
-  IconData _iconForSection(String title) {
-    switch (title) {
-      case 'Culture Générale':
-        return Icons.public;
-      case 'Droit Constitutionnel':
-        return Icons.account_balance;
-      case 'Problèmes Économiques & Sociaux':
-        return Icons.bar_chart;
-      case 'Aptitude Numérique':
-        return Icons.calculate;
-      case 'Aptitude Verbale':
-        return Icons.menu_book_outlined;
-      case 'Organisation & Logique':
-        return Icons.extension;
-      default:
-        return Icons.help_outline;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final mq = MediaQuery.of(context);
-    final scale = computeScaleFactor(mq);
-    final textScaler = MediaQuery.textScalerOf(context);
-    final welcomeFontSize = scaledFontSize(
-      base: 22,
-      scale: scale,
-      textScaler: textScaler,
-      min: 18,
-      max: 28,
-    );
-    final nameFontSize = scaledFontSize(
-      base: 26,
-      scale: scale,
-      textScaler: textScaler,
-      min: 20,
-      max: 36,
-    );
-    final topInset = mq.viewPadding.top;
-    final perQ = secondsPerQuestion(_difficulty);
-    final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName ?? user?.email;
-    final hasName = name != null && name.isNotEmpty;
-    final headerHeight = PlayGreetingHeader.heightFor(topInset);
-    const double contentSpacingUnderHeader = 24;
-    final double contentTopPadding = headerHeight + contentSpacingUnderHeader;
-
-    Widget buildHeader() {
-      return AnimatedBuilder(
-        animation: _headerViewModel,
-        builder: (context, _) {
-          return PlayGreetingHeader(
-            topInset: topInset,
-            hasName: hasName,
-            name: name,
-            profileNickname: _headerViewModel.profileNickname,
-            welcomeFontSize: welcomeFontSize,
-            nameFontSize: nameFontSize,
-            arcadeProgress: _headerViewModel.arcadeProgress,
-            arcadeProgressLoading: _headerViewModel.arcadeProgressLoading,
-            leaderboardEntry: _headerViewModel.currentUserEntry,
-            rank: _headerViewModel.currentUserRank,
-            now: _headerViewModel.now,
-            calendarConfig: defaultCalendarOverlayConfig,
-          );
-        },
-      );
-    }
-
-    final header = buildHeader();
-
     return PlayThemedScaffold(
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      panelHeightFactor: 0.92,
-      safeAreaTop: false,
+      body: _buildCurrentTab(context),
       bottomNavigationBar: PlayBottomNavigationBar(
         items: kPlayBottomNavDestinations,
-        selectedIndex: kPlayBottomNavQuizIndex,
+        selectedIndex: _navIndex,
         showFabNotch: false,
-        onItemSelected: (index) => _handleBottomNavSelection(context, index),
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (loading)
-            const Center(child: CircularProgressIndicator())
-          else
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        PlayPanelHeader(
-                          icon: Icons.flag_rounded,
-                          title: 'Parcours multi-épreuves ENA',
-                          subtitle: 'Simulation officielle multi-sections',
-                          chips: [
-                            PlayInfoChip(
-                              icon: Icons.grid_view_rounded,
-                              label: '${sections.length} épreuves',
-                            ),
-                            PlayInfoChip(
-                              icon: Icons.trending_up_rounded,
-                              label: 'Difficulté : ${difficultyLabel(_difficulty)}',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        PlayPanelSurface(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Niveau de difficulté',
-                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 12),
-                              _difficultyPicker(),
-                              const SizedBox(height: 16),
-                              Text(
-                                perQ == null
-                                    ? 'Mode Normal : timings officiels des épreuves (réaliste).'
-                                    : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                                style: textTheme.bodyLarge,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        PlayPanelSurface(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Composition du parcours',
-                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 12),
-                              for (final section in sections)
-                                _buildSectionEntry(context, section, textTheme),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: PlayPrimaryButton(
-                            label: 'Démarrer le parcours',
-                            icon: Icons.play_arrow_rounded,
-                            onPressed: _startFlow,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          header,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionEntry(BuildContext context, ExamSection section, TextTheme textTheme) {
-    final theme = Theme.of(context);
-    final baseColor = theme.colorScheme.primary;
-    final background = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.12);
-    final iconBackground = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.35 : 0.25);
-    final iconForeground = ThemeData.estimateBrightnessForColor(iconBackground) == Brightness.dark
-        ? Colors.white
-        : theme.colorScheme.onPrimaryContainer;
-    final durationMinutes = section.duration.inMinutes;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  _iconForSection(section.title),
-                  color: iconForeground,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  section.title,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              PlayInfoChip(
-                icon: Icons.format_list_numbered_rounded,
-                label: '${section.targetCount} questions',
-              ),
-              PlayInfoChip(
-                icon: Icons.timer_rounded,
-                label: '$durationMinutes min',
-              ),
-              PlayInfoChip(
-                icon: Icons.gavel_rounded,
-                label: 'Barème ${section.scoring}',
-              ),
-            ],
-          ),
-        ],
+        onItemSelected: _handleBottomNavSelection,
       ),
     );
   }
