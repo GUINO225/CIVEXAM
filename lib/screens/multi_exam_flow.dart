@@ -1,16 +1,22 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../models/question.dart';
-import '../services/scoring.dart';
-import '../services/question_loader.dart';
-import '../services/history_store.dart';
-import '../models/exam_history_entry.dart';
-import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
-import '../services/exam_blueprint.dart';
+
 import '../data/ena_taxonomy.dart';
+import '../models/calendar_overlay_config.dart';
+import '../models/exam_history_entry.dart';
+import '../models/question.dart';
+import '../services/exam_blueprint.dart';
+import '../services/history_store.dart';
+import '../services/question_history_store.dart';
+import '../services/question_loader.dart';
+import '../services/question_randomizer.dart';
+import '../services/scoring.dart';
 import '../utils/palette_utils.dart';
+import '../utils/responsive_utils.dart';
+import '../viewmodels/play_header_view_model.dart';
+import '../widgets/play_greeting_header.dart';
 import '../widgets/play_mode_panels.dart';
 import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
@@ -122,6 +128,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
+  late final PlayHeaderViewModel _headerViewModel;
+
   /// Minimum success rate required to pass the exam.
   /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
@@ -129,6 +137,13 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   @override
   void initState() {
     super.initState();
+
+    _headerViewModel = PlayHeaderViewModel(
+      clockTick: defaultCalendarOverlayConfig.showSeconds
+          ? const Duration(seconds: 1)
+          : const Duration(minutes: 1),
+    );
+    _headerViewModel.start();
 
     final counts = {
       'Culture Générale': ExamBlueprint.cultureGenerale,
@@ -151,6 +166,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         ),
     ];
     _loadAll();
+  }
+
+  @override
+  void dispose() {
+    _headerViewModel.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAll() async {
@@ -416,84 +437,145 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final mq = MediaQuery.of(context);
+    final scale = computeScaleFactor(mq);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final welcomeFontSize = scaledFontSize(
+      base: 22,
+      scale: scale,
+      textScaler: textScaler,
+      min: 18,
+      max: 28,
+    );
+    final nameFontSize = scaledFontSize(
+      base: 26,
+      scale: scale,
+      textScaler: textScaler,
+      min: 20,
+      max: 36,
+    );
+    final topInset = mq.viewPadding.top;
     final perQ = secondsPerQuestion(_difficulty);
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? user?.email;
+    final hasName = name != null && name.isNotEmpty;
+    final headerHeight = PlayGreetingHeader.heightFor(topInset);
+    const double contentSpacingUnderHeader = 24;
+    final double contentTopPadding = headerHeight + contentSpacingUnderHeader;
+
+    Widget buildHeader() {
+      return AnimatedBuilder(
+        animation: _headerViewModel,
+        builder: (context, _) {
+          return PlayGreetingHeader(
+            topInset: topInset,
+            hasName: hasName,
+            name: name,
+            profileNickname: _headerViewModel.profileNickname,
+            welcomeFontSize: welcomeFontSize,
+            nameFontSize: nameFontSize,
+            arcadeProgress: _headerViewModel.arcadeProgress,
+            arcadeProgressLoading: _headerViewModel.arcadeProgressLoading,
+            leaderboardEntry: _headerViewModel.currentUserEntry,
+            rank: _headerViewModel.currentUserRank,
+            now: _headerViewModel.now,
+            calendarConfig: defaultCalendarOverlayConfig,
+          );
+        },
+      );
+    }
+
     return PlayThemedScaffold(
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       panelHeightFactor: 0.92,
       safeAreaTop: false,
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        PlayPanelHeader(
-                          icon: Icons.flag_rounded,
-                          title: 'Parcours multi-épreuves ENA',
-                          subtitle: 'Simulation officielle multi-sections',
-                          chips: [
-                            PlayInfoChip(
-                              icon: Icons.grid_view_rounded,
-                              label: '${sections.length} épreuves',
-                            ),
-                            PlayInfoChip(
-                              icon: Icons.trending_up_rounded,
-                              label: 'Difficulté : ${difficultyLabel(_difficulty)}',
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final header = buildHeader();
+          if (loading) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                const Center(child: CircularProgressIndicator()),
+                header,
+              ],
+            );
+          }
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      PlayPanelHeader(
+                        icon: Icons.flag_rounded,
+                        title: 'Parcours multi-épreuves ENA',
+                        subtitle: 'Simulation officielle multi-sections',
+                        chips: [
+                          PlayInfoChip(
+                            icon: Icons.grid_view_rounded,
+                            label: '${sections.length} épreuves',
+                          ),
+                          PlayInfoChip(
+                            icon: Icons.trending_up_rounded,
+                            label: 'Difficulté : ${difficultyLabel(_difficulty)}',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      PlayPanelSurface(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Niveau de difficulté',
+                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 12),
+                            _difficultyPicker(),
+                            const SizedBox(height: 16),
+                            Text(
+                              perQ == null
+                                  ? 'Mode Normal : timings officiels des épreuves (réaliste).'
+                                  : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                              style: textTheme.bodyLarge,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        PlayPanelSurface(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Niveau de difficulté',
-                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 12),
-                              _difficultyPicker(),
-                              const SizedBox(height: 16),
-                              Text(
-                                perQ == null
-                                    ? 'Mode Normal : timings officiels des épreuves (réaliste).'
-                                    : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                                style: textTheme.bodyLarge,
-                              ),
-                            ],
-                          ),
+                      ),
+                      const SizedBox(height: 20),
+                      PlayPanelSurface(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Composition du parcours',
+                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 12),
+                            for (final section in sections)
+                              _buildSectionEntry(context, section, textTheme),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        PlayPanelSurface(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Composition du parcours',
-                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 12),
-                              for (final section in sections)
-                                _buildSectionEntry(context, section, textTheme),
-                            ],
-                          ),
+                      ),
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: PlayPrimaryButton(
+                          label: 'Démarrer le parcours',
+                          icon: Icons.play_arrow_rounded,
+                          onPressed: _startFlow,
                         ),
-                        const SizedBox(height: 24),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: PlayPrimaryButton(
-                            label: 'Démarrer le parcours',
-                            icon: Icons.play_arrow_rounded,
-                            onPressed: _startFlow,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+              header,
+            ],
+          );
+        },
+      ),
     );
   }
 

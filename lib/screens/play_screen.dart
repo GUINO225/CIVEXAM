@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:characters/characters.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/calendar_overlay_config.dart';
 import '../models/design_config.dart';
 import '../models/exam_history_entry.dart';
 import '../models/leaderboard_entry.dart';
@@ -17,13 +17,12 @@ import '../services/scoring.dart';
 import '../services/history_store.dart';
 import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
-import '../services/arcade_progress_store.dart';
-import '../services/user_profile_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/rank_display_helper.dart';
 import '../utils/responsive_utils.dart';
 
-import '../widgets/arcade_badge_chip.dart';
+import '../viewmodels/play_header_view_model.dart';
+import '../widgets/play_greeting_header.dart';
 
 import '../models/question.dart';
 
@@ -81,36 +80,6 @@ class PlayUIConfig {
 }
 
 /// Overlay calendrier (configurable)
-class CalendarOverlayConfig {
-  final bool showSeconds;
-  final bool use24h;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final Color bgColor;
-  final Color iconColor;
-  final double iconSize;
-  final TextStyle textStyle;
-  final double spacing;
-  final List<BoxShadow>? shadows;
-
-  const CalendarOverlayConfig({
-    this.showSeconds = false,
-    this.use24h = true,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-    this.borderRadius = 16,
-    this.bgColor = const Color(0xFF2E53B3),
-    this.iconColor = const Color(0xFFFFD740),
-    this.iconSize = 24,
-    this.textStyle = const TextStyle(
-      fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
-    ),
-    this.spacing = 10,
-    this.shadows = const [
-      BoxShadow(color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
-    ],
-  });
-}
-
 /// Couleurs de base
 const _titleColor = Color(0xFF0E1420);
 const _cardWhite = Colors.white;
@@ -182,7 +151,7 @@ final PlayUIConfig UI = PlayUIConfig(
   spacingBetweenLogoAndWelcome: 1.0,
 );
 
-const CalendarOverlayConfig CAL = CalendarOverlayConfig();
+const CalendarOverlayConfig CAL = defaultCalendarOverlayConfig;
 
 /// ============================================================================
 /// === ÉCRAN ==================================================================
@@ -215,14 +184,8 @@ class _HomeShellState extends State<HomeShell> {
   List<LeaderboardEntry> _topEntries = const [];
   bool _topEntriesLoading = true;
   String? _topEntriesError;
-  LeaderboardEntry? _currentUserEntry;
-  int? _currentUserRank;
-  final UserProfileService _profileService = UserProfileService();
-  String? _profileNickname;
 
-  final ArcadeProgressStore _arcadeProgressStore = ArcadeProgressStore();
-  ArcadeProgressData? _arcadeProgress;
-  bool _arcadeProgressLoading = true;
+  late final PlayHeaderViewModel _headerViewModel;
 
   // Carrousel
   final List<String> _promoImages = const [
@@ -247,10 +210,6 @@ class _HomeShellState extends State<HomeShell> {
       const AssetImage('assets/images/background_playscreen.png');
   late final AssetImage _panelBg =
       const AssetImage('assets/images/background_playscreen2.png');
-
-  // Horloge
-  final ValueNotifier<DateTime> _now = ValueNotifier<DateTime>(DateTime.now());
-  Timer? _clockTimer;
 
   @override
   void initState() {
@@ -285,80 +244,15 @@ class _HomeShellState extends State<HomeShell> {
     ];
 
     _promoController = PageController(viewportFraction: 1.0);
+    _headerViewModel = PlayHeaderViewModel(
+      clockTick:
+          CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1),
+    );
+    _headerViewModel.start();
     _startAutoPlay();
-    _startClock();
     unawaited(OngoingQuickQuizStore.load());
     unawaited(HistoryStore.load());
     unawaited(_loadTopEntries());
-    unawaited(_loadArcadeProgress());
-    unawaited(_loadProfileNickname());
-  }
-
-  Future<void> _loadProfileNickname() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    SharedPreferences? prefs;
-    try {
-      prefs = await SharedPreferences.getInstance();
-    } catch (e, st) {
-      debugPrint('Failed to get SharedPreferences: $e\n$st');
-    }
-
-    String? cachedNickname;
-    if (prefs != null) {
-      final cached = prefs.getString('nickname');
-      if (cached != null && cached.trim().isNotEmpty) {
-        cachedNickname = cached.trim();
-      }
-    }
-
-    String? resolvedNickname = cachedNickname;
-
-    if (uid != null) {
-      try {
-        final profile = await _profileService.loadProfile(uid);
-        final profileNickname = profile?.nickname;
-        final trimmed = profileNickname?.trim();
-        if (trimmed != null && trimmed.isNotEmpty) {
-          resolvedNickname = trimmed;
-          if (prefs != null) {
-            await prefs.setString('nickname', trimmed);
-          }
-        }
-      } catch (e, st) {
-        debugPrint('Failed to load profile nickname for $uid: $e\n$st');
-      }
-    }
-
-    if (!mounted) return;
-    setState(() {
-      final trimmed = resolvedNickname?.trim();
-      _profileNickname = (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
-    });
-  }
-
-  Future<void> _loadArcadeProgress() async {
-    if (mounted) {
-      setState(() {
-        _arcadeProgressLoading = true;
-      });
-    }
-    try {
-      final progress = await _arcadeProgressStore.load();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _arcadeProgress = progress;
-        _arcadeProgressLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _arcadeProgressLoading = false;
-      });
-    }
   }
 
   void _startAutoPlay() {
@@ -376,45 +270,19 @@ class _HomeShellState extends State<HomeShell> {
     });
   }
 
-  void _startClock() {
-    _clockTimer?.cancel();
-    final interval =
-        CAL.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1);
-    _clockTimer = Timer.periodic(interval, (_) {
-      _now.value = DateTime.now();
-    });
-  }
-
   Future<void> _loadTopEntries() async {
     setState(() {
       _topEntriesLoading = true;
       _topEntriesError = null;
-      _currentUserEntry = null;
-      _currentUserRank = null;
     });
     try {
       final entries = await _competitionService.topEntries(limit: 1000);
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      LeaderboardEntry? currentEntry;
-      int? currentRank;
-
-      if (uid != null) {
-        final index = entries.indexWhere((e) => e.userId == uid);
-        if (index >= 0) {
-          currentEntry = entries[index];
-          currentRank = index + 1;
-        } else {
-          currentEntry = await _competitionService.entryForUser(uid);
-        }
-      }
 
       if (!mounted) {
         return;
       }
       setState(() {
         _topEntries = entries.take(3).toList();
-        _currentUserEntry = currentEntry;
-        _currentUserRank = currentRank;
         _topEntriesLoading = false;
       });
     } catch (e) {
@@ -423,8 +291,6 @@ class _HomeShellState extends State<HomeShell> {
       }
       setState(() {
         _topEntries = const [];
-        _currentUserEntry = null;
-        _currentUserRank = null;
         _topEntriesLoading = false;
         _topEntriesError = "Impossible de récupérer le classement.";
       });
@@ -449,7 +315,7 @@ class _HomeShellState extends State<HomeShell> {
       MaterialPageRoute(builder: (_) => const ArcadeModeScreen()),
     );
     if (!mounted) return;
-    await _loadArcadeProgress();
+    await _headerViewModel.loadArcadeProgress();
   }
 
   Future<void> _handleLaunchOfficialQuiz() async {
@@ -468,6 +334,7 @@ class _HomeShellState extends State<HomeShell> {
     );
     if (!mounted) return;
     unawaited(_loadTopEntries());
+    unawaited(_headerViewModel.refreshLeaderboard());
   }
 
   Future<void> _handleResumeQuickQuiz(OngoingQuickQuizState state) async {
@@ -600,8 +467,7 @@ class _HomeShellState extends State<HomeShell> {
   void dispose() {
     _promoTimer?.cancel();
     _promoController.dispose();
-    _clockTimer?.cancel();
-    _now.dispose();
+    _headerViewModel.dispose();
     super.dispose();
   }
 
@@ -616,9 +482,6 @@ class _HomeShellState extends State<HomeShell> {
 
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
-        final badgeColors = playIconColors(cfg.bgPaletteName);
-        final nameColor =
-            badgeColors.length > 1 ? badgeColors.last : badgeColors.first;
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
@@ -677,12 +540,12 @@ class _HomeShellState extends State<HomeShell> {
               topInset: topInset,
               hasName: hasName,
               name: name,
-              profileNickname: _profileNickname,
               welcomeFontSize: welcomeFontSize,
               nameFontSize: nameFontSize,
               sections: sections,
               scale: scale,
               panelHeightFactor: UI.panelHeightFactor,
+              headerViewModel: _headerViewModel,
             ),
           ),
         );
@@ -696,12 +559,12 @@ class _HomeShellState extends State<HomeShell> {
     required double topInset,
     required bool hasName,
     required String? name,
-    required String? profileNickname,
     required double welcomeFontSize,
     required double nameFontSize,
     required List<CategoryDefinition> sections,
     required double scale,
     required double panelHeightFactor,
+    required PlayHeaderViewModel headerViewModel,
   }) {
     final tabChildren = <Widget>[
       KeyedSubtree(
@@ -711,12 +574,12 @@ class _HomeShellState extends State<HomeShell> {
           topInset: topInset,
           hasName: hasName,
           name: name,
-          profileNickname: profileNickname,
           welcomeFontSize: welcomeFontSize,
           nameFontSize: nameFontSize,
           sections: sections,
           scale: scale,
           panelHeightFactor: panelHeightFactor,
+          headerViewModel: headerViewModel,
         ),
       ),
       _buildSurfaceTab(
@@ -767,12 +630,12 @@ class _HomeShellState extends State<HomeShell> {
     required double topInset,
     required bool hasName,
     required String? name,
-    required String? profileNickname,
     required double welcomeFontSize,
     required double nameFontSize,
     required List<CategoryDefinition> sections,
     required double scale,
     required double panelHeightFactor,
+    required PlayHeaderViewModel headerViewModel,
   }) {
     return Stack(
       fit: StackFit.expand,
@@ -783,15 +646,24 @@ class _HomeShellState extends State<HomeShell> {
             image: DecorationImage(image: _screenBg, fit: BoxFit.cover),
           ),
         ),
-        _buildHeader(
-          topInset: topInset,
-          hasName: hasName,
-          name: name,
-          profileNickname: profileNickname,
-          welcomeFontSize: welcomeFontSize,
-          nameFontSize: nameFontSize,
-          arcadeProgress: _arcadeProgress,
-          arcadeProgressLoading: _arcadeProgressLoading,
+        AnimatedBuilder(
+          animation: headerViewModel,
+          builder: (context, _) {
+            return PlayGreetingHeader(
+              topInset: topInset,
+              hasName: hasName,
+              name: name,
+              profileNickname: headerViewModel.profileNickname,
+              welcomeFontSize: welcomeFontSize,
+              nameFontSize: nameFontSize,
+              arcadeProgress: headerViewModel.arcadeProgress,
+              arcadeProgressLoading: headerViewModel.arcadeProgressLoading,
+              leaderboardEntry: headerViewModel.currentUserEntry,
+              rank: headerViewModel.currentUserRank,
+              now: headerViewModel.now,
+              calendarConfig: CAL,
+            );
+          },
         ),
         _buildSections(
           sections: sections,
@@ -895,166 +767,6 @@ class _HomeShellState extends State<HomeShell> {
       onPressed: _handleCreateQuickQuiz,
       tooltip: 'Nouveau quiz',
       child: const Icon(Icons.add, size: 30),
-    );
-  }
-
-  /// HEADER (logo + bienvenue)
-  Widget _buildHeader({
-    required double topInset,
-    required bool hasName,
-    required String? name,
-    required String? profileNickname,
-    required double welcomeFontSize,
-    required double nameFontSize,
-    required ArcadeProgressData? arcadeProgress,
-    required bool arcadeProgressLoading,
-  }) {
-    final trimmedProfileNickname = profileNickname?.trim();
-    final entryName = _currentUserEntry?.name.trim();
-    final leaderboardName =
-        entryName != null && entryName.isNotEmpty ? entryName : null;
-    final userName = hasName && (name?.trim().isNotEmpty ?? false)
-        ? name!.trim()
-        : null;
-    final displayName = (trimmedProfileNickname != null &&
-            trimmedProfileNickname.isNotEmpty)
-        ? trimmedProfileNickname
-        : (leaderboardName ?? userName ?? 'Utilisateur');
-    final avatarLabel = displayName.isNotEmpty
-        ? displayName.characters.first.toUpperCase()
-        : '?';
-
-    return ValueListenableBuilder<DateTime>(
-      valueListenable: _now,
-      builder: (_, now, __) {
-        final greeting = now.hour < 18 ? 'Bonjour' : 'Bonsoir';
-        final icon = (now.hour >= 6 && now.hour < 18)
-            ? Icons.wb_sunny_rounded
-            : Icons.nights_stay_rounded;
-        final formattedDate = _formatDateTime(now);
-        final int? rank = _currentUserRank;
-        final RankDisplayStyle? rankStyle =
-            rank != null ? rankDisplayStyleFor(rank) : null;
-
-        return Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF6C4DFF),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(icon, size: 16, color: Colors.white),
-                          const SizedBox(width: 6),
-                          Text(
-                            formattedDate,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              height: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        greeting,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.75),
-                          fontSize: welcomeFontSize,
-                          fontWeight: FontWeight.w600,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (arcadeProgressLoading)
-                            const SizedBox(
-                              height: 28,
-                              width: 28,
-                              child: Padding(
-                                padding: EdgeInsets.all(6),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              ),
-                            )
-                          else if (arcadeProgress != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ArcadeBadgeChip(
-                                label: arcadeProgress.levelLabel,
-                                compact: true,
-                              ),
-                            ),
-                          Flexible(
-                            child: Text(
-                              displayName,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: nameFontSize,
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundColor:
-                        rankStyle?.backgroundColor ?? Colors.white,
-                    child: rank != null && rankStyle != null
-                        ? Text(
-                            '$rank',
-                            style: TextStyle(
-                              color: rankStyle.foregroundColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20,
-                            ),
-                          )
-                        : Text(
-                            avatarLabel,
-                            style: const TextStyle(
-                              color: Color(0xFF6C4DFF),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20,
-                            ),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -1239,26 +951,6 @@ class _HomeShellState extends State<HomeShell> {
         ),
       ),
     );
-  }
-
-  /// Format date/heure
-  String _formatDateTime(DateTime now) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    final y = now.year.toString();
-    final m = two(now.month);
-    final d = two(now.day);
-    int hour = now.hour;
-    String suffix = '';
-    if (!CAL.use24h) {
-      suffix = hour >= 12 ? ' PM' : ' AM';
-      hour = hour % 12;
-      if (hour == 0) hour = 12;
-    }
-    final h = two(hour);
-    final min = two(now.minute);
-    final sec = two(now.second);
-    final time = CAL.showSeconds ? '$h:$min:$sec' : '$h:$min';
-    return '$d/$m/$y  $time$suffix';
   }
 
   /// NAVIGATION
