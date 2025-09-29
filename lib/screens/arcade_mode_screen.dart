@@ -1,3 +1,4 @@
+// lib/screens/arcade_mode_screen.dart
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -10,6 +11,7 @@ import '../services/question_history_store.dart';
 import '../services/scoring.dart';
 import '../services/leaderboard_hooks.dart';
 import '../services/arcade_progress_store.dart';
+import '../widgets/arcade_badge_chip.dart';
 import 'exam_full_screen.dart';
 
 class ArcadeModeScreen extends StatefulWidget {
@@ -76,6 +78,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   bool _preparing = false;
   String? _error;
   _ArcadeModeStateSummary? _lastSummary;
+
+  // Progression arcade
   final ArcadeProgressStore _progressStore = ArcadeProgressStore();
   ArcadeProgressData? _progressData;
   bool _loadingProgress = true;
@@ -110,8 +114,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       final maxDifficulty = _computeMaxUsableDifficulty(totalByDifficulty);
       if (maxDifficulty == 0) {
         setState(() {
-          _error =
-              'Aucune question disponible pour lancer le mode arcade.';
+          _error = 'Aucune question disponible pour lancer le mode arcade.';
           _preparing = false;
         });
         return;
@@ -532,7 +535,15 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(level.title, style: theme.textTheme.titleMedium),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ArcadeBadgeChip(label: level.title, compact: true),
+              Text(level.title, style: theme.textTheme.titleMedium),
+            ],
+          ),
           const SizedBox(height: 6),
           Text(level.description, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 12),

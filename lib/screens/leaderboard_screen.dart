@@ -72,15 +72,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 final badgeLabel = normalizeArcadeLevel(e.arcadeLevel);
                 return ListTile(
                   leading: _RankAvatar(rank: rank),
-                  title: Text(e.name, style: Theme.of(context).textTheme.titleMedium),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                  title: Row(
                     children: [
-                      Text('Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}'),
-                      const SizedBox(height: 4),
                       ArcadeBadgeChip(label: badgeLabel, compact: true),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          e.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
+                  ),
+                  subtitle: Text(
+                    'Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}',
                   ),
                   isThreeLine: true,
                   trailing: Column(
