@@ -29,6 +29,7 @@ import 'profile_edit_screen.dart';
 import 'training_quick_start.dart';
 import 'exam_full_screen.dart';
 import 'leaderboard_screen.dart';
+import 'arcade_mode_screen.dart';
 
 // --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
@@ -336,6 +337,12 @@ class _PlayScreenState extends State<PlayScreen> {
   Future<void> _handleCreateQuickQuiz() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
+    );
+  }
+
+  Future<void> _handleLaunchArcade() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ArcadeModeScreen()),
     );
   }
 
@@ -779,6 +786,13 @@ class _PlayScreenState extends State<PlayScreen> {
         title: 'Quiz rapide',
         subtitle: 'Démarre un entraînement instantané',
         onTap: _handleCreateQuickQuiz,
+      ),
+      _LiveQuizItem(
+        icon: Icons.videogame_asset_rounded,
+        iconColor: const Color(0xFF4E8FFF),
+        title: 'Mode arcade',
+        subtitle: 'Grimpe les paliers de difficulté',
+        onTap: _handleLaunchArcade,
       ),
       _LiveQuizItem(
         icon: Icons.people_alt_rounded,

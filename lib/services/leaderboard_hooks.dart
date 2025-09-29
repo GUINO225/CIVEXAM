@@ -96,4 +96,25 @@ class LeaderboardHooks {
       percent: percent,
     );
   }
+
+  static Future<void> saveArcade({
+    required BuildContext context,
+    required int total,
+    required int correct,
+    required int wrong,
+    required int blank,
+    required int durationSec,
+    double? percent,
+  }) async {
+    await _save(
+      context: context,
+      mode: 'arcade',
+      total: total,
+      correct: correct,
+      wrong: wrong,
+      blank: blank,
+      durationSec: durationSec,
+      percent: percent,
+    );
+  }
 }

@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../models/question.dart';
 import 'question_history_store.dart';
 
-  final _rng = Random();
+final _rng = Random();
 
 /// Retourne une **copie** de la question avec les choix mélangés
 /// et un `answerIndex` recalculé.
@@ -100,6 +100,76 @@ Future<List<Question>> pickAndShuffle(
   }
 
   return selected;
+}
+
+class QuestionDrawByDifficultyResult {
+  final Map<int, List<Question>> selections;
+  final Map<int, int> shortages;
+
+  const QuestionDrawByDifficultyResult({
+    required this.selections,
+    required this.shortages,
+  });
+
+  bool get hasShortage =>
+      shortages.values.any((missing) => missing > 0);
+
+  List<Question> forDifficulty(int difficulty) =>
+      selections[difficulty] ?? const <Question>[];
+}
+
+/// Sélectionne un nombre donné de questions par niveau de difficulté.
+///
+/// Les questions déjà rencontrées (selon [QuestionHistoryStore]) ou présentes
+/// dans [excludeIds] sont ignorées. En cas d'insuffisance, les difficultés
+/// concernées sont listées dans [QuestionDrawByDifficultyResult.shortages].
+Future<QuestionDrawByDifficultyResult> drawQuestionsByDifficulty(
+  List<Question> pool,
+  Map<int, int> counts, {
+  Random? rng,
+  Set<String>? excludeIds,
+}) async {
+  if (pool.isEmpty || counts.isEmpty) {
+    return QuestionDrawByDifficultyResult(
+      selections: <int, List<Question>>{},
+      shortages: <int, int>{},
+    );
+  }
+
+  final r = rng ?? _rng;
+  final history = await QuestionHistoryStore.load();
+  final blocked = <String>{}
+    ..addAll(history)
+    ..addAll(excludeIds ?? const <String>{});
+
+  final selections = <int, List<Question>>{};
+  final shortages = <int, int>{};
+
+  final sortedDifficulties = counts.keys.toSet().toList()..sort();
+
+  for (final difficulty in sortedDifficulties) {
+    final required = counts[difficulty] ?? 0;
+    if (required <= 0) {
+      selections[difficulty] = <Question>[];
+      shortages[difficulty] = 0;
+      continue;
+    }
+
+    final candidates = pool
+        .where((q) => q.difficulty == difficulty && !blocked.contains(q.id))
+        .toList(growable: false);
+    candidates.shuffle(r);
+
+    final take = candidates.take(required).toList(growable: false);
+    selections[difficulty] = take;
+    shortages[difficulty] = required - take.length;
+    blocked.addAll(take.map((q) => q.id));
+  }
+
+  return QuestionDrawByDifficultyResult(
+    selections: selections,
+    shortages: shortages,
+  );
 }
 
 class _PickAndShuffleArgs {
