@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/play_themed_scaffold.dart';
 import '../official_intro_screen.dart';
 import '../subject_list_screen.dart';
 import 'category_definitions.dart';
 import 'category_helpers.dart';
-import 'widgets/category_menu_list.dart';
+import 'widgets/category_tiles_view.dart';
 
 class PrepaEnaScreen extends StatelessWidget {
   final CategoryDefinition definition;
@@ -44,25 +45,15 @@ class PrepaEnaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PlayThemedScaffold(
       appBar: AppBar(title: Text(definition.title)),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              definition.description,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          Expanded(
-            child: CategoryMenuList(
-              definition: definition,
-              onItemSelected: (index) => _handleTap(context, index),
-            ),
-          ),
-        ],
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
+      body: CategoryTilesView(
+        definition: definition,
+        availableItemIndexes: const {0, 1},
+        onItemSelected: (index) => _handleTap(context, index),
       ),
     );
   }
