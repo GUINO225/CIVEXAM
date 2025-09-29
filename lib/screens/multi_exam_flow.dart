@@ -17,10 +17,12 @@ import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 import '../viewmodels/play_header_view_model.dart';
 import '../widgets/play_greeting_header.dart';
+import '../widgets/play_bottom_navigation.dart';
 import '../widgets/play_mode_panels.dart';
 import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
+import 'play_screen.dart';
 
 enum ExamDifficulty { facile, normal, difficile, expert }
 
@@ -87,8 +89,9 @@ List<Question> _filterQuestions(List<Question> all, String subject, String chapt
   };
   final s = subjectAliases[s0] ?? s0;
   final c = chapterAliases[c0] ?? c0;
-  final exact =
-      all.where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c).toList(growable: false);
+  final exact = all
+      .where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c)
+      .toList(growable: false);
   if (exact.isNotEmpty) return exact;
   final bySubject = all.where((q) => QuestionLoader.canon(q.subject) == s).toList(growable: false);
   return bySubject;
@@ -134,14 +137,25 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
 
+  void _handleBottomNavSelection(BuildContext context, int index) {
+    if (index == kPlayBottomNavQuizIndex) {
+      return;
+    }
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => PlayScreen(initialTabIndex: index),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
 
     _headerViewModel = PlayHeaderViewModel(
-      clockTick: defaultCalendarOverlayConfig.showSeconds
-          ? const Duration(seconds: 1)
-          : const Duration(minutes: 1),
+      clockTick:
+          defaultCalendarOverlayConfig.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1),
     );
     _headerViewModel.start();
 
@@ -206,8 +220,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         final reason = await ScaffoldMessenger.of(context)
             .showSnackBar(
               SnackBar(
-                content: Text(
-                    'Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
+                content: Text('Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
                 action: SnackBarAction(
                   label: 'Continuer',
                   onPressed: () {},
@@ -267,11 +280,9 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       // Choisir la durée en fonction de la difficulté
       final Duration effDuration;
       if (perQ == null) {
-        // Normal : garder la durée officielle
-        effDuration = sec.duration;
+        effDuration = sec.duration; // Normal : garder la durée officielle
       } else {
-        // Autres niveaux : durée = secondes/question × nb de questions
-        effDuration = Duration(seconds: perQ * qs.length);
+        effDuration = Duration(seconds: perQ * qs.length); // autres niveaux
       }
 
       if (!mounted) return;
@@ -317,11 +328,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       totalQuestions += r.total;
     }
 
-    final double successRate =
-        totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
-    final bool success = !abandoned &&
-        totalQuestions > 0 &&
-        successRate >= PASS_MIN_SUCCESS_RATE;
+    final double successRate = totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
+    final bool success = !abandoned && totalQuestions > 0 && successRate >= PASS_MIN_SUCCESS_RATE;
 
     final entry = ExamHistoryEntry(
       date: DateTime.now(),
@@ -347,9 +355,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
               Text('$s — Brut ${bruts[s]} • Pondéré ${ponders[s]} (${corrects[s]}/${totals[s]})'),
             const SizedBox(height: 8),
             Text('Total pondéré : $totalWeighted'),
-            Text(
-              'Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %',
-            ),
+            Text('Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %'),
             Text('Résultat : ${abandoned ? "Abandonné 🟠" : (success ? "Réussi ✅" : "Échoué ❌")}'),
           ],
         ),
@@ -485,102 +491,102 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       );
     }
 
+    final header = buildHeader();
+
     return PlayThemedScaffold(
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       panelHeightFactor: 0.92,
       safeAreaTop: false,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final header = buildHeader();
-          if (loading) {
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                const Center(child: CircularProgressIndicator()),
-                header,
-              ],
-            );
-          }
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PlayPanelHeader(
-                        icon: Icons.flag_rounded,
-                        title: 'Parcours multi-épreuves ENA',
-                        subtitle: 'Simulation officielle multi-sections',
-                        chips: [
-                          PlayInfoChip(
-                            icon: Icons.grid_view_rounded,
-                            label: '${sections.length} épreuves',
-                          ),
-                          PlayInfoChip(
-                            icon: Icons.trending_up_rounded,
-                            label: 'Difficulté : ${difficultyLabel(_difficulty)}',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      PlayPanelSurface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Niveau de difficulté',
-                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 12),
-                            _difficultyPicker(),
-                            const SizedBox(height: 16),
-                            Text(
-                              perQ == null
-                                  ? 'Mode Normal : timings officiels des épreuves (réaliste).'
-                                  : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                              style: textTheme.bodyLarge,
+      bottomNavigationBar: PlayBottomNavigationBar(
+        items: kPlayBottomNavDestinations,
+        selectedIndex: kPlayBottomNavQuizIndex,
+        showFabNotch: false,
+        onItemSelected: (index) => _handleBottomNavSelection(context, index),
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (loading)
+            const Center(child: CircularProgressIndicator())
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        PlayPanelHeader(
+                          icon: Icons.flag_rounded,
+                          title: 'Parcours multi-épreuves ENA',
+                          subtitle: 'Simulation officielle multi-sections',
+                          chips: [
+                            PlayInfoChip(
+                              icon: Icons.grid_view_rounded,
+                              label: '${sections.length} épreuves',
+                            ),
+                            PlayInfoChip(
+                              icon: Icons.trending_up_rounded,
+                              label: 'Difficulté : ${difficultyLabel(_difficulty)}',
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      PlayPanelSurface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Composition du parcours',
-                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 12),
-                            for (final section in sections)
-                              _buildSectionEntry(context, section, textTheme),
-                          ],
+                        const SizedBox(height: 24),
+                        PlayPanelSurface(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Niveau de difficulté',
+                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 12),
+                              _difficultyPicker(),
+                              const SizedBox(height: 16),
+                              Text(
+                                perQ == null
+                                    ? 'Mode Normal : timings officiels des épreuves (réaliste).'
+                                    : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                                style: textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: PlayPrimaryButton(
-                          label: 'Démarrer le parcours',
-                          icon: Icons.play_arrow_rounded,
-                          onPressed: _startFlow,
+                        const SizedBox(height: 20),
+                        PlayPanelSurface(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Composition du parcours',
+                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 12),
+                              for (final section in sections)
+                                _buildSectionEntry(context, section, textTheme),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: PlayPrimaryButton(
+                            label: 'Démarrer le parcours',
+                            icon: Icons.play_arrow_rounded,
+                            onPressed: _startFlow,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              header,
-            ],
-          );
-        },
+                );
+              },
+            ),
+          header,
+        ],
       ),
     );
   }
 
-  Widget _buildSectionEntry(
-      BuildContext context, ExamSection section, TextTheme textTheme) {
+  Widget _buildSectionEntry(BuildContext context, ExamSection section, TextTheme textTheme) {
     final theme = Theme.of(context);
     final baseColor = theme.colorScheme.primary;
     final background = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.12);
