@@ -1,233 +1,140 @@
-import 'package:flutter/material.dart';
-import '../models/exam_history_entry.dart';
-import '../models/design_config.dart';
-import '../services/design_bus.dart';
-import '../services/history_store.dart';
-import '../services/local_history_persistence.dart';
+// lib/screens/dashboard_screen.dart
+import 'dart:convert';
+import 'dart:typed_data';
 
-class ExamHistoryScreen extends StatefulWidget {
-  const ExamHistoryScreen({super.key});
+import 'package:civexam_pro/utils/io_stub.dart'
+    if (dart.library.io) 'dart:io' as io;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../models/leaderboard_entry.dart';
+import '../services/competition_service.dart';
+import '../services/user_profile_service.dart';
+import '../models/user_profile.dart';
+import 'profile_edit_screen.dart';
+import '../utils/arcade_level_utils.dart';
+import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_themed_scaffold.dart';
+
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  State<ExamHistoryScreen> createState() => _ExamHistoryScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
-  List<ExamHistoryEntry> _items = const [];
+class _DashboardScreenState extends State<DashboardScreen> {
+  final _profileService = UserProfileService();
+  LeaderboardEntry? _entry;
+  UserProfile? _profile;
+  int? _rank;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    LocalHistoryPersistence.addUserChangeListener(_handleUserChanged);
     _load();
   }
 
-  @override
-  void dispose() {
-    LocalHistoryPersistence.removeUserChangeListener(_handleUserChanged);
-    super.dispose();
-  }
-
   Future<void> _load() async {
-    setState(() => _loading = true);
-    final list = await HistoryStore.load();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    final service = CompetitionService();
+    final entries = await service.topEntries(limit: 1000);
+    var index = entries.indexWhere((e) => e.userId == uid);
+
+    LeaderboardEntry? entry;
+    int? rank;
+    if (index >= 0) {
+      entry = entries[index];
+      rank = index + 1;
+    } else {
+      entry = await service.entryForUser(uid);
+    }
+
+    UserProfile? profile;
+    try {
+      profile = await _profileService.loadProfile(uid);
+    } catch (e, st) {
+      debugPrint('Failed to load profile for $uid: $e\n$st');
+      profile = null;
+    }
+
+    profile ??= UserProfile(
+      firstName: '',
+      lastName: '',
+      nickname: entry?.name ?? '',
+      profession: '',
+      photoUrl: '',
+      arcadeLevel: normalizeArcadeLevel(entry?.arcadeLevel),
+    );
+
     if (!mounted) return;
     setState(() {
-      _items = list;
+      _entry = entry;
+      _profile = profile;
+      _rank = rank;
       _loading = false;
     });
   }
 
-  void _handleUserChanged(String _) {
-    if (!mounted) {
-      return;
-    }
-    _load();
-  }
-
-  Future<void> _clearAll() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Effacer l’historique ?'),
-        content: const Text('Cette action supprimera tous les résultats sauvegardés.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Effacer')),
-        ],
-      ),
+  Future<void> _openProfileEdit() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
     );
-    if (ok == true) {
-      await HistoryStore.clear();
+    if (updated == true && mounted) {
       await _load();
     }
   }
 
-  String _fmt(DateTime d) {
-    final local = d.toLocal();
-    String two(int x) => x.toString().padLeft(2, '0');
-    return '${two(local.day)}/${two(local.month)}/${local.year} – ${two(local.hour)}:${two(local.minute)}';
+  bool _isImagePickerSupported() {
+    if (kIsWeb) return false;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return true;
+      default:
+        return false;
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<DesignConfig>(
-      valueListenable: DesignBus.notifier,
-      builder: (context, cfg, _) {
-        final theme = Theme.of(context);
-        final cs = theme.colorScheme;
-        final textTheme = theme.textTheme;
-
-        Widget buildList() {
-          if (_loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (_items.isEmpty) {
-            return const Center(
-              child: Text('Aucun examen enregistré pour le moment.'),
-            );
-          }
-          return ListView.builder(
-            itemCount: _items.length,
-            itemBuilder: (context, i) {
-              final e = _items[i];
-              final weak = e.weakSubjects();
-              Color chipBg;
-              Color chipFg;
-              String chipText;
-              if (e.abandoned) {
-                chipBg = cs.tertiaryContainer;
-                chipFg = cs.onTertiaryContainer;
-                chipText = 'Abandonné';
-              } else if (e.success) {
-                chipBg = cs.primaryContainer;
-                chipFg = cs.onPrimaryContainer;
-                chipText = 'Réussi';
-              } else {
-                chipBg = cs.errorContainer;
-                chipFg = cs.onErrorContainer;
-                chipText = 'Échoué';
-              }
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Examen du ${_fmt(e.date)}',
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          Chip(
-                            label: Text(
-                              chipText,
-                              style: textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: chipFg,
-                              ),
-                            ),
-                            backgroundColor: chipBg,
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Total pondéré : ${e.totalPondere}',
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Divider(height: 16),
-                      Text(
-                        'Détails par matière :',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      for (final s in e.scoresBruts.keys) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                s,
-                                style: textTheme.bodyLarge,
-                              ),
-                            ),
-                            Text(
-                              'Brut ${e.scoresBruts[s]} • Pondéré ${e.scoresPonderes[s]}',
-                              style: textTheme.bodyLarge,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '(${e.correctBySubject[s]}/${e.totalBySubject[s]})',
-                              style: textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                      if (weak.isNotEmpty) ...[
-                        const Divider(height: 16),
-                        Text(
-                          'À renforcer : ${weak.join(', ')}',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: cs.tertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        }
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Historique des examens',
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    if (_items.isNotEmpty)
-                      IconButton(
-                        onPressed: _clearAll,
-                        icon: const Icon(Icons.delete_forever),
-                        tooltip: 'Effacer l’historique',
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Expanded(child: buildList()),
-              ],
-            ),
-          ),
-        );
-      },
+  void _showImagePickerUnavailableMessage() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'La sélection de photo n\'est pas disponible sur cette plateforme.',
+        ),
+      ),
     );
   }
-}
+
+  Future<void> _pickPhoto() async {
+    if (!_isImagePickerSupported()) {
+      _showImagePickerUnavailableMessage();
+      return;
+    }
+
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Galerie'),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Caméra'),
