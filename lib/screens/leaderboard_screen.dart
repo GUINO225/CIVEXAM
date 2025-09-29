@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
+import '../utils/arcade_level_utils.dart';
+import '../widgets/arcade_badge_chip.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -67,15 +69,29 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, i) {
                 final e = filtered[i]; final rank = i+1;
+                final badgeLabel = normalizeArcadeLevel(e.arcadeLevel);
                 return ListTile(
                   leading: _RankAvatar(rank: rank),
                   title: Text(e.name, style: Theme.of(context).textTheme.titleMedium),
-                  subtitle: Text('Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}'),
-                  trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children:[
-                    Text('${e.percent.toStringAsFixed(1)} %', style: const TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
-                    Text('${e.correct}/${e.total} • ${_fmtDuration(e.durationSec)}'),
-                  ]),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}'),
+                      const SizedBox(height: 4),
+                      ArcadeBadgeChip(label: badgeLabel, compact: true),
+                    ],
+                  ),
+                  isThreeLine: true,
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${e.percent.toStringAsFixed(1)} %', style: const TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 2),
+                      Text('${e.correct}/${e.total} • ${_fmtDuration(e.durationSec)}'),
+                    ],
+                  ),
                 );
               },
             ),
