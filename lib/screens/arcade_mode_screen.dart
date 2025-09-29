@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -21,21 +21,31 @@ class ArcadeModeScreen extends StatefulWidget {
 }
 
 class _ArcadeLevel {
-  final String title;
-  final String description;
+  final int index;
   final int difficulty;
   final int questionCount;
   final int requiredCorrect;
   final int perQuestionSeconds;
 
   const _ArcadeLevel({
-    required this.title,
-    required this.description,
+    required this.index,
     required this.difficulty,
     required this.questionCount,
     required this.requiredCorrect,
     required this.perQuestionSeconds,
   });
+
+  String get title => 'Niveau ${index + 1}';
+
+  String get description {
+    final buffer = StringBuffer('Palier de difficulté $difficulty. ')
+      ..write('Répondez à $requiredCorrect bonne');
+    buffer.write(requiredCorrect > 1 ? 's' : '');
+    buffer.write(' sur $questionCount question');
+    buffer.write(questionCount > 1 ? 's' : '');
+    buffer.write(' pour continuer.');
+    return buffer.toString();
+  }
 }
 
 class _ArcadeModeStateSummary {
@@ -44,6 +54,7 @@ class _ArcadeModeStateSummary {
   final int wrong;
   final int blank;
   final int durationSec;
+  final int levelsCompleted;
 
   const _ArcadeModeStateSummary({
     required this.totalQuestions,
@@ -51,39 +62,15 @@ class _ArcadeModeStateSummary {
     required this.wrong,
     required this.blank,
     required this.durationSec,
+    required this.levelsCompleted,
   });
 }
 
 class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
-  static const List<_ArcadeLevel> _levels = [
-    _ArcadeLevel(
-      title: 'Palier 1 — Échauffement',
-      description: 'Questions faciles pour se mettre en jambe.',
-      difficulty: 1,
-      questionCount: 6,
-      requiredCorrect: 5,
-      perQuestionSeconds: 12,
-    ),
-    _ArcadeLevel(
-      title: 'Palier 2 — Accélération',
-      description: 'Le rythme augmente avec des questions intermédiaires.',
-      difficulty: 2,
-      questionCount: 6,
-      requiredCorrect: 4,
-      perQuestionSeconds: 10,
-    ),
-    _ArcadeLevel(
-      title: 'Palier 3 — Maîtrise',
-      description: 'Difficulté élevée pour terminer la session.',
-      difficulty: 3,
-      questionCount: 8,
-      requiredCorrect: 5,
-      perQuestionSeconds: 9,
-    ),
-  ];
-
   static const ExamScoring _scoring =
       ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
+
+  static const int _previewLevelCount = 12;
 
   bool _preparing = false;
   String? _error;
@@ -100,50 +87,45 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       final pool = await QuestionLoader.loadENA();
       if (!mounted) return;
 
-      final requiredPerDiff = <int, int>{};
-      for (final level in _levels) {
-        requiredPerDiff[level.difficulty] =
-            (requiredPerDiff[level.difficulty] ?? 0) + level.questionCount;
+      final totalByDifficulty = _countByDifficulty(pool);
+      final maxDifficulty = _computeMaxUsableDifficulty(totalByDifficulty);
+      if (maxDifficulty == 0) {
+        setState(() {
+          _error =
+              'Aucune question disponible pour lancer le mode arcade.';
+          _preparing = false;
+        });
+        return;
       }
 
-      var availability = await drawQuestionsByDifficulty(pool, requiredPerDiff);
-      if (availability.hasShortage) {
-        final resolved = await _handleShortageDialog();
-        if (!resolved) {
-          setState(() {
-            _error =
-                'Pas assez de questions disponibles pour démarrer une session arcade.';
-          });
-          return;
-        }
-        availability = await drawQuestionsByDifficulty(pool, requiredPerDiff);
-        if (availability.hasShortage) {
-          setState(() {
-            _error =
-                'Banque insuffisante malgré la réinitialisation de l\'historique.';
-          });
-          return;
-        }
-      }
-
-      final perDiffQueues = <int, Queue<Question>>{};
-      availability.selections.forEach((diff, questions) {
-        perDiffQueues[diff] = Queue<Question>.of(questions);
-      });
-
+      final consumedByDifficulty = <int, int>{};
       final sessionUsedIds = <String>{};
       final sessionStart = DateTime.now();
       int totalCorrect = 0;
       int totalWrong = 0;
       int totalBlank = 0;
       int totalQuestions = 0;
+      int levelsCompleted = 0;
+      int levelIndex = 0;
       bool aborted = false;
+      bool shortage = false;
 
-      for (final level in _levels) {
+      while (true) {
+        final level = _levelForIndex(
+          levelIndex,
+          maxDifficulty: maxDifficulty,
+          totalByDifficulty: totalByDifficulty,
+          consumedByDifficulty: consumedByDifficulty,
+        );
+
+        if (level == null) {
+          shortage = true;
+          break;
+        }
+
         final success = await _runLevel(
           level: level,
           pool: pool,
-          perDiffQueues: perDiffQueues,
           sessionUsedIds: sessionUsedIds,
           onResult: (result) {
             totalCorrect += result.correctCount;
@@ -151,11 +133,19 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             totalBlank += result.blankCount;
             totalQuestions += result.total;
           },
+          onQuestionsUsed: (count) {
+            consumedByDifficulty[level.difficulty] =
+                (consumedByDifficulty[level.difficulty] ?? 0) + count;
+          },
         );
+
         if (!success) {
           aborted = true;
           break;
         }
+
+        levelsCompleted += 1;
+        levelIndex += 1;
       }
 
       if (sessionUsedIds.isNotEmpty) {
@@ -173,6 +163,16 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         return;
       }
 
+      if (shortage && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Banque de questions insuffisante pour poursuivre les niveaux.',
+            ),
+          ),
+        );
+      }
+
       final elapsed = DateTime.now().difference(sessionStart).inSeconds;
       final summary = _ArcadeModeStateSummary(
         totalQuestions: totalQuestions,
@@ -180,6 +180,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         wrong: totalWrong,
         blank: totalBlank,
         durationSec: elapsed,
+        levelsCompleted: levelsCompleted,
       );
 
       setState(() {
@@ -232,35 +233,30 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   Future<bool> _runLevel({
     required _ArcadeLevel level,
     required List<Question> pool,
-    required Map<int, Queue<Question>> perDiffQueues,
     required Set<String> sessionUsedIds,
     required void Function(ExamResult result) onResult,
+    required void Function(int usedCount) onQuestionsUsed,
   }) async {
-    final queue =
-        perDiffQueues.putIfAbsent(level.difficulty, () => Queue<Question>());
     List<Question>? pending;
 
     while (true) {
-      final questions = pending ?? _takeFromQueue(queue, level.questionCount);
+      final questions = pending ??
+          await _fetchQuestionsForLevel(
+            level: level,
+            pool: pool,
+            excludeIds: sessionUsedIds,
+          );
       pending = null;
-      if (questions.length < level.questionCount) {
-        final replenished = await _fetchQuestionsForLevel(
-          level: level,
-          pool: pool,
-          excludeIds: sessionUsedIds,
-        );
-        if (replenished == null || replenished.length < level.questionCount) {
-          return false;
-        }
-        pending = replenished;
-        continue;
+      if (questions == null || questions.length < level.questionCount) {
+        return false;
       }
 
       final result = await Navigator.of(context).push<ExamResult?>(
         MaterialPageRoute(
           builder: (_) => ExamFullScreen(
             questions: questions,
-            duration: Duration(seconds: level.questionCount * level.perQuestionSeconds),
+            duration:
+                Duration(seconds: level.questionCount * level.perQuestionSeconds),
             scoring: _scoring,
             title: level.title,
             showLocalSummary: true,
@@ -274,6 +270,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       }
 
       sessionUsedIds.addAll(questions.map((q) => q.id));
+      onQuestionsUsed(questions.length);
       onResult(result);
 
       if (result.correctCount >= level.requiredCorrect) {
@@ -305,24 +302,12 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         return false;
       }
 
-      final redraw = await _fetchQuestionsForLevel(
+      pending = await _fetchQuestionsForLevel(
         level: level,
         pool: pool,
         excludeIds: sessionUsedIds,
       );
-      if (redraw == null || redraw.length < level.questionCount) {
-        return false;
-      }
-      pending = redraw;
     }
-  }
-
-  List<Question> _takeFromQueue(Queue<Question> queue, int count) {
-    final result = <Question>[];
-    while (result.length < count && queue.isNotEmpty) {
-      result.add(queue.removeFirst());
-    }
-    return result;
   }
 
   Future<List<Question>?> _fetchQuestionsForLevel({
@@ -399,6 +384,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final previewLevels =
+        List.generate(_previewLevelCount, (i) => _previewLevelAt(i));
 
     return Scaffold(
       appBar: AppBar(
@@ -408,33 +395,57 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
+              child: ListView(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Enchaînez des paliers de difficulté croissante. '
-                      'Chaque niveau requiert un nombre minimal de bonnes réponses '
-                      'pour accéder au suivant.',
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 24),
-                    ..._levels.map((level) => _buildLevelCard(level, theme)),
-                    if (_error != null) ...[
-                      const SizedBox(height: 24),
-                      Text(
-                        _error!,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.colorScheme.error),
+                children: [
+                  Text(
+                    'Enchaînez des paliers de difficulté croissante. '
+                    'Chaque niveau adapte automatiquement la cadence et '
+                    'les exigences pour maintenir le défi.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            theme.colorScheme.outlineVariant.withOpacity(0.5),
                       ),
-                    ],
-                    if (_lastSummary != null) ...[
-                      const SizedBox(height: 24),
-                      _buildSummaryCard(_lastSummary!, theme),
-                    ],
+                    ),
+                    child: Scrollbar(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        itemBuilder: (context, index) {
+                          final level = previewLevels[index];
+                          return _buildLevelCard(level, theme);
+                        },
+                        itemCount: previewLevels.length,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Les niveaux au-delà de ${previewLevels.last.title} '
+                    'poursuivent l\'augmentation de la difficulté jusqu\'à '
+                    'épuisement de la banque de questions.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      _error!,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.error),
+                    ),
                   ],
-                ),
+                  if (_lastSummary != null) ...[
+                    const SizedBox(height: 24),
+                    _buildSummaryCard(_lastSummary!, theme),
+                  ],
+                ],
               ),
             ),
             Padding(
@@ -462,7 +473,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
 
   Widget _buildLevelCard(_ArcadeLevel level, ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -488,11 +499,13 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             children: [
               _buildChip(Icons.layers, '${level.questionCount} questions'),
               _buildChip(
-                  Icons.verified,
-                  '${level.requiredCorrect} bonnes réponses minimales'),
+                Icons.verified,
+                '${level.requiredCorrect} bonne${level.requiredCorrect > 1 ? 's' : ''} requise${level.requiredCorrect > 1 ? 's' : ''}',
+              ),
               _buildChip(
-                  Icons.timer,
-                  '${level.perQuestionSeconds}s/question (${level.questionCount * level.perQuestionSeconds}s)'),
+                Icons.timer,
+                '${level.perQuestionSeconds}s/question (${level.questionCount * level.perQuestionSeconds}s)',
+              ),
               _buildChip(Icons.leaderboard, 'Difficulté ${level.difficulty}'),
             ],
           ),
@@ -523,10 +536,112 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 8),
+          Text('Niveaux complétés : ${summary.levelsCompleted}'),
+          const SizedBox(height: 4),
           Text('Temps total : ${_formatDuration(summary.durationSec)}'),
         ],
       ),
     );
+  }
+
+  _ArcadeLevel? _levelForIndex(
+    int levelIndex, {
+    required int maxDifficulty,
+    required Map<int, int> totalByDifficulty,
+    required Map<int, int> consumedByDifficulty,
+  }) {
+    final difficulty = _difficultyForLevel(levelIndex, maxDifficulty);
+    final available = (totalByDifficulty[difficulty] ?? 0) -
+        (consumedByDifficulty[difficulty] ?? 0);
+    if (available <= 0) {
+      return null;
+    }
+
+    final targetCount = _questionCountForLevel(levelIndex);
+    final minRequired = math.min(3, available);
+    var questionCount = math.min(targetCount, available);
+    if (questionCount < minRequired) {
+      questionCount = minRequired;
+    }
+    if (questionCount <= 0) {
+      return null;
+    }
+
+    final requiredCorrect = _requiredCorrectForLevel(levelIndex, questionCount);
+    final perQuestionSeconds = _perQuestionSecondsForLevel(levelIndex);
+
+    return _ArcadeLevel(
+      index: levelIndex,
+      difficulty: difficulty,
+      questionCount: questionCount,
+      requiredCorrect: requiredCorrect,
+      perQuestionSeconds: perQuestionSeconds,
+    );
+  }
+
+  Map<int, int> _countByDifficulty(List<Question> pool) {
+    final counts = <int, int>{};
+    for (final q in pool) {
+      counts[q.difficulty] = (counts[q.difficulty] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  int _computeMaxUsableDifficulty(Map<int, int> counts) {
+    if (counts.isEmpty) return 0;
+    final entries = counts.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    int max = 0;
+    for (final entry in entries) {
+      if (entry.value >= 3) {
+        max = entry.key > max ? entry.key : max;
+      }
+    }
+    if (max == 0) {
+      // Autorise au moins la difficulté la plus basse disponible.
+      final minKey = entries.first.key;
+      return minKey;
+    }
+    return max;
+  }
+
+  _ArcadeLevel _previewLevelAt(int index) {
+    final baseCount = math.max(3, _questionCountForLevel(index));
+    return _ArcadeLevel(
+      index: index,
+      difficulty: _difficultyForLevel(index, 3),
+      questionCount: baseCount,
+      requiredCorrect: _requiredCorrectForLevel(index, baseCount),
+      perQuestionSeconds: _perQuestionSecondsForLevel(index),
+    );
+  }
+
+  int _difficultyForLevel(int index, int maxDifficulty) {
+    return math.min(1 + (index ~/ 3), maxDifficulty);
+  }
+
+  int _questionCountForLevel(int index) {
+    return 5 + (index ~/ 2);
+  }
+
+  double _successRatioForLevel(int index) {
+    return math.min(0.85, 0.6 + index * 0.025);
+  }
+
+  int _requiredCorrectForLevel(int index, int questionCount) {
+    final ratio = _successRatioForLevel(index);
+    final required = (questionCount * ratio).ceil();
+    if (required < 1) {
+      return 1;
+    }
+    if (required > questionCount) {
+      return questionCount;
+    }
+    return required;
+  }
+
+  int _perQuestionSecondsForLevel(int index) {
+    return math.max(6, 14 - index);
   }
 
   Widget _buildChip(IconData icon, String label) {
