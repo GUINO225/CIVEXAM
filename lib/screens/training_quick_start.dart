@@ -32,6 +32,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
   final List<int> _countOptions = const [5, 10, 15, 20]; // allowed question counts
 
   Future<void> _start() async {
+    bool dialogShown = false;
     setState(() => _loading = true);
     try {
       final List<Question> all = await QuestionLoader.loadENA();
@@ -41,12 +42,16 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
+      dialogShown = true;
       final List<Question> selected = await pickAndShuffle(
         all,
         _questionCount,
         dedupeByQuestion: true,
       );
-      if (mounted) Navigator.pop(context);
+      if (dialogShown && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogShown = false;
+      }
 
       final proceed = await _handleShortDraw(selected, _questionCount);
       if (!proceed) {
@@ -171,7 +176,10 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         );
       }
     } catch (e) {
-      if (mounted) Navigator.pop(context);
+      if (dialogShown && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogShown = false;
+      }
       unawaited(OngoingQuickQuizStore.clear());
       unawaited(OngoingQuickQuizStore.clearLastResult());
       if (!mounted) return;
@@ -179,6 +187,10 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
         SnackBar(content: Text('Échec du lancement de l\'entraînement : $e')),
       );
     } finally {
+      if (dialogShown && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogShown = false;
+      }
       if (mounted) {
         setState(() => _loading = false);
       }
