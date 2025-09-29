@@ -321,12 +321,15 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  PlayPrimaryButton(
-                    label: _loading ? 'Chargement…' : 'Commencer',
-                    icon: Icons.play_arrow_rounded,
-                    busy: _loading,
-                    onPressed: _loading ? null : _start,
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.center,
+                    child: PlayPrimaryButton(
+                      label: _loading ? 'Chargement…' : 'Commencer',
+                      icon: Icons.play_arrow_rounded,
+                      busy: _loading,
+                      onPressed: _loading ? null : _start,
+                    ),
                   ),
                 ],
               ),
