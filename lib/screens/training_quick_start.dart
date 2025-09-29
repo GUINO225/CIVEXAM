@@ -1,17 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../services/question_loader.dart';
+
 import '../models/question.dart';
-import '../services/scoring.dart';
-import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
 import '../models/training_history_entry.dart';
-import '../services/training_history_store.dart';
-import 'exam_full_screen.dart';
 import '../services/leaderboard_hooks.dart';
 import '../services/ongoing_quiz_store.dart';
+import '../services/question_history_store.dart';
+import '../services/question_loader.dart';
+import '../services/question_randomizer.dart';
+import '../services/scoring.dart';
+import '../services/training_history_store.dart';
 import '../widgets/chip_selector.dart';
+import '../widgets/play_mode_panels.dart';
+import '../widgets/play_themed_scaffold.dart';
+import 'exam_full_screen.dart';
 
 class TrainingQuickStartScreen extends StatefulWidget {
   const TrainingQuickStartScreen({super.key});
@@ -246,48 +249,78 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
     final total = Duration(seconds: _perQuestionSeconds * _questionCount);
     String two(int x) => x.toString().padLeft(2, '0');
     final totalLabel = '${two(total.inMinutes)}:${two(total.inSeconds % 60)}';
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Entraînement (5–10s/question)')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Temps par question', style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ChipSelector<int>(
-              options: _secondOptions,
-              selected: _perQuestionSeconds,
-              onSelected: (s) => setState(() => _perQuestionSeconds = s),
-              spacing: 8,
-              runSpacing: 8,
-              labelBuilder: (s) => '${s}s',
-            ),
-            const SizedBox(height: 16),
-            Text('Nombre de questions', style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ChipSelector<int>(
-              options: _countOptions,
-              selected: _questionCount,
-              onSelected: (n) => setState(() => _questionCount = n),
-              spacing: 8,
-              labelBuilder: (n) => '$n',
-            ),
-            const SizedBox(height: 16),
-            Text('Temps total : $totalLabel', style: textTheme.bodyLarge),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _loading ? null : _start,
-                icon: const Icon(Icons.play_arrow),
-                label: Text(_loading ? 'Chargement...' : 'Commencer'),
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      panelHeightFactor: 0.74,
+      safeAreaTop: false,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PlayPanelHeader(
+                    icon: Icons.bolt_rounded,
+                    title: 'Entraînement (5–10s/question)',
+                    subtitle: 'Lancez un quiz rapide et chronométré',
+                    chips: [
+                      PlayInfoChip(
+                        icon: Icons.speed_rounded,
+                        label: '${_perQuestionSeconds}s/question',
+                      ),
+                      PlayInfoChip(
+                        icon: Icons.format_list_numbered_rounded,
+                        label: '$_questionCount questions',
+                      ),
+                      PlayCountdownChip(label: 'Temps total : $totalLabel'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  PlayPanelSurface(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Temps par question', style: textTheme.titleMedium),
+                        const SizedBox(height: 12),
+                        ChipSelector<int>(
+                          options: _secondOptions,
+                          selected: _perQuestionSeconds,
+                          onSelected: (s) => setState(() => _perQuestionSeconds = s),
+                          spacing: 8,
+                          runSpacing: 8,
+                          labelBuilder: (s) => '${s}s',
+                        ),
+                        const SizedBox(height: 24),
+                        Text('Nombre de questions', style: textTheme.titleMedium),
+                        const SizedBox(height: 12),
+                        ChipSelector<int>(
+                          options: _countOptions,
+                          selected: _questionCount,
+                          onSelected: (n) => setState(() => _questionCount = n),
+                          spacing: 8,
+                          labelBuilder: (n) => '$n',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  PlayPrimaryButton(
+                    label: _loading ? 'Chargement…' : 'Commencer',
+                    icon: Icons.play_arrow_rounded,
+                    busy: _loading,
+                    onPressed: _loading ? null : _start,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
