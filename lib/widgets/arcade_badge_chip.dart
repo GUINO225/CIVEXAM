@@ -20,9 +20,22 @@ class ArcadeBadgeChip extends StatelessWidget {
       fontWeight: FontWeight.w600,
       fontSize: compact ? 12 : null,
     );
+    final levelMatch = RegExp(r'\d+').firstMatch(label);
+    final hasLevelNumber = levelMatch != null;
+
+    final labelWidget = hasLevelNumber
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.stars, size: iconSize, color: foreground),
+              const SizedBox(width: 4),
+              Text(levelMatch!.group(0)!, style: textStyle),
+            ],
+          )
+        : Text(label, style: textStyle);
+
     return Chip(
-      avatar: Icon(Icons.stars, size: iconSize, color: foreground),
-      label: Text(label, style: textStyle),
+      label: labelWidget,
       backgroundColor: background,
       side: BorderSide(color: colorScheme.primary.withOpacity(0.4)),
       padding: padding,
