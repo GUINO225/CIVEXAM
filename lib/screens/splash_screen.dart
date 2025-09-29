@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../services/question_loader.dart';
+import '../widgets/play_themed_scaffold.dart';
 import 'login_screen.dart';
 import 'play_screen.dart';
-import '../services/question_loader.dart';
 
 /// Initial splash screen showing the app logo before navigating to login.
 class SplashScreen extends StatefulWidget {
@@ -80,7 +81,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.plain,
+      bodyPadding: EdgeInsets.all(24),
       body: Center(
         child: Image.asset(
           'assets/images/logo_splash.png',
