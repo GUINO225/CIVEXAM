@@ -10,6 +10,7 @@ import 'services/design_bus.dart';
 import 'widgets/design_background.dart';
 import 'models/design_config.dart';
 import 'screens/splash_screen.dart';
+import 'screens/arcade_mode_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +86,9 @@ class _CivExamConfiguredApp extends StatelessWidget {
           theme: buildAppTheme(cfg),
           builder: (context, child) =>
               DesignBackground(child: child ?? const SizedBox()),
+          routes: {
+            ArcadeModeScreen.routeName: (_) => const ArcadeModeScreen(),
+          },
           home: const SplashScreen(),
         );
       },
