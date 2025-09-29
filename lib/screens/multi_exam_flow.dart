@@ -1,16 +1,22 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../models/question.dart';
-import '../services/scoring.dart';
-import '../services/question_loader.dart';
-import '../services/history_store.dart';
-import '../models/exam_history_entry.dart';
-import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
-import '../services/exam_blueprint.dart';
+
 import '../data/ena_taxonomy.dart';
+import '../models/calendar_overlay_config.dart';
+import '../models/exam_history_entry.dart';
+import '../models/question.dart';
+import '../services/exam_blueprint.dart';
+import '../services/history_store.dart';
+import '../services/question_history_store.dart';
+import '../services/question_loader.dart';
+import '../services/question_randomizer.dart';
+import '../services/scoring.dart';
 import '../utils/palette_utils.dart';
+import '../utils/responsive_utils.dart';
+import '../viewmodels/play_header_view_model.dart';
+import '../widgets/play_greeting_header.dart';
 import '../widgets/play_bottom_navigation.dart';
 import '../widgets/play_mode_panels.dart';
 import '../widgets/play_themed_scaffold.dart';
@@ -83,8 +89,9 @@ List<Question> _filterQuestions(List<Question> all, String subject, String chapt
   };
   final s = subjectAliases[s0] ?? s0;
   final c = chapterAliases[c0] ?? c0;
-  final exact =
-      all.where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c).toList(growable: false);
+  final exact = all
+      .where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c)
+      .toList(growable: false);
   if (exact.isNotEmpty) return exact;
   final bySubject = all.where((q) => QuestionLoader.canon(q.subject) == s).toList(growable: false);
   return bySubject;
@@ -124,6 +131,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
+  late final PlayHeaderViewModel _headerViewModel;
+
   /// Minimum success rate required to pass the exam.
   /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
@@ -143,6 +152,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   @override
   void initState() {
     super.initState();
+
+    _headerViewModel = PlayHeaderViewModel(
+      clockTick:
+          defaultCalendarOverlayConfig.showSeconds ? const Duration(seconds: 1) : const Duration(minutes: 1),
+    );
+    _headerViewModel.start();
 
     final counts = {
       'Culture Générale': ExamBlueprint.cultureGenerale,
@@ -165,6 +180,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         ),
     ];
     _loadAll();
+  }
+
+  @override
+  void dispose() {
+    _headerViewModel.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAll() async {
@@ -199,8 +220,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         final reason = await ScaffoldMessenger.of(context)
             .showSnackBar(
               SnackBar(
-                content: Text(
-                    'Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
+                content: Text('Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
                 action: SnackBarAction(
                   label: 'Continuer',
                   onPressed: () {},
@@ -260,11 +280,9 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       // Choisir la durée en fonction de la difficulté
       final Duration effDuration;
       if (perQ == null) {
-        // Normal : garder la durée officielle
-        effDuration = sec.duration;
+        effDuration = sec.duration; // Normal : garder la durée officielle
       } else {
-        // Autres niveaux : durée = secondes/question × nb de questions
-        effDuration = Duration(seconds: perQ * qs.length);
+        effDuration = Duration(seconds: perQ * qs.length); // autres niveaux
       }
 
       if (!mounted) return;
@@ -310,11 +328,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       totalQuestions += r.total;
     }
 
-    final double successRate =
-        totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
-    final bool success = !abandoned &&
-        totalQuestions > 0 &&
-        successRate >= PASS_MIN_SUCCESS_RATE;
+    final double successRate = totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
+    final bool success = !abandoned && totalQuestions > 0 && successRate >= PASS_MIN_SUCCESS_RATE;
 
     final entry = ExamHistoryEntry(
       date: DateTime.now(),
@@ -340,9 +355,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
               Text('$s — Brut ${bruts[s]} • Pondéré ${ponders[s]} (${corrects[s]}/${totals[s]})'),
             const SizedBox(height: 8),
             Text('Total pondéré : $totalWeighted'),
-            Text(
-              'Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %',
-            ),
+            Text('Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %'),
             Text('Résultat : ${abandoned ? "Abandonné 🟠" : (success ? "Réussi ✅" : "Échoué ❌")}'),
           ],
         ),
@@ -430,7 +443,56 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final mq = MediaQuery.of(context);
+    final scale = computeScaleFactor(mq);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final welcomeFontSize = scaledFontSize(
+      base: 22,
+      scale: scale,
+      textScaler: textScaler,
+      min: 18,
+      max: 28,
+    );
+    final nameFontSize = scaledFontSize(
+      base: 26,
+      scale: scale,
+      textScaler: textScaler,
+      min: 20,
+      max: 36,
+    );
+    final topInset = mq.viewPadding.top;
     final perQ = secondsPerQuestion(_difficulty);
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? user?.email;
+    final hasName = name != null && name.isNotEmpty;
+    final headerHeight = PlayGreetingHeader.heightFor(topInset);
+    const double contentSpacingUnderHeader = 24;
+    final double contentTopPadding = headerHeight + contentSpacingUnderHeader;
+
+    Widget buildHeader() {
+      return AnimatedBuilder(
+        animation: _headerViewModel,
+        builder: (context, _) {
+          return PlayGreetingHeader(
+            topInset: topInset,
+            hasName: hasName,
+            name: name,
+            profileNickname: _headerViewModel.profileNickname,
+            welcomeFontSize: welcomeFontSize,
+            nameFontSize: nameFontSize,
+            arcadeProgress: _headerViewModel.arcadeProgress,
+            arcadeProgressLoading: _headerViewModel.arcadeProgressLoading,
+            leaderboardEntry: _headerViewModel.currentUserEntry,
+            rank: _headerViewModel.currentUserRank,
+            now: _headerViewModel.now,
+            calendarConfig: defaultCalendarOverlayConfig,
+          );
+        },
+      );
+    }
+
+    final header = buildHeader();
+
     return PlayThemedScaffold(
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       panelHeightFactor: 0.92,
@@ -441,12 +503,16 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         showFabNotch: false,
         onItemSelected: (index) => _handleBottomNavSelection(context, index),
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (loading)
+            const Center(child: CircularProgressIndicator())
+          else
+            LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
+                  padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
                     child: Column(
@@ -514,11 +580,13 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
                 );
               },
             ),
+          header,
+        ],
+      ),
     );
   }
 
-  Widget _buildSectionEntry(
-      BuildContext context, ExamSection section, TextTheme textTheme) {
+  Widget _buildSectionEntry(BuildContext context, ExamSection section, TextTheme textTheme) {
     final theme = Theme.of(context);
     final baseColor = theme.colorScheme.primary;
     final background = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.12);
