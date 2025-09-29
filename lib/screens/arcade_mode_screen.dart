@@ -9,6 +9,7 @@ import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
 import '../services/scoring.dart';
 import '../services/leaderboard_hooks.dart';
+import '../services/arcade_progress_store.dart';
 import 'exam_full_screen.dart';
 
 class ArcadeModeScreen extends StatefulWidget {
@@ -75,9 +76,27 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   bool _preparing = false;
   String? _error;
   _ArcadeModeStateSummary? _lastSummary;
+  final ArcadeProgressStore _progressStore = ArcadeProgressStore();
+  ArcadeProgressData? _progressData;
+  bool _loadingProgress = true;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadProgress());
+  }
+
+  Future<void> _loadProgress() async {
+    final progress = await _progressStore.load();
+    if (!mounted) return;
+    setState(() {
+      _progressData = progress;
+      _loadingProgress = false;
+    });
+  }
 
   Future<void> _startArcade() async {
-    if (_preparing) return;
+    if (_preparing || _loadingProgress) return;
     setState(() {
       _preparing = true;
       _error = null;
@@ -106,7 +125,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       int totalBlank = 0;
       int totalQuestions = 0;
       int levelsCompleted = 0;
-      int levelIndex = 0;
+      int levelIndex = _progressData?.resumeIndex ?? 0;
       bool aborted = false;
       bool shortage = false;
 
@@ -144,6 +163,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           break;
         }
 
+        await _handleLevelValidated(level);
         levelsCompleted += 1;
         levelIndex += 1;
       }
@@ -197,6 +217,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         percent: summary.totalQuestions == 0
             ? 0.0
             : (summary.correct / summary.totalQuestions) * 100.0,
+        arcadeLevel: _progressData?.levelLabel,
       );
 
       if (!mounted) return;
@@ -384,8 +405,11 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final previewLevels =
-        List.generate(_previewLevelCount, (i) => _previewLevelAt(i));
+    final resumeIndex = _progressData?.resumeIndex ?? 0;
+    final previewLevels = List.generate(
+      _previewLevelCount,
+      (i) => _previewLevelAt(resumeIndex + i),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -460,8 +484,15 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.play_arrow_rounded),
-                  label: Text(_preparing ? 'Préparation…' : 'Lancer la session'),
-                  onPressed: _preparing ? null : _startArcade,
+                  label: Text(
+                    _preparing
+                        ? 'Préparation…'
+                        : _loadingProgress
+                            ? 'Chargement…'
+                            : 'Lancer la session',
+                  ),
+                  onPressed:
+                      _preparing || _loadingProgress ? null : _startArcade,
                 ),
               ),
             ),
@@ -469,6 +500,18 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleLevelValidated(_ArcadeLevel level) async {
+    final nextLabel = 'Niveau ${level.index + 2}';
+    final updated = await _progressStore.save(
+      levelLabel: nextLabel,
+      baseProfile: _progressData?.profile,
+    );
+    if (!mounted) return;
+    setState(() {
+      _progressData = updated;
+    });
   }
 
   Widget _buildLevelCard(_ArcadeLevel level, ThemeData theme) {

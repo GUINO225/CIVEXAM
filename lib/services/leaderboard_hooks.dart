@@ -1,8 +1,7 @@
 // lib/services/leaderboard_hooks.dart
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../services/user_profile_service.dart';
+import '../services/arcade_progress_store.dart';
 import '../utils/arcade_level_utils.dart';
 import '../widgets/leaderboard_save_dialog.dart';
 
@@ -97,8 +96,10 @@ class LeaderboardHooks {
     required int blank,
     required int durationSec,
     double? percent,
+    String? arcadeLevel,
   }) async {
-    final arcadeLevel = await _currentArcadeLevel();
+    final resolvedArcadeLevel =
+        arcadeLevel ?? await _currentArcadeLevel();
     await _save(
       context: context,
       mode: 'competition',
@@ -108,7 +109,7 @@ class LeaderboardHooks {
       blank: blank,
       durationSec: durationSec,
       percent: percent,
-      arcadeLevel: arcadeLevel,
+      arcadeLevel: resolvedArcadeLevel,
     );
   }
 
@@ -121,8 +122,10 @@ class LeaderboardHooks {
     required int blank,
     required int durationSec,
     double? percent,
+    String? arcadeLevel,
   }) async {
-    final arcadeLevel = await _currentArcadeLevel();
+    final resolvedArcadeLevel =
+        arcadeLevel ?? await _currentArcadeLevel();
     await _save(
       context: context,
       mode: 'arcade',
@@ -132,23 +135,15 @@ class LeaderboardHooks {
       blank: blank,
       durationSec: durationSec,
       percent: percent,
-      arcadeLevel: arcadeLevel,
+      arcadeLevel: resolvedArcadeLevel,
     );
   }
 
   /// Récupère le niveau d’arcade courant depuis le profil utilisateur,
   /// puis le normalise via `normalizeArcadeLevel`.
   static Future<String?> _currentArcadeLevel() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return null;
-
-    try {
-      final profile = await UserProfileService().loadProfile(uid);
-      if (profile == null) return null;
-      return normalizeArcadeLevel(profile.arcadeLevel);
-    } catch (_) {
-      // On reste tolérant : l’absence de niveau n’empêche pas l’enregistrement.
-      return null;
-    }
+    final progress = await ArcadeProgressStore().load();
+    final label = normalizeArcadeLevel(progress.levelLabel);
+    return label.isEmpty ? null : label;
   }
 }
