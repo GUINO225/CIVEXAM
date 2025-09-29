@@ -1066,6 +1066,8 @@ class _HomeShellState extends State<HomeShell> {
                                       state.questionIds.isNotEmpty)
                                   ? state
                                   : null;
+                              final bool showQuickQuiz =
+                                  summary != null || lastExam == null;
                               return _RecentQuizCard(
                                 ongoingState: ongoing,
                                 lastSummary: summary,
@@ -1073,8 +1075,13 @@ class _HomeShellState extends State<HomeShell> {
                                 onContinue: ongoing != null
                                     ? () => _handleResumeQuickQuiz(ongoing)
                                     : null,
-                                onLaunchQuiz:
-                                    ongoing == null ? _handleLaunchOfficialQuiz : null,
+                                onLaunchQuickQuiz: ongoing == null && showQuickQuiz
+                                    ? _handleCreateQuickQuiz
+                                    : null,
+                                onLaunchOfficialExam:
+                                    ongoing == null && !showQuickQuiz
+                                        ? _handleLaunchOfficialQuiz
+                                        : null,
                                 isBusy: _resumingQuickQuiz,
                               );
                             },
@@ -1231,7 +1238,8 @@ class _RecentQuizCard extends StatelessWidget {
     required this.lastSummary,
     required this.lastExamEntry,
     required this.onContinue,
-    required this.onLaunchQuiz,
+    required this.onLaunchQuickQuiz,
+    required this.onLaunchOfficialExam,
     required this.isBusy,
   });
 
@@ -1239,18 +1247,23 @@ class _RecentQuizCard extends StatelessWidget {
   final QuickQuizSummary? lastSummary;
   final ExamHistoryEntry? lastExamEntry;
   final VoidCallback? onContinue;
-  final VoidCallback? onLaunchQuiz;
+  final VoidCallback? onLaunchQuickQuiz;
+  final VoidCallback? onLaunchOfficialExam;
   final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
     final hasQuiz = ongoingState != null && ongoingState!.questionIds.isNotEmpty;
     final bool showResume = hasQuiz && onContinue != null;
-    final bool showLaunch = !hasQuiz && onLaunchQuiz != null;
     final summary = lastSummary;
     final examEntry = lastExamEntry;
     final double? examRatio = examEntry?.overallSuccessRatio();
     final bool showExamResult = !hasQuiz && summary == null && examEntry != null;
+    final bool showQuickLaunch =
+        !hasQuiz && !showExamResult && onLaunchQuickQuiz != null;
+    final bool showOfficialLaunch =
+        !hasQuiz && showExamResult && onLaunchOfficialExam != null;
+    final bool showLaunch = showQuickLaunch || showOfficialLaunch;
     final double rawProgress = hasQuiz
         ? ongoingState!.completionRatio
         : summary != null
@@ -1298,6 +1311,9 @@ class _RecentQuizCard extends StatelessWidget {
             : 'Lancer';
     final bool showButton = showResume || showLaunch;
     final bool enableResume = showResume && !isBusy;
+    final VoidCallback? launchHandler = showExamResult
+        ? onLaunchOfficialExam
+        : onLaunchQuickQuiz;
     final mainAxisAlignment =
         showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
 
@@ -1375,8 +1391,9 @@ class _RecentQuizCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    onPressed:
-                        showResume ? (enableResume ? onContinue : null) : onLaunchQuiz,
+                    onPressed: showResume
+                        ? (enableResume ? onContinue : null)
+                        : launchHandler,
                     child: showResume && isBusy
                         ? const SizedBox(
                             width: 18,
