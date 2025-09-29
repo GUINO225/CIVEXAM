@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const PlayThemedScaffold(
+    return PlayThemedScaffold(
       bodyMode: PlayThemedScaffoldBodyMode.plain,
       bodyPadding: EdgeInsets.all(24),
       body: Center(
