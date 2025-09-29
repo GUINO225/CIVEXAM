@@ -69,11 +69,21 @@ class _ArcadeModeStateSummary {
   });
 }
 
+class _PreviewLevelEntry {
+  final _ArcadeLevel level;
+  final bool isCompleted;
+  final bool isCurrent;
+
+  const _PreviewLevelEntry({
+    required this.level,
+    this.isCompleted = false,
+    this.isCurrent = false,
+  });
+}
+
 class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   static const ExamScoring _scoring =
       ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
-
-  static const int _previewLevelCount = 12;
 
   bool _preparing = false;
   String? _error;
@@ -408,11 +418,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resumeIndex = _progressData?.resumeIndex ?? 0;
-    final previewLevels = List.generate(
-      _previewLevelCount,
-      (i) => _previewLevelAt(resumeIndex + i),
-    );
+    final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
+    final previewLevels = _buildPreviewLevels(resumeIndex);
 
     return Scaffold(
       appBar: AppBar(
@@ -446,8 +453,13 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                         physics: const ClampingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         itemBuilder: (context, index) {
-                          final level = previewLevels[index];
-                          return _buildLevelCard(level, theme);
+                          final entry = previewLevels[index];
+                          return _buildLevelCard(
+                            entry.level,
+                            theme,
+                            isCompleted: entry.isCompleted,
+                            isCurrent: entry.isCurrent,
+                          );
                         },
                         itemCount: previewLevels.length,
                       ),
@@ -455,7 +467,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Les niveaux au-delà de ${previewLevels.last.title} '
+                    'Les niveaux au-delà de ${previewLevels.last.level.title} '
                     'poursuivent l\'augmentation de la difficulté jusqu\'à '
                     'épuisement de la banque de questions.',
                     style: theme.textTheme.bodySmall,
@@ -517,13 +529,49 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     });
   }
 
-  Widget _buildLevelCard(_ArcadeLevel level, ThemeData theme) {
+  List<_PreviewLevelEntry> _buildPreviewLevels(int resumeIndex) {
+    final entries = <_PreviewLevelEntry>[];
+    final safeIndex = resumeIndex < 0 ? 0 : resumeIndex;
+    for (var i = 0; i < safeIndex; i++) {
+      entries.add(
+        _PreviewLevelEntry(
+          level: _previewLevelAt(i),
+          isCompleted: true,
+        ),
+      );
+    }
+
+    entries.add(
+      _PreviewLevelEntry(
+        level: _previewLevelAt(safeIndex),
+        isCurrent: true,
+      ),
+    );
+
+    return entries;
+  }
+
+  Widget _buildLevelCard(
+    _ArcadeLevel level,
+    ThemeData theme, {
+    bool isCompleted = false,
+    bool isCurrent = false,
+  }) {
+    final statusColor = isCompleted
+        ? theme.colorScheme.surfaceVariant
+        : theme.colorScheme.surface;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: statusColor,
         borderRadius: BorderRadius.circular(16),
+        border: isCurrent
+            ? Border.all(
+                color: theme.colorScheme.primary.withOpacity(0.6),
+                width: 1.5,
+              )
+            : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -542,6 +590,10 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             children: [
               ArcadeBadgeChip(label: level.title, compact: true),
               Text(level.title, style: theme.textTheme.titleMedium),
+              if (isCompleted)
+                _buildChip(Icons.check_circle_rounded, 'Palier validé')
+              else if (isCurrent)
+                _buildChip(Icons.flag_rounded, 'Prochain palier'),
             ],
           ),
           const SizedBox(height: 6),
