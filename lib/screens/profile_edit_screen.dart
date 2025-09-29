@@ -402,66 +402,69 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Modifier le profil',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    Center(
-                      child: InkWell(
-                        onTap: _pickImage,
-                        child: _buildAvatarCircle(),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Modifier le profil',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      Center(
+                        child: InkWell(
+                          onTap: _pickImage,
+                          child: _buildAvatarCircle(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _firstNameController,
-                      decoration: const InputDecoration(labelText: 'Prénom'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _lastNameController,
-                      decoration: const InputDecoration(labelText: 'Nom'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _pseudoController,
-                      decoration: const InputDecoration(labelText: 'Pseudonyme'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _professionController,
-                      decoration: const InputDecoration(labelText: 'Profession'),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _save,
-                      child: const Text('Enregistrer'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: _showChangePasswordDialog,
-                      child: const Text('Changer le mot de passe'),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _firstNameController,
+                        decoration: const InputDecoration(labelText: 'Prénom'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _lastNameController,
+                        decoration: const InputDecoration(labelText: 'Nom'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _pseudoController,
+                        decoration: const InputDecoration(labelText: 'Pseudonyme'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _professionController,
+                        decoration: const InputDecoration(labelText: 'Profession'),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _save,
+                        child: const Text('Enregistrer'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: _showChangePasswordDialog,
+                        child: const Text('Changer le mot de passe'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
