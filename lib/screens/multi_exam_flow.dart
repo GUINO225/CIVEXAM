@@ -479,11 +479,14 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
                             ],
                           ),
                         ),
-                        const Spacer(),
-                        PlayPrimaryButton(
-                          label: 'Démarrer le parcours',
-                          icon: Icons.play_arrow_rounded,
-                          onPressed: _startFlow,
+                        const SizedBox(height: 24),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: PlayPrimaryButton(
+                            label: 'Démarrer le parcours',
+                            icon: Icons.play_arrow_rounded,
+                            onPressed: _startFlow,
+                          ),
                         ),
                       ],
                     ),
