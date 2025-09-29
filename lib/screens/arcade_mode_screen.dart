@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/question.dart';
-import '../models/user_profile.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
@@ -13,8 +12,6 @@ import '../services/scoring.dart';
 import '../services/leaderboard_hooks.dart';
 import '../services/arcade_progress_store.dart';
 import '../widgets/arcade_badge_chip.dart';
-import '../widgets/play_mode_panels.dart';
-import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
 
 class ArcadeModeScreen extends StatefulWidget {
@@ -424,114 +421,98 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
     final previewLevels = _buildPreviewLevels(resumeIndex);
 
-    final String baseButtonLabel = _preparing
-        ? 'Préparation…'
-        : _loadingProgress
-            ? 'Chargement…'
-            : 'Lancer la session';
-
-    final profileLabel = _profileDisplayName(_progressData?.profile);
-
-    return PlayThemedScaffold(
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      panelHeightFactor: 0.9,
-      safeAreaTop: false,
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-              children: [
-                PlayPanelHeader(
-                  icon: Icons.videogame_asset_rounded,
-                  title: 'Mode Arcade',
-                  subtitle: 'Paliers successifs à difficulté croissante',
-                  chips: [
-                    PlayInfoChip(
-                      icon: Icons.flag_rounded,
-                      label: 'Niveau ${resumeIndex + 1}',
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mode Arcade'),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Text(
+                    'Enchaînez des paliers de difficulté croissante. '
+                    'Chaque niveau adapte automatiquement la cadence et '
+                    'les exigences pour maintenir le défi.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            theme.colorScheme.outlineVariant.withOpacity(0.5),
+                      ),
                     ),
-                    if (resumeIndex > 0)
-                      PlayInfoChip(
-                        icon: Icons.emoji_events_rounded,
-                        label: '$resumeIndex palier${resumeIndex > 1 ? 's' : ''} validé${resumeIndex > 1 ? 's' : ''}',
+                    child: Scrollbar(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        itemBuilder: (context, index) {
+                          final entry = previewLevels[index];
+                          return _buildLevelCard(
+                            entry.level,
+                            theme,
+                            isCompleted: entry.isCompleted,
+                            isCurrent: entry.isCurrent,
+                          );
+                        },
+                        itemCount: previewLevels.length,
                       ),
-                    if (profileLabel != null)
-                      PlayInfoChip(
-                        icon: Icons.person_outline,
-                        label: profileLabel,
-                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Les niveaux au-delà de ${previewLevels.last.level.title} '
+                    'poursuivent l\'augmentation de la difficulté jusqu\'à '
+                    'épuisement de la banque de questions.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      _error!,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.error),
+                    ),
                   ],
-                ),
-                const SizedBox(height: 24),
-                PlayPanelSurface(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Principe',
-                        style:
-                            theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Enchaînez des paliers de difficulté croissante. Chaque niveau adapte automatiquement la cadence et les exigences pour maintenir le défi.',
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Les niveaux au-delà de ${previewLevels.last.level.title} poursuivent l’augmentation jusqu’à épuisement de la banque de questions.',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 16),
-                        Text(
-                          _error!,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(color: theme.colorScheme.error),
-                        ),
-                      ],
-                      if (_lastSummary != null) ...[
-                        const SizedBox(height: 16),
-                        _buildSummaryCard(_lastSummary!, theme),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                PlayPanelSurface(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Paliers prévus',
-                        style:
-                            theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 12),
-                      for (final entry in previewLevels)
-                        _buildLevelCard(
-                          entry.level,
-                          theme,
-                          isCompleted: entry.isCompleted,
-                          isCurrent: entry.isCurrent,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
+                  if (_lastSummary != null) ...[
+                    const SizedBox(height: 24),
+                    _buildSummaryCard(_lastSummary!, theme),
+                  ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-            child: PlayPrimaryButton(
-              label: baseButtonLabel,
-              icon: Icons.play_arrow_rounded,
-              busy: _preparing,
-              onPressed: _preparing || _loadingProgress ? null : _startArcade,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  icon: _preparing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.play_arrow_rounded),
+                  label: Text(
+                    _preparing
+                        ? 'Préparation…'
+                        : _loadingProgress
+                            ? 'Chargement…'
+                            : 'Lancer la session',
+                  ),
+                  onPressed:
+                      _preparing || _loadingProgress ? null : _startArcade,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -576,26 +557,24 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     bool isCompleted = false,
     bool isCurrent = false,
   }) {
-    final base = theme.colorScheme.primary;
-    final background = base.withOpacity(isCompleted
-        ? (theme.brightness == Brightness.dark ? 0.24 : 0.18)
-        : (theme.brightness == Brightness.dark ? 0.18 : 0.12));
-    final borderColor = base.withOpacity(isCurrent ? 0.45 : 0.2);
+    final statusColor = isCompleted
+        ? theme.colorScheme.surfaceVariant
+        : theme.colorScheme.surface;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: background,
+        color: statusColor,
         borderRadius: BorderRadius.circular(16),
         border: isCurrent
             ? Border.all(
-                color: borderColor,
+                color: theme.colorScheme.primary.withOpacity(0.6),
                 width: 1.5,
               )
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -776,21 +755,6 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       avatar: Icon(icon, size: 18),
       label: Text(label),
     );
-  }
-
-  String? _profileDisplayName(UserProfile? profile) {
-    if (profile == null) return null;
-
-    final nickname = profile.nickname.trim();
-    if (nickname.isNotEmpty) return nickname;
-
-    final firstName = profile.firstName.trim();
-    if (firstName.isNotEmpty) return firstName;
-
-    final lastName = profile.lastName.trim();
-    if (lastName.isNotEmpty) return lastName;
-
-    return null;
   }
 
   String _formatDuration(int seconds) {

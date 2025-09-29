@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../widgets/play_themed_scaffold.dart';
 import '../courses/communication_administrative_screen.dart';
 import '../courses/culture_generale_screen.dart';
 import '../courses/droit_public_screen.dart';
 import 'category_definitions.dart';
 import 'category_helpers.dart';
-import 'widgets/category_tiles_view.dart';
+import 'widgets/category_menu_list.dart';
 
 class CoursEnaScreen extends StatelessWidget {
   final CategoryDefinition definition;
@@ -73,15 +72,25 @@ class CoursEnaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PlayThemedScaffold(
+    return Scaffold(
       appBar: AppBar(title: Text(definition.title)),
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      safeAreaTop: true,
-      bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
-      body: CategoryTilesView(
-        definition: definition,
-        availableItemIndexes: const {7, 16, 8},
-        onItemSelected: (index) => _handleTap(context, index),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              definition.description,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          Expanded(
+            child: CategoryMenuList(
+              definition: definition,
+              onItemSelected: (index) => _handleTap(context, index),
+            ),
+          ),
+        ],
       ),
     );
   }

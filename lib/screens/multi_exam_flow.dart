@@ -1,24 +1,16 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import '../data/ena_taxonomy.dart';
-import '../models/calendar_overlay_config.dart';
-import '../models/exam_history_entry.dart';
 import '../models/question.dart';
-import '../services/exam_blueprint.dart';
-import '../services/history_store.dart';
-import '../services/question_history_store.dart';
-import '../services/question_loader.dart';
-import '../services/question_randomizer.dart';
 import '../services/scoring.dart';
+import '../services/question_loader.dart';
+import '../services/history_store.dart';
+import '../models/exam_history_entry.dart';
+import '../services/question_randomizer.dart';
+import '../services/question_history_store.dart';
+import '../services/exam_blueprint.dart';
+import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
-import '../utils/responsive_utils.dart';
-import '../viewmodels/play_header_view_model.dart';
-import '../widgets/play_greeting_header.dart';
-import '../widgets/play_mode_panels.dart';
-import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -128,8 +120,6 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
-  late final PlayHeaderViewModel _headerViewModel;
-
   /// Minimum success rate required to pass the exam.
   /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
@@ -137,13 +127,6 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   @override
   void initState() {
     super.initState();
-
-    _headerViewModel = PlayHeaderViewModel(
-      clockTick: defaultCalendarOverlayConfig.showSeconds
-          ? const Duration(seconds: 1)
-          : const Duration(minutes: 1),
-    );
-    _headerViewModel.start();
 
     final counts = {
       'Culture Générale': ExamBlueprint.cultureGenerale,
@@ -166,12 +149,6 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         ),
     ];
     _loadAll();
-  }
-
-  @override
-  void dispose() {
-    _headerViewModel.dispose();
-    super.dispose();
   }
 
   Future<void> _loadAll() async {
@@ -437,214 +414,82 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final mq = MediaQuery.of(context);
-    final scale = computeScaleFactor(mq);
-    final textScaler = MediaQuery.textScalerOf(context);
-    final welcomeFontSize = scaledFontSize(
-      base: 22,
-      scale: scale,
-      textScaler: textScaler,
-      min: 18,
-      max: 28,
-    );
-    final nameFontSize = scaledFontSize(
-      base: 26,
-      scale: scale,
-      textScaler: textScaler,
-      min: 20,
-      max: 36,
-    );
-    final topInset = mq.viewPadding.top;
     final perQ = secondsPerQuestion(_difficulty);
-    final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName ?? user?.email;
-    final hasName = name != null && name.isNotEmpty;
-    final headerHeight = PlayGreetingHeader.heightFor(topInset);
-    const double contentSpacingUnderHeader = 24;
-    final double contentTopPadding = headerHeight + contentSpacingUnderHeader;
-
-    Widget buildHeader() {
-      return AnimatedBuilder(
-        animation: _headerViewModel,
-        builder: (context, _) {
-          return PlayGreetingHeader(
-            topInset: topInset,
-            hasName: hasName,
-            name: name,
-            profileNickname: _headerViewModel.profileNickname,
-            welcomeFontSize: welcomeFontSize,
-            nameFontSize: nameFontSize,
-            arcadeProgress: _headerViewModel.arcadeProgress,
-            arcadeProgressLoading: _headerViewModel.arcadeProgressLoading,
-            leaderboardEntry: _headerViewModel.currentUserEntry,
-            rank: _headerViewModel.currentUserRank,
-            now: _headerViewModel.now,
-            calendarConfig: defaultCalendarOverlayConfig,
-          );
-        },
-      );
-    }
-
-    return PlayThemedScaffold(
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      panelHeightFactor: 0.92,
-      safeAreaTop: false,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final header = buildHeader();
-          if (loading) {
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                const Center(child: CircularProgressIndicator()),
-                header,
-              ],
-            );
-          }
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(24, contentTopPadding, 24, 40),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PlayPanelHeader(
-                        icon: Icons.flag_rounded,
-                        title: 'Parcours multi-épreuves ENA',
-                        subtitle: 'Simulation officielle multi-sections',
-                        chips: [
-                          PlayInfoChip(
-                            icon: Icons.grid_view_rounded,
-                            label: '${sections.length} épreuves',
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.flag),
+            SizedBox(width: 8),
+            Text('Parcours multi-épreuves ENA'),
+          ],
+        ),
+        centerTitle: true,
+      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Niveau de difficulté',
+                          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        _difficultyPicker(),
+                        const SizedBox(height: 12),
+                        if (perQ == null)
+                          Text(
+                            'Mode Normal : timings officiels des épreuves (réaliste).',
+                            style: textTheme.bodyLarge,
+                          )
+                        else
+                          Text(
+                            'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                            style: textTheme.bodyLarge,
                           ),
-                          PlayInfoChip(
-                            icon: Icons.trending_up_rounded,
-                            label: 'Difficulté : ${difficultyLabel(_difficulty)}',
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Column(
+                            children: [
+                              for (final s in sections)
+                                ListTile(
+                                  leading: Icon(_iconForSection(s.title)),
+                                  title: Text(
+                                    s.title,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                  subtitle: Text(
+                                    'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
+                                    style: textTheme.bodyLarge,
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                ),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      PlayPanelSurface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Niveau de difficulté',
-                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 12),
-                            _difficultyPicker(),
-                            const SizedBox(height: 16),
-                            Text(
-                              perQ == null
-                                  ? 'Mode Normal : timings officiels des épreuves (réaliste).'
-                                  : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                              style: textTheme.bodyLarge,
-                            ),
-                          ],
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      PlayPanelSurface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Composition du parcours',
-                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 12),
-                            for (final section in sections)
-                              _buildSectionEntry(context, section, textTheme),
-                          ],
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _startFlow,
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('Démarrer le parcours'),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: PlayPrimaryButton(
-                          label: 'Démarrer le parcours',
-                          icon: Icons.play_arrow_rounded,
-                          onPressed: _startFlow,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              header,
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSectionEntry(
-      BuildContext context, ExamSection section, TextTheme textTheme) {
-    final theme = Theme.of(context);
-    final baseColor = theme.colorScheme.primary;
-    final background = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.12);
-    final iconBackground = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.35 : 0.25);
-    final iconForeground = ThemeData.estimateBrightnessForColor(iconBackground) == Brightness.dark
-        ? Colors.white
-        : theme.colorScheme.onPrimaryContainer;
-    final durationMinutes = section.duration.inMinutes;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  _iconForSection(section.title),
-                  color: iconForeground,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  section.title,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              PlayInfoChip(
-                icon: Icons.format_list_numbered_rounded,
-                label: '${section.targetCount} questions',
-              ),
-              PlayInfoChip(
-                icon: Icons.timer_rounded,
-                label: '$durationMinutes min',
-              ),
-              PlayInfoChip(
-                icon: Icons.gavel_rounded,
-                label: 'Barème ${section.scoring}',
-              ),
-            ],
-          ),
-        ],
-      ),
+                );
+              },
+            ),
     );
   }
 }

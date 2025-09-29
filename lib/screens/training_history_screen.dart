@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/training_history_entry.dart';
 import '../services/local_history_persistence.dart';
 import '../services/training_history_store.dart';
-import '../widgets/play_themed_scaffold.dart';
 
 class TrainingHistoryScreen extends StatefulWidget {
   const TrainingHistoryScreen({super.key});
@@ -73,10 +72,7 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PlayThemedScaffold(
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      safeAreaTop: true,
-      bodyPadding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
+    return Scaffold(
       appBar: AppBar(
         title: const Text('Historique — Entraînement'),
         actions: [
@@ -88,93 +84,81 @@ class _TrainingHistoryScreenState extends State<TrainingHistoryScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
-              ? const Center(
+              ? const Center(child: Text('Aucune tentative enregistrée pour l’instant.'))
+              : ListView.builder(
+              itemCount: _items.length,
+              itemBuilder: (context, i) {
+                final e = _items[i];
+                final theme = Theme.of(context);
+                final textTheme = theme.textTheme;
+
+                String statusText;
+                Color statusColor;
+                if (e.abandoned) {
+                  statusText = 'Abandonné';
+                  statusColor = Colors.orange.shade200;
+                } else if (e.success) {
+                  statusText = 'Validé';
+                  statusColor = Colors.green.shade200;
+                } else {
+                  statusText = 'Échoué';
+                  statusColor = Colors.red.shade200;
+                }
+
+                final chipLabelColor =
+                    ThemeData.estimateBrightnessForColor(statusColor) ==
+                            Brightness.dark
+                        ? Colors.white
+                        : Colors.black87;
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text('Aucune tentative enregistrée pour l’instant.'),
-                  ),
-                )
-              : ListView.separated(
-                  itemCount: _items.length,
-                  padding: const EdgeInsets.only(bottom: 16),
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, i) {
-                    final e = _items[i];
-                    final theme = Theme.of(context);
-                    final textTheme = theme.textTheme;
-
-                    String statusText;
-                    Color statusColor;
-                    if (e.abandoned) {
-                      statusText = 'Abandonné';
-                      statusColor = Colors.orange.shade200;
-                    } else if (e.success) {
-                      statusText = 'Validé';
-                      statusColor = Colors.green.shade200;
-                    } else {
-                      statusText = 'Échoué';
-                      statusColor = Colors.red.shade200;
-                    }
-
-                    final chipLabelColor =
-                        ThemeData.estimateBrightnessForColor(statusColor) ==
-                                Brightness.dark
-                            ? Colors.white
-                            : Colors.black87;
-
-                    return Card(
-                      margin: EdgeInsets.zero,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${e.subject} • ${e.chapter}',
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                            Expanded(
+                              child: Text(
+                                '${e.subject} • ${e.chapter}',
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                Chip(
-                                  label: Text(
-                                    statusText,
-                                    style: textTheme.labelLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: chipLabelColor,
-                                    ),
-                                  ),
-                                  backgroundColor: statusColor,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 3),
+                              ),
+                            ),
+                            Chip(
+                              label: Text(
+                                statusText,
+                                style: textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: chipLabelColor,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_fmt(e.date)} • durée ${e.durationMinutes} min',
-                              style: textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Score : ${e.correct}/${e.total} — brut ${e.rawScore} • pondéré ${e.weightedScore}',
-                              style: textTheme.bodyLarge,
+                              ),
+                              backgroundColor: statusColor,
+                              visualDensity: VisualDensity.compact,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_fmt(e.date)} • durée ${e.durationMinutes} min',
+                          style: textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Score : ${e.correct}/${e.total} — brut ${e.rawScore} • pondéré ${e.weightedScore}',
+                          style: textTheme.bodyLarge,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

@@ -1,7 +1,4 @@
 PATCH — Écran Réglages design + PlayScreen dynamique
-
-➡️ Consultez désormais le guide consolidé dans [README.md](README.md) pour la configuration générale et les prérequis.
-
 Fichiers:
 - lib/models/design_config.dart
 - lib/services/design_prefs.dart
