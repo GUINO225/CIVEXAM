@@ -1,140 +1,319 @@
-// lib/screens/dashboard_screen.dart
-import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:ui';
 
-import 'package:civexam_pro/utils/io_stub.dart'
-    if (dart.library.io) 'dart:io' as io;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 
-import '../models/leaderboard_entry.dart';
-import '../services/competition_service.dart';
-import '../services/user_profile_service.dart';
-import '../models/user_profile.dart';
-import 'profile_edit_screen.dart';
-import '../utils/arcade_level_utils.dart';
-import '../widgets/arcade_badge_chip.dart';
-import '../widgets/play_themed_scaffold.dart';
+import '../models/exam_history_entry.dart';
+import '../services/history_store.dart';
+import '../services/local_history_persistence.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class ExamHistoryScreen extends StatefulWidget {
+  const ExamHistoryScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<ExamHistoryScreen> createState() => _ExamHistoryScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  final _profileService = UserProfileService();
-  LeaderboardEntry? _entry;
-  UserProfile? _profile;
-  int? _rank;
+class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
+  List<ExamHistoryEntry> _items = const <ExamHistoryEntry>[];
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    LocalHistoryPersistence.addUserChangeListener(_handleUserChanged);
     _load();
   }
 
+  @override
+  void dispose() {
+    LocalHistoryPersistence.removeUserChangeListener(_handleUserChanged);
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      setState(() => _loading = false);
-      return;
+    if (mounted) {
+      setState(() => _loading = true);
     }
-
-    final service = CompetitionService();
-    final entries = await service.topEntries(limit: 1000);
-    var index = entries.indexWhere((e) => e.userId == uid);
-
-    LeaderboardEntry? entry;
-    int? rank;
-    if (index >= 0) {
-      entry = entries[index];
-      rank = index + 1;
-    } else {
-      entry = await service.entryForUser(uid);
-    }
-
-    UserProfile? profile;
-    try {
-      profile = await _profileService.loadProfile(uid);
-    } catch (e, st) {
-      debugPrint('Failed to load profile for $uid: $e\n$st');
-      profile = null;
-    }
-
-    profile ??= UserProfile(
-      firstName: '',
-      lastName: '',
-      nickname: entry?.name ?? '',
-      profession: '',
-      photoUrl: '',
-      arcadeLevel: normalizeArcadeLevel(entry?.arcadeLevel),
-    );
-
+    final entries = await HistoryStore.load();
     if (!mounted) return;
     setState(() {
-      _entry = entry;
-      _profile = profile;
-      _rank = rank;
+      _items = entries;
       _loading = false;
     });
   }
 
-  Future<void> _openProfileEdit() async {
-    final updated = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
+  void _handleUserChanged(String _) {
+    if (!mounted) {
+      return;
+    }
+    _load();
+  }
+
+  Future<void> _clearAll() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Effacer l\'historique examens ?'),
+        content: const Text(
+          'Cette action supprimera toutes les épreuves sauvegardées sur cet appareil.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Effacer'),
+          ),
+        ],
+      ),
     );
-    if (updated == true && mounted) {
+    if (confirm == true) {
+      await HistoryStore.clear();
       await _load();
     }
   }
 
-  bool _isImagePickerSupported() {
-    if (kIsWeb) return false;
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        return true;
-      default:
-        return false;
-    }
+  String _formatDate(DateTime value) {
+    final local = value.toLocal();
+    String two(int x) => x.toString().padLeft(2, '0');
+    return '${two(local.day)}/${two(local.month)}/${local.year} – '
+        '${two(local.hour)}:${two(local.minute)}';
   }
 
-  void _showImagePickerUnavailableMessage() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'La sélection de photo n\'est pas disponible sur cette plateforme.',
+  Widget _buildSubjectBreakdown(ExamHistoryEntry entry, TextTheme textTheme) {
+    final subjects = <String>{
+      ...entry.correctBySubject.keys,
+      ...entry.totalBySubject.keys,
+      ...entry.scoresBruts.keys,
+      ...entry.scoresPonderes.keys,
+    }.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    if (subjects.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          'Par matière',
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
-      ),
+        const SizedBox(height: 4),
+        ...subjects.map((subject) {
+          final total = entry.totalBySubject[subject] ?? 0;
+          final correct = entry.correctBySubject[subject] ?? 0;
+          final raw = entry.scoresBruts[subject] ?? 0;
+          final weighted = entry.scoresPonderes[subject] ?? 0;
+          final ratio = total > 0 ? (correct / total * 100).clamp(0, 100) : null;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    subject,
+                    style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Text(
+                  total > 0
+                      ? '${correct.toString().padLeft(2, '0')}/$total'
+                      : '--',
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Brut $raw',
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Pondéré $weighted',
+                  style: textTheme.bodyMedium,
+                ),
+                if (ratio != null) ...[
+                  const SizedBox(width: 12),
+                  Text(
+                    '${ratio.toStringAsFixed(0)}%',
+                    style: textTheme.bodyMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
-  Future<void> _pickPhoto() async {
-    if (!_isImagePickerSupported()) {
-      _showImagePickerUnavailableMessage();
-      return;
-    }
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
-    final picker = ImagePicker();
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Galerie'),
-            onTap: () => Navigator.pop(context, ImageSource.gallery),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Historique — Examens'),
+        actions: [
+          if (_items.isNotEmpty)
+            IconButton(
+              onPressed: _clearAll,
+              icon: const Icon(Icons.delete_forever),
+              tooltip: 'Effacer l\'historique',
+            ),
+          IconButton(
+            onPressed: _load,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualiser',
           ),
-          ListTile(
-            leading: const Icon(Icons.camera_alt),
-            title: const Text('Caméra'),
+        ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _items.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Aucune épreuve enregistrée pour l\'instant. Lance un examen pour voir les résultats détaillés ici.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final entry = _items[index];
+              final status = _statusFor(entry);
+                      final weakSubjects = entry.weakSubjects();
+                      final ratio = entry.overallSuccessRatio();
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _formatDate(entry.date),
+                                          style: textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Total pondéré : ${entry.totalPondere}',
+                                          style: textTheme.bodyLarge,
+                                        ),
+                                        if (ratio != null) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Réussite globale : ${(ratio * 100).toStringAsFixed(0)}%',
+                                            style: textTheme.bodyLarge,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  Chip(
+                                    label: Text(
+                                      status.label,
+                                      style: textTheme.labelLarge?.copyWith(
+                                        color: status.labelColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    backgroundColor: status.backgroundColor,
+                                  ),
+                                ],
+                              ),
+                              if (weakSubjects.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Points à renforcer',
+                                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: [
+                                    for (final subject in weakSubjects)
+                                      Chip(
+                                        label: Text(subject),
+                                        backgroundColor: theme.colorScheme.surfaceVariant,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                              _buildSubjectBreakdown(entry, textTheme),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+    );
+  }
+
+  _EntryStatus _statusFor(ExamHistoryEntry entry) {
+    if (entry.abandoned) {
+      final color = Colors.orange.shade200;
+      return _EntryStatus(
+        label: 'Abandonné',
+        backgroundColor: color,
+        labelColor: ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+            ? Colors.white
+            : Colors.black87,
+      );
+    }
+    if (entry.success) {
+      final color = Colors.green.shade200;
+      return _EntryStatus(
+        label: 'Réussi',
+        backgroundColor: color,
+        labelColor: ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+            ? Colors.white
+            : Colors.black87,
+      );
+    }
+    final color = Colors.red.shade200;
+    return _EntryStatus(
+      label: 'Échec',
+      backgroundColor: color,
+      labelColor: ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+          ? Colors.white
+          : Colors.black87,
+    );
+  }
+}
+
+class _EntryStatus {
+  final String label;
+  final Color backgroundColor;
+  final Color labelColor;
+
+  const _EntryStatus({
+    required this.label,
+    required this.backgroundColor,
+    required this.labelColor,
+  });
+}
