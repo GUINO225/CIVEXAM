@@ -16,6 +16,7 @@ import '../models/user_profile.dart';
 import 'profile_edit_screen.dart';
 import '../utils/arcade_level_utils.dart';
 import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -238,7 +239,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final rankText = rank != null ? '$rank' : 'Non renseigné';
     final badgeLabel = normalizeArcadeLevel(profile?.arcadeLevel ?? entry?.arcadeLevel);
 
-    return Scaffold(
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
       appBar: AppBar(
         title: const Text('Mon dashboard'),
         actions: [
@@ -255,7 +259,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(bottom: 16),
               children: [
                 Image.asset('assets/images/logo_splash.png', height: 150),
                 const SizedBox(height: 24),

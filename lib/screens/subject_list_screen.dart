@@ -5,6 +5,7 @@ import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/glass_tile.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/play_themed_scaffold.dart';
 import 'chapter_list_screen.dart';
 
 /// Liste des matières ENA
@@ -17,70 +18,63 @@ class SubjectListScreen extends StatelessWidget {
       subjectsENA.length == _subjectItems.length,
       'subjectsENA and _subjectItems should have the same length',
     );
-    return ValueListenableBuilder<DesignConfig>(
-      valueListenable: DesignBus.notifier,
-      builder: (context, cfg, _) {
-        final textColor =
-            textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
-        final mediaQuery = MediaQuery.of(context);
-        final scale = computeScaleFactor(mediaQuery);
-        return Scaffold(
-          extendBody: true,
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            foregroundColor: textColor,
-            title: const Text('Modules ENA'),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 1.05,
-                ),
-                itemCount: subjectsENA.length,
-                itemBuilder: (context, index) {
-                  final subject = subjectsENA[index];
-                  final item = _subjectItems[index];
-                  return GlassTile(
-                    title: subject.name,
-                    icon: item.icon,
-                    gradientColors: item.gradientColors,
-                    blur: cfg.glassBlur,
-                    bgOpacity: cfg.glassBgOpacity,
-                    borderOpacity: cfg.glassBorderOpacity,
-                    iconSize: cfg.tileIconSize,
-                    scaleFactor: scale,
-                    centerContent: cfg.tileCenter,
-                    useMono: cfg.useMono,
-                    monoColor: cfg.monoColor,
-                    textColor: textColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChapterListScreen(
-                            subjectName: subject.name,
-                            chapterName: subject.chapters.isNotEmpty
-                                ? subject.chapters.first.name
-                                : '',
-                          ),
-                        ),
-                      );
-                    },
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
+      appBar: AppBar(
+        title: const Text('Modules ENA'),
+      ),
+      body: ValueListenableBuilder<DesignConfig>(
+        valueListenable: DesignBus.notifier,
+        builder: (context, cfg, _) {
+          final textColor =
+              textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+          final mediaQuery = MediaQuery.of(context);
+          final scale = computeScaleFactor(mediaQuery);
+          return GridView.builder(
+            padding: EdgeInsets.zero,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.05,
+            ),
+            itemCount: subjectsENA.length,
+            itemBuilder: (context, index) {
+              final subject = subjectsENA[index];
+              final item = _subjectItems[index];
+              return GlassTile(
+                title: subject.name,
+                icon: item.icon,
+                gradientColors: item.gradientColors,
+                blur: cfg.glassBlur,
+                bgOpacity: cfg.glassBgOpacity,
+                borderOpacity: cfg.glassBorderOpacity,
+                iconSize: cfg.tileIconSize,
+                scaleFactor: scale,
+                centerContent: cfg.tileCenter,
+                useMono: cfg.useMono,
+                monoColor: cfg.monoColor,
+                textColor: textColor,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChapterListScreen(
+                        subjectName: subject.name,
+                        chapterName: subject.chapters.isNotEmpty
+                            ? subject.chapters.first.name
+                            : '',
+                      ),
+                    ),
                   );
                 },
-              ),
-            ),
-          ),
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

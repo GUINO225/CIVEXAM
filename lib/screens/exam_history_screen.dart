@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/exam_history_entry.dart';
-import '../models/design_config.dart';
-import '../services/design_bus.dart';
 import '../services/history_store.dart';
 import '../services/local_history_persistence.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 class ExamHistoryScreen extends StatefulWidget {
   const ExamHistoryScreen({super.key});
@@ -72,31 +71,32 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<DesignConfig>(
-      valueListenable: DesignBus.notifier,
-      builder: (context, cfg, _) {
-        final theme = Theme.of(context);
-        final cs = theme.colorScheme;
-        final textTheme = theme.textTheme;
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: const Text('Historique des examens'),
-            actions: [
-              if (_items.isNotEmpty)
-                IconButton(
-                  onPressed: _clearAll,
-                  icon: const Icon(Icons.delete_forever),
-                  tooltip: 'Effacer l’historique',
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
+      appBar: AppBar(
+        title: const Text('Historique des examens'),
+        actions: [
+          if (_items.isNotEmpty)
+            IconButton(
+              onPressed: _clearAll,
+              icon: const Icon(Icons.delete_forever),
+              tooltip: 'Effacer l’historique',
+            )
+        ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _items.isEmpty
+              ? const Center(
+                  child: Text('Aucun examen enregistré pour le moment.'),
                 )
-            ],
-          ),
-          body: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _items.isEmpty
-                  ? const Center(
-                      child: Text('Aucun examen enregistré pour le moment.'))
-                  : ListView.builder(
+              : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 16),
                   itemCount: _items.length,
                   itemBuilder: (context, i) {
                     final e = _items[i];
@@ -120,7 +120,9 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
 
                     return Card(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -206,8 +208,6 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                     );
                   },
                 ),
-        );
-      },
     );
   }
 }
