@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/question.dart';
+import '../models/user_profile.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
@@ -429,6 +430,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             ? 'Chargement…'
             : 'Lancer la session';
 
+    final profileLabel = _profileDisplayName(_progressData?.profile);
+
     return PlayThemedScaffold(
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       panelHeightFactor: 0.9,
@@ -453,10 +456,10 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                         icon: Icons.emoji_events_rounded,
                         label: '$resumeIndex palier${resumeIndex > 1 ? 's' : ''} validé${resumeIndex > 1 ? 's' : ''}',
                       ),
-                    if (_progressData?.profile != null)
+                    if (profileLabel != null)
                       PlayInfoChip(
                         icon: Icons.person_outline,
-                        label: _progressData!.profile!,
+                        label: profileLabel,
                       ),
                   ],
                 ),
@@ -773,6 +776,21 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       avatar: Icon(icon, size: 18),
       label: Text(label),
     );
+  }
+
+  String? _profileDisplayName(UserProfile? profile) {
+    if (profile == null) return null;
+
+    final nickname = profile.nickname.trim();
+    if (nickname.isNotEmpty) return nickname;
+
+    final firstName = profile.firstName.trim();
+    if (firstName.isNotEmpty) return firstName;
+
+    final lastName = profile.lastName.trim();
+    if (lastName.isNotEmpty) return lastName;
+
+    return null;
   }
 
   String _formatDuration(int seconds) {
