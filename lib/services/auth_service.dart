@@ -166,6 +166,7 @@ class AuthService {
         nickname: names['nickname'] ?? '',
         profession: '',
         photoUrl: '',
+        arcadeLevel: UserProfile.defaultArcadeLevel,
       );
       await _userProfileService.saveProfile(profile);
     } catch (e) {

@@ -9,13 +9,20 @@ import '../services/competition_service.dart';
 import '../services/user_profile_service.dart';
 import '../models/user_profile.dart';
 import '../services/private_scores_store.dart';
+import '../utils/arcade_level_utils.dart';
 
 Future<void> showSaveScoreDialog({
   required BuildContext context,
   required String mode, // 'training', 'concours' ou 'competition'
-  String subject = '', String chapter = '',
-  required int total, required int correct, required int wrong, required int blank,
-  required int durationSec, required double percent,
+  String subject = '',
+  String chapter = '',
+  required int total,
+  required int correct,
+  required int wrong,
+  required int blank,
+  required int durationSec,
+  required double percent,
+  String? arcadeLevel,
 }) async {
   // Mode compétition : utilise automatiquement l'utilisateur connecté
   if (mode == 'competition') {
@@ -49,6 +56,9 @@ Future<void> showSaveScoreDialog({
       name = nickname;
     }
 
+    final resolvedArcadeLevel = normalizeArcadeLevel(
+      arcadeLevel ?? profile?.arcadeLevel,
+    );
     final entry = LeaderboardEntry(
       userId: uid,
       name: name,
@@ -62,6 +72,7 @@ Future<void> showSaveScoreDialog({
       durationSec: durationSec,
       percent: percent,
       dateIso: DateTime.now().toIso8601String(),
+      arcadeLevel: resolvedArcadeLevel,
     );
     final service = CompetitionService();
     await service.saveEntry(entry);
@@ -177,6 +188,7 @@ Future<void> showSaveScoreDialog({
       durationSec: durationSec,
       percent: percent,
       dateIso: DateTime.now().toIso8601String(),
+      arcadeLevel: arcadeLevel ?? '',
     );
     await PrivateScoresStore.add(entry);
     if (!context.mounted) return;
