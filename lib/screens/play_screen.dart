@@ -16,8 +16,11 @@ import '../services/scoring.dart';
 import '../services/history_store.dart';
 import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
+import '../services/arcade_progress_store.dart';
 import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
+
+import '../widgets/arcade_badge_chip.dart';
 
 import '../models/question.dart';
 
@@ -200,6 +203,10 @@ class _PlayScreenState extends State<PlayScreen> {
   bool _topEntriesLoading = true;
   String? _topEntriesError;
 
+  final ArcadeProgressStore _arcadeProgressStore = ArcadeProgressStore();
+  ArcadeProgressData? _arcadeProgress;
+  bool _arcadeProgressLoading = true;
+
   // Carrousel
   final List<String> _promoImages = const [
     'assets/images/C1.png',
@@ -267,6 +274,32 @@ class _PlayScreenState extends State<PlayScreen> {
     unawaited(OngoingQuickQuizStore.load());
     unawaited(HistoryStore.load());
     unawaited(_loadTopEntries());
+    unawaited(_loadArcadeProgress());
+  }
+
+  Future<void> _loadArcadeProgress() async {
+    if (mounted) {
+      setState(() {
+        _arcadeProgressLoading = true;
+      });
+    }
+    try {
+      final progress = await _arcadeProgressStore.load();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _arcadeProgress = progress;
+        _arcadeProgressLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _arcadeProgressLoading = false;
+      });
+    }
   }
 
   void _startAutoPlay() {
@@ -344,6 +377,8 @@ class _PlayScreenState extends State<PlayScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const ArcadeModeScreen()),
     );
+    if (!mounted) return;
+    await _loadArcadeProgress();
   }
 
   Future<void> _handleLaunchOfficialQuiz() async {
@@ -580,6 +615,8 @@ class _PlayScreenState extends State<PlayScreen> {
                   name: name,
                   welcomeFontSize: welcomeFontSize,
                   nameFontSize: nameFontSize,
+                  arcadeProgress: _arcadeProgress,
+                  arcadeProgressLoading: _arcadeProgressLoading,
                 ),
                 _buildSections(
                   sections: sections,
@@ -673,6 +710,8 @@ class _PlayScreenState extends State<PlayScreen> {
     required String? name,
     required double welcomeFontSize,
     required double nameFontSize,
+    required ArcadeProgressData? arcadeProgress,
+    required bool arcadeProgressLoading,
   }) {
     final displayName = hasName && (name?.trim().isNotEmpty ?? false)
         ? name!.trim()
@@ -737,14 +776,43 @@ class _PlayScreenState extends State<PlayScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        displayName,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: nameFontSize,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (arcadeProgressLoading)
+                            const SizedBox(
+                              height: 28,
+                              width: 28,
+                              child: Padding(
+                                padding: EdgeInsets.all(6),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                            )
+                          else if (arcadeProgress != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ArcadeBadgeChip(
+                                label: arcadeProgress.levelLabel,
+                                compact: true,
+                              ),
+                            ),
+                          Flexible(
+                            child: Text(
+                              displayName,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: nameFontSize,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
