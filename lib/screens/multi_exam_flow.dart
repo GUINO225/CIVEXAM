@@ -11,10 +11,12 @@ import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/play_bottom_navigation.dart';
 import '../widgets/play_mode_panels.dart';
 import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
+import 'play_screen.dart';
 
 enum ExamDifficulty { facile, normal, difficile, expert }
 
@@ -125,6 +127,18 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   /// Minimum success rate required to pass the exam.
   /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
+
+  void _handleBottomNavSelection(BuildContext context, int index) {
+    if (index == kPlayBottomNavQuizIndex) {
+      return;
+    }
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => PlayScreen(initialTabIndex: index),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   void initState() {
@@ -421,6 +435,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       panelHeightFactor: 0.92,
       safeAreaTop: false,
+      bottomNavigationBar: PlayBottomNavigationBar(
+        items: kPlayBottomNavDestinations,
+        selectedIndex: kPlayBottomNavQuizIndex,
+        showFabNotch: false,
+        onItemSelected: (index) => _handleBottomNavSelection(context, index),
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : LayoutBuilder(
