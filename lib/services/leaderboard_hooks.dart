@@ -1,5 +1,8 @@
 // lib/services/leaderboard_hooks.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../services/user_profile_service.dart';
+import '../utils/arcade_level_utils.dart';
 import '../widgets/leaderboard_save_dialog.dart';
 
 class LeaderboardHooks {
@@ -14,6 +17,7 @@ class LeaderboardHooks {
     required int blank,
     required int durationSec,
     double? percent,
+    String? arcadeLevel,
   }) async {
     final pct = percent ?? (total == 0 ? 0.0 : (correct / total) * 100.0);
     await showSaveScoreDialog(
@@ -27,6 +31,7 @@ class LeaderboardHooks {
       blank: blank,
       durationSec: durationSec,
       percent: pct,
+      arcadeLevel: arcadeLevel,
     );
   }
 
@@ -85,6 +90,7 @@ class LeaderboardHooks {
     required int durationSec,
     double? percent,
   }) async {
+    final arcadeLevel = await _currentArcadeLevel();
     await _save(
       context: context,
       mode: 'competition',
@@ -94,6 +100,23 @@ class LeaderboardHooks {
       blank: blank,
       durationSec: durationSec,
       percent: percent,
+      arcadeLevel: arcadeLevel,
     );
+  }
+
+  static Future<String?> _currentArcadeLevel() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return null;
+    }
+    try {
+      final profile = await UserProfileService().loadProfile(uid);
+      if (profile == null) {
+        return null;
+      }
+      return normalizeArcadeLevel(profile.arcadeLevel);
+    } catch (_) {
+      return null;
+    }
   }
 }

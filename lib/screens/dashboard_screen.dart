@@ -14,6 +14,8 @@ import '../services/competition_service.dart';
 import '../services/user_profile_service.dart';
 import '../models/user_profile.dart';
 import 'profile_edit_screen.dart';
+import '../utils/arcade_level_utils.dart';
+import '../widgets/arcade_badge_chip.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -60,11 +62,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       profile = null;
     }
     profile ??= UserProfile(
-        firstName: '',
-        lastName: '',
-        nickname: entry?.name ?? '',
-        profession: '',
-        photoUrl: '');
+      firstName: '',
+      lastName: '',
+      nickname: entry?.name ?? '',
+      profession: '',
+      photoUrl: '',
+      arcadeLevel: normalizeArcadeLevel(entry?.arcadeLevel),
+    );
     if (!mounted) return;
     setState(() {
       _entry = entry;
@@ -163,7 +167,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         lastName: _profile?.lastName ?? '',
         nickname: _profile?.nickname ?? '',
         profession: _profile?.profession ?? '',
-        photoUrl: url);
+        photoUrl: url,
+        arcadeLevel: normalizeArcadeLevel(_profile?.arcadeLevel));
     await _profileService.saveProfile(profile);
     if (!mounted) return;
     await _load();
@@ -231,6 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ? '${entry.percent.toStringAsFixed(1)}% (${entry.correct}/${entry.total})'
         : 'Non renseigné';
     final rankText = rank != null ? '$rank' : 'Non renseigné';
+    final badgeLabel = normalizeArcadeLevel(profile?.arcadeLevel ?? entry?.arcadeLevel);
 
     return Scaffold(
       appBar: AppBar(
@@ -296,6 +302,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 Card(
                   child: ListTile(
+                    leading: const Icon(Icons.military_tech),
+                    title: const Text('Badge arcade'),
+                    subtitle: Text(badgeLabel),
+                    trailing: ArcadeBadgeChip(label: badgeLabel),
+                  ),
+                ),
+                Card(
+                  child: ListTile(
                     leading: const Icon(Icons.leaderboard),
                     title: const Text('Classement global'),
                     subtitle: Text(rankText),
@@ -306,3 +320,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+

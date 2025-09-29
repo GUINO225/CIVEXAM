@@ -16,6 +16,7 @@ import '../services/user_profile_service.dart';
 import '../services/competition_service.dart';
 import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
+import '../utils/arcade_level_utils.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -35,6 +36,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Uint8List? _avatarBytes;
   String? _photoUrl;
   String? _initialPseudo;
+  String _arcadeLevel = '';
 
   @override
   void initState() {
@@ -63,6 +65,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     String? storedPhotoUrl;
     String? remoteNickname;
+    String? remoteArcadeLevel;
     if (uid != null) {
       try {
         final profile = await _profileService.loadProfile(uid);
@@ -80,6 +83,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             remoteNickname = profile.nickname;
           }
           storedPhotoUrl = profile.photoUrl;
+          remoteArcadeLevel = profile.arcadeLevel;
         }
       } catch (e, st) {
         debugPrint('Failed to load profile: $e\n$st');
@@ -96,6 +100,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         _pseudoController.text = remoteNickname;
       }
       _photoUrl = storedPhotoUrl ?? _photoUrl;
+      _arcadeLevel = normalizeArcadeLevel(remoteArcadeLevel ?? _arcadeLevel);
     });
     _initialPseudo = _pseudoController.text;
   }
@@ -268,6 +273,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       nickname: _pseudoController.text,
       profession: _professionController.text,
       photoUrl: _buildPhotoUrlForStorage(),
+      arcadeLevel: normalizeArcadeLevel(_arcadeLevel),
     );
     await _profileService.saveProfile(profile);
 
@@ -288,6 +294,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           durationSec: e.durationSec,
           percent: e.percent,
           dateIso: e.dateIso,
+          arcadeLevel: e.arcadeLevel,
         ));
       }
       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -308,6 +315,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             durationSec: entry.durationSec,
             percent: entry.percent,
             dateIso: entry.dateIso,
+            arcadeLevel: entry.arcadeLevel,
           );
           await compService.saveEntry(updatedEntry);
         }

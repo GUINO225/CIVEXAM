@@ -372,6 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
       nickname: nickname,
       profession: '',
       photoUrl: user.photoURL ?? '',
+      arcadeLevel: UserProfile.defaultArcadeLevel,
     );
     await profileService.saveProfile(profile);
   }
