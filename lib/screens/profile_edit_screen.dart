@@ -17,6 +17,7 @@ import '../services/competition_service.dart';
 import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
 import '../utils/arcade_level_utils.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -402,30 +403,36 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Modifier le profil',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
+      appBar: AppBar(
+        title: const Text('Modifier le profil'),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Card(
+              margin: EdgeInsets.zero,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 16),
-              Expanded(
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
-                  child: ListView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(
+                      Align(
+                        alignment: Alignment.center,
                         child: InkWell(
                           onTap: _pickImage,
+                          borderRadius: BorderRadius.circular(60),
                           child: _buildAvatarCircle(),
                         ),
                       ),
@@ -434,36 +441,42 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         controller: _firstNameController,
                         decoration: const InputDecoration(labelText: 'Prénom'),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _lastNameController,
                         decoration: const InputDecoration(labelText: 'Nom'),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _pseudoController,
                         decoration: const InputDecoration(labelText: 'Pseudonyme'),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _professionController,
                         decoration: const InputDecoration(labelText: 'Profession'),
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _save,
-                        child: const Text('Enregistrer'),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _save,
+                          child: const Text('Enregistrer'),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: _showChangePasswordDialog,
-                        child: const Text('Changer le mot de passe'),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: _showChangePasswordDialog,
+                          child: const Text('Changer le mot de passe'),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

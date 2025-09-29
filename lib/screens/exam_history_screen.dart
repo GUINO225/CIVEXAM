@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/exam_history_entry.dart';
 import '../services/history_store.dart';
 import '../services/local_history_persistence.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 class ExamHistoryScreen extends StatefulWidget {
   const ExamHistoryScreen({super.key});
@@ -157,7 +158,10 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    return Scaffold(
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      safeAreaTop: true,
+      bodyPadding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
       appBar: AppBar(
         title: const Text('Historique — Examens'),
         actions: [
@@ -188,19 +192,25 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: ListView.builder(
+                  child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 16),
                     itemCount: _items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final entry = _items[index];
-              final status = _statusFor(entry);
+                      final status = _statusFor(entry);
                       final weakSubjects = entry.weakSubjects();
                       final ratio = entry.overallSuccessRatio();
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        elevation: 2,
+                        margin: EdgeInsets.zero,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        clipBehavior: Clip.antiAlias,
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -245,12 +255,12 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                                 ],
                               ),
                               if (weakSubjects.isNotEmpty) ...[
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 12),
                                 Text(
                                   'Points à renforcer',
                                   style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 4,
@@ -263,6 +273,7 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
                                   ],
                                 ),
                               ],
+                              const SizedBox(height: 12),
                               _buildSubjectBreakdown(entry, textTheme),
                             ],
                           ),
