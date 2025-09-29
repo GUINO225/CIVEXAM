@@ -18,6 +18,7 @@ import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
 import '../services/arcade_progress_store.dart';
 import '../utils/palette_utils.dart';
+import '../utils/rank_display_helper.dart';
 import '../utils/responsive_utils.dart';
 
 import '../widgets/arcade_badge_chip.dart';
@@ -212,6 +213,8 @@ class _HomeShellState extends State<HomeShell> {
   List<LeaderboardEntry> _topEntries = const [];
   bool _topEntriesLoading = true;
   String? _topEntriesError;
+  LeaderboardEntry? _currentUserEntry;
+  int? _currentUserRank;
 
   final ArcadeProgressStore _arcadeProgressStore = ArcadeProgressStore();
   ArcadeProgressData? _arcadeProgress;
@@ -339,14 +342,32 @@ class _HomeShellState extends State<HomeShell> {
     setState(() {
       _topEntriesLoading = true;
       _topEntriesError = null;
+      _currentUserEntry = null;
+      _currentUserRank = null;
     });
     try {
-      final entries = await _competitionService.topEntries(limit: 3);
+      final entries = await _competitionService.topEntries(limit: 1000);
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      LeaderboardEntry? currentEntry;
+      int? currentRank;
+
+      if (uid != null) {
+        final index = entries.indexWhere((e) => e.userId == uid);
+        if (index >= 0) {
+          currentEntry = entries[index];
+          currentRank = index + 1;
+        } else {
+          currentEntry = await _competitionService.entryForUser(uid);
+        }
+      }
+
       if (!mounted) {
         return;
       }
       setState(() {
-        _topEntries = entries;
+        _topEntries = entries.take(3).toList();
+        _currentUserEntry = currentEntry;
+        _currentUserRank = currentRank;
         _topEntriesLoading = false;
       });
     } catch (e) {
@@ -355,6 +376,8 @@ class _HomeShellState extends State<HomeShell> {
       }
       setState(() {
         _topEntries = const [];
+        _currentUserEntry = null;
+        _currentUserRank = null;
         _topEntriesLoading = false;
         _topEntriesError = "Impossible de récupérer le classement.";
       });
@@ -833,9 +856,13 @@ class _HomeShellState extends State<HomeShell> {
     required ArcadeProgressData? arcadeProgress,
     required bool arcadeProgressLoading,
   }) {
+    final entryName = _currentUserEntry?.name.trim();
+    final fallbackName = entryName != null && entryName.isNotEmpty
+        ? entryName
+        : 'Utilisateur';
     final displayName = hasName && (name?.trim().isNotEmpty ?? false)
         ? name!.trim()
-        : 'Utilisateur';
+        : fallbackName;
     final avatarLabel = displayName.isNotEmpty
         ? displayName.characters.first.toUpperCase()
         : '?';
@@ -848,6 +875,9 @@ class _HomeShellState extends State<HomeShell> {
             ? Icons.wb_sunny_rounded
             : Icons.nights_stay_rounded;
         final formattedDate = _formatDateTime(now);
+        final int? rank = _currentUserRank;
+        final RankDisplayStyle? rankStyle =
+            rank != null ? rankDisplayStyleFor(rank) : null;
 
         return Align(
           alignment: Alignment.topCenter,
@@ -942,15 +972,25 @@ class _HomeShellState extends State<HomeShell> {
                   backgroundColor: Colors.white.withOpacity(0.2),
                   child: CircleAvatar(
                     radius: 24,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      avatarLabel,
-                      style: const TextStyle(
-                        color: Color(0xFF6C4DFF),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
-                      ),
-                    ),
+                    backgroundColor:
+                        rankStyle?.backgroundColor ?? Colors.white,
+                    child: rank != null && rankStyle != null
+                        ? Text(
+                            '$rank',
+                            style: TextStyle(
+                              color: rankStyle.foregroundColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                            ),
+                          )
+                        : Text(
+                            avatarLabel,
+                            style: const TextStyle(
+                              color: Color(0xFF6C4DFF),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                            ),
+                          ),
                   ),
                 ),
               ],

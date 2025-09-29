@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
 import '../utils/arcade_level_utils.dart';
+import '../utils/rank_display_helper.dart';
 import '../widgets/arcade_badge_chip.dart';
 import '../widgets/play_themed_scaffold.dart';
 
@@ -134,14 +135,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 }
 
 class _RankAvatar extends StatelessWidget {
-  final int rank; const _RankAvatar({required this.rank});
-  @override Widget build(BuildContext context){
-    final isTop3 = rank<=3; Color bg; IconData icon;
-    switch(rank){case 1: bg=const Color(0xFFFFD700); icon=Icons.emoji_events; break;
-                  case 2: bg=const Color(0xFFC0C0C0); icon=Icons.emoji_events; break;
-                  case 3: bg=const Color(0xFFCD7F32); icon=Icons.emoji_events; break;
-                  default: bg=Colors.blueGrey.shade100; icon=Icons.person;}
-    return CircleAvatar(backgroundColor: bg,
-      child: isTop3? Icon(icon, color: Colors.black87) : Text('$rank', style: const TextStyle(color: Colors.black87)));
+  final int rank;
+  const _RankAvatar({required this.rank});
+  @override
+  Widget build(BuildContext context) {
+    final style = rankDisplayStyleFor(rank);
+    final hasIcon = style.icon != null;
+    return CircleAvatar(
+      backgroundColor: style.backgroundColor,
+      child: hasIcon
+          ? Icon(style.icon, color: style.foregroundColor)
+          : Text(
+              '$rank',
+              style: TextStyle(color: style.foregroundColor),
+            ),
+    );
   }
 }
