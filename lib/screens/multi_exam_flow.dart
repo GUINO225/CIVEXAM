@@ -11,6 +11,8 @@ import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/play_mode_panels.dart';
+import '../widgets/play_themed_scaffold.dart';
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -415,74 +417,73 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final perQ = secondsPerQuestion(_difficulty);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.flag),
-            SizedBox(width: 8),
-            Text('Parcours multi-épreuves ENA'),
-          ],
-        ),
-        centerTitle: true,
-      ),
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.panel,
+      panelHeightFactor: 0.92,
+      safeAreaTop: false,
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Niveau de difficulté',
-                          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                        PlayPanelHeader(
+                          icon: Icons.flag_rounded,
+                          title: 'Parcours multi-épreuves ENA',
+                          subtitle: 'Simulation officielle multi-sections',
+                          chips: [
+                            PlayInfoChip(
+                              icon: Icons.grid_view_rounded,
+                              label: '${sections.length} épreuves',
+                            ),
+                            PlayInfoChip(
+                              icon: Icons.trending_up_rounded,
+                              label: 'Difficulté : ${difficultyLabel(_difficulty)}',
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        _difficultyPicker(),
-                        const SizedBox(height: 12),
-                        if (perQ == null)
-                          Text(
-                            'Mode Normal : timings officiels des épreuves (réaliste).',
-                            style: textTheme.bodyLarge,
-                          )
-                        else
-                          Text(
-                            'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                            style: textTheme.bodyLarge,
-                          ),
-                        const SizedBox(height: 16),
-                        Card(
+                        const SizedBox(height: 24),
+                        PlayPanelSurface(
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (final s in sections)
-                                ListTile(
-                                  leading: Icon(_iconForSection(s.title)),
-                                  title: Text(
-                                    s.title,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                  subtitle: Text(
-                                    'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                  trailing: const Icon(Icons.chevron_right),
-                                ),
+                              Text('Niveau de difficulté',
+                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 12),
+                              _difficultyPicker(),
+                              const SizedBox(height: 16),
+                              Text(
+                                perQ == null
+                                    ? 'Mode Normal : timings officiels des épreuves (réaliste).'
+                                    : 'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
+                                style: textTheme.bodyLarge,
+                              ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _startFlow,
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Démarrer le parcours'),
+                        const SizedBox(height: 20),
+                        PlayPanelSurface(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Composition du parcours',
+                                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 12),
+                              for (final section in sections)
+                                _buildSectionEntry(context, section, textTheme),
+                            ],
                           ),
+                        ),
+                        const Spacer(),
+                        PlayPrimaryButton(
+                          label: 'Démarrer le parcours',
+                          icon: Icons.play_arrow_rounded,
+                          onPressed: _startFlow,
                         ),
                       ],
                     ),
@@ -490,6 +491,75 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildSectionEntry(
+      BuildContext context, ExamSection section, TextTheme textTheme) {
+    final theme = Theme.of(context);
+    final baseColor = theme.colorScheme.primary;
+    final background = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.18 : 0.12);
+    final iconBackground = baseColor.withOpacity(theme.brightness == Brightness.dark ? 0.35 : 0.25);
+    final iconForeground = ThemeData.estimateBrightnessForColor(iconBackground) == Brightness.dark
+        ? Colors.white
+        : theme.colorScheme.onPrimaryContainer;
+    final durationMinutes = section.duration.inMinutes;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  _iconForSection(section.title),
+                  color: iconForeground,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  section.title,
+                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              PlayInfoChip(
+                icon: Icons.format_list_numbered_rounded,
+                label: '${section.targetCount} questions',
+              ),
+              PlayInfoChip(
+                icon: Icons.timer_rounded,
+                label: '$durationMinutes min',
+              ),
+              PlayInfoChip(
+                icon: Icons.gavel_rounded,
+                label: 'Barème ${section.scoring}',
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

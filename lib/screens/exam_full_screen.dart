@@ -12,10 +12,12 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
+import '../app/theme.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
-import '../app/theme.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/play_mode_panels.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 class ExamResult {
   final int correctCount;
@@ -260,44 +262,46 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       min: 16,
       max: 26,
     );
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  child: Text('${i + 1}'),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: Text(_cleanQuestion(item.question),
-                        style: const TextStyle(fontWeight: FontWeight.w600))),
-              ],
-            ),
-            const SizedBox(height: 8),
-            for (int c = 0; c < item.choices.length; c++)
-              RadioListTile<int>(
-                value: c,
-                groupValue: answers[i],
-                onChanged: _submitted ? null : (v) => _onAnswer(i, v!),
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  item.choices[c],
-                  textAlign: TextAlign.start,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: optionFontSize,
-                      ) ??
-                      TextStyle(fontSize: optionFontSize),
+    return PlayPanelSurface(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                child: Text('${i + 1}'),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _cleanQuestion(item.question),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (int c = 0; c < item.choices.length; c++)
+            RadioListTile<int>(
+              value: c,
+              groupValue: answers[i],
+              onChanged: _submitted ? null : (v) => _onAnswer(i, v!),
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                item.choices[c],
+                textAlign: TextAlign.start,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: optionFontSize,
+                    ) ??
+                    TextStyle(fontSize: optionFontSize),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -474,176 +478,24 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     final instructionsBodyStyle =
         textTheme.bodyLarge?.copyWith(height: 1.35);
 
+    final Widget content = widget.competitionMode
+        ? _buildCompetitionContent(title)
+        : _buildStandardContent(
+            q: q,
+            title: title,
+            instructionsTitleStyle: instructionsTitleStyle,
+            instructionsBodyStyle: instructionsBodyStyle,
+          );
+
     if (widget.competitionMode) {
-      Widget content = Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          actions: [
-            if (!_submitted)
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Chip(
-                  label: Text(_format(remaining),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  backgroundColor: Colors.redAccent.shade100,
-                ),
-              )
-            else
-              const Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Chip(label: Text('Terminé')),
-              ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: q.length,
-                itemBuilder: (_, i) => Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: _questionCard(q[i], i),
-                ),
-              ),
-            ),
-            LinearProgressIndicator(
-              value: (_currentIndex + 1) / q.length,
-              minHeight: 6,
-            ),
-          ],
-        ),
+      return WillPopScope(
+        onWillPop: () async => false,
+        child: SelectionContainer.disabled(child: content),
       );
-      content = SelectionContainer.disabled(child: content);
-      return WillPopScope(onWillPop: () async => false, child: content);
     }
 
-    Widget content = Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          actions: [
-            if (!_submitted)
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Chip(
-                  label: Text(_format(remaining),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  backgroundColor: Colors.redAccent.shade100,
-                ),
-              )
-            else
-              const Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Chip(label: Text('Terminé')),
-              ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Instructions',
-                    style: instructionsTitleStyle ??
-                        textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold) ??
-                        const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}',
-                    style: instructionsBodyStyle ?? textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.',
-                    style: instructionsBodyStyle ?? textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                itemCount: q.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (_, i) {
-                  final item = q[i];
-                  return _questionCard(item, i);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        if (_submitted) {
-                          _leaveExam(_lastResult);
-                          return;
-                        }
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Quitter ?'),
-                            content: const Text(
-                                'Quitter l’épreuve mettra fin à l’examen en cours.'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Annuler')),
-                              TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Quitter')),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          _leaveExam(null);
-                        }
-                      },
-                      icon: Icon(_submitted ? Icons.check : Icons.close),
-                      label: Text(_submitted ? 'Terminer' : 'Quitter'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _submitted ? null : () => _submit(),
-                      icon: const Icon(Icons.flag),
-                      label: const Text('Soumettre'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    if (widget.competitionMode) {
-      content = SelectionContainer.disabled(child: content);
-    }
     return WillPopScope(
       onWillPop: () async {
-        if (widget.competitionMode) return false;
         if (_submitted) {
           _leaveExam(_lastResult);
           return false;
@@ -670,6 +522,174 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         return false;
       },
       child: content,
+    );
+  }
+
+  Widget _buildCompetitionContent(String title) {
+    final q = widget.questions;
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.plain,
+      safeAreaTop: true,
+      safeAreaBottom: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      body: Column(
+        children: [
+          PlayPanelHeader(
+            icon: Icons.flash_on_rounded,
+            title: title,
+            subtitle: 'Mode compétition',
+            chips: [
+              PlayCountdownChip(
+                label: _submitted ? 'Terminé' : _format(remaining),
+                icon: _submitted ? Icons.check_circle : Icons.timer_outlined,
+                completed: _submitted,
+              ),
+              PlayInfoChip(
+                icon: Icons.format_list_numbered_rounded,
+                label: '${_currentIndex + 1}/${q.length}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: q.length,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.all(12),
+                child: _questionCard(q[i], i),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: LinearProgressIndicator(
+              value: (_currentIndex + 1) / q.length,
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStandardContent({
+    required List<Question> q,
+    required String title,
+    TextStyle? instructionsTitleStyle,
+    TextStyle? instructionsBodyStyle,
+  }) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    return PlayThemedScaffold(
+      bodyMode: PlayThemedScaffoldBodyMode.plain,
+      safeAreaTop: true,
+      safeAreaBottom: true,
+      bodyPadding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      body: Column(
+        children: [
+          PlayPanelHeader(
+            icon: Icons.school_rounded,
+            title: title,
+            subtitle: 'Session individuelle',
+            chips: [
+              PlayCountdownChip(
+                label: _submitted ? 'Terminé' : _format(remaining),
+                icon: _submitted ? Icons.check_circle : Icons.timer_outlined,
+                completed: _submitted,
+              ),
+              PlayInfoChip(
+                icon: Icons.format_list_numbered_rounded,
+                label: '${q.length} questions',
+              ),
+              PlayInfoChip(
+                icon: Icons.gavel_rounded,
+                label: 'Barème ${widget.scoring}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          PlayPanelSurface(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Instructions',
+                  style: instructionsTitleStyle ??
+                      textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
+                      const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Barème: ${widget.scoring}  •  Temps total: ${_format(remaining)}',
+                  style: instructionsBodyStyle ?? textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Répondez à toutes les questions. Le barème négatif s’applique aux mauvaises réponses.',
+                  style: instructionsBodyStyle ?? textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              itemCount: q.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) => _questionCard(q[i], i),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    if (_submitted) {
+                      _leaveExam(_lastResult);
+                      return;
+                    }
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('Quitter ?'),
+                        content: const Text(
+                            'Quitter l’épreuve mettra fin à l’examen en cours.'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Annuler')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Quitter')),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      _leaveExam(null);
+                    }
+                  },
+                  icon: Icon(_submitted ? Icons.check : Icons.close),
+                  label: Text(_submitted ? 'Terminer' : 'Quitter'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: PlayPrimaryButton(
+                  label: 'Soumettre',
+                  icon: Icons.flag_rounded,
+                  onPressed: _submitted ? null : () => _submit(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 }
