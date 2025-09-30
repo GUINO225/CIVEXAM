@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../services/scoring.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 import 'multi_exam_flow.dart';
+import 'play_screen.dart';
 
 class OfficialIntroScreen extends StatefulWidget {
   const OfficialIntroScreen({super.key});
@@ -52,10 +55,14 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
       builder: (context, cfg, _) {
         final theme = Theme.of(context);
         final textTheme = theme.textTheme;
-        final overlayTextColor = theme.colorScheme.onSurface;
         final mediaQuery = MediaQuery.of(context);
         final scale = computeScaleFactor(mediaQuery);
         final textScaler = MediaQuery.textScalerOf(context);
+        final Color playPurple = PlayBottomNavBar.defaultBackgroundColor;
+        final Color backdropColor = darken(playPurple, 0.08);
+        final Color textOnPurple = Colors.white.withOpacity(0.92);
+        final Color secondaryText = Colors.white.withOpacity(0.78);
+        final Color cardColor = Colors.white.withOpacity(0.12);
         final double introTitleSize = scaledFontSize(
           base: 18,
           scale: scale,
@@ -80,111 +87,188 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
             ? baseCardTitleStyle.fontSize!
             : bodyFontSize + 2;
         final cardTitleStyle = baseCardTitleStyle.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           fontSize: cardTitleFontSize,
+          color: Colors.white,
         );
         final introTitleStyle =
             (textTheme.titleLarge ?? textTheme.headlineSmall ?? baseCardTitleStyle)
                 .copyWith(
           fontSize: introTitleSize,
           fontWeight: FontWeight.bold,
+          color: Colors.white,
         );
+        final bodyTextStyle = bodyStyle.copyWith(
+          color: textOnPurple,
+          height: 1.45,
+        );
+        final subduedTextStyle = bodyTextStyle.copyWith(color: secondaryText);
+        final checkboxSide = BorderSide(color: Colors.white.withOpacity(0.7));
+
         return Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar:
-              AppBar(title: const Text('Concours officiel — Consignes')),
+          extendBody: true,
+          backgroundColor: backdropColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            foregroundColor: Colors.white,
+            title: const Text('Concours officiel — Consignes'),
+          ),
+          bottomNavigationBar: PlayBottomNavBar(
+            destinations: playNavDestinations,
+            selectedIndex: 2,
+            onDestinationSelected: (index) {
+              if (index == 2) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PlayScreen(initialIndex: index),
+                ),
+              );
+            },
+          ),
           body: Stack(
             children: [
-              ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Text('Simulation du concours ENA (pré‑sélection)',
-                      style: introTitleStyle),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Vous allez enchaîner 4 épreuves :\n'
-                    '1) Culture Générale (Côte d’Ivoire)\n'
-                    '2) Aptitude Verbale (Vocabulaire & règles)\n'
-                    '3) Organisation & Logique (Classements & déductions)\n'
-                    '4) Aptitude Numérique (Bases & proportionnalité)\n',
-                    style: bodyStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Durée & barème', style: cardTitleStyle),
-                          const SizedBox(height: 6),
-                          Text('• Durée : 60 minutes par épreuve (total ~4h).',
-                              style: bodyStyle),
-                          Text(
-                            '• Barème : +1 bonne, 0 blanc, −1 mauvaise (barème négatif).',
-                            style: bodyStyle,
-                          ),
-                          Text(
-                            '• Coefficient : ×2 par épreuve (pondération finale).',
-                            style: bodyStyle,
-                          ),
-                        ],
-                      ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 240,
+                  decoration: const BoxDecoration(
+                    color: PlayBottomNavBar.defaultBackgroundColor,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Règles', style: cardTitleStyle),
-                          const SizedBox(height: 6),
-                          Text(
-                            '• Une fois le chrono lancé, vous ne pouvez pas revenir en arrière.',
-                            style: bodyStyle,
-                          ),
-                          Text(
-                            '• À la fin du temps, l’épreuve est automatiquement soumise.',
-                            style: bodyStyle,
-                          ),
-                          Text(
-                            '• Évitez de quitter l’app pendant une épreuve.',
-                            style: bodyStyle,
-                          ),
-                        ],
-                      ),
+                ),
+              ),
+              SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 140, 16, 120),
+                  children: [
+                    Text(
+                      'Simulation du concours ENA (pré‑sélection)',
+                      style: introTitleStyle,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _accepted,
-                        onChanged: (v) =>
-                            setState(() => _accepted = v ?? false),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Vous allez enchaîner 4 épreuves :\n'
+                      '1) Culture Générale (Côte d’Ivoire)\n'
+                      '2) Aptitude Verbale (Vocabulaire & règles)\n'
+                      '3) Organisation & Logique (Classements & déductions)\n'
+                      '4) Aptitude Numérique (Bases & proportionnalité)\n',
+                      style: bodyTextStyle,
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      color: cardColor,
+                      shadowColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      Expanded(
-                        child: Text(
-                          'Je comprends les règles et je suis prêt(e) à commencer.',
-                          style: bodyStyle,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Durée & barème', style: cardTitleStyle),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Durée : 60 minutes par épreuve (total ~4h).',
+                              style: bodyTextStyle,
+                            ),
+                            Text(
+                              '• Barème : +1 bonne, 0 blanc, −1 mauvaise (barème négatif).',
+                              style: bodyTextStyle,
+                            ),
+                            Text(
+                              '• Coefficient : ×2 par épreuve (pondération finale).',
+                              style: bodyTextStyle,
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed:
-                          _accepted && !_starting ? _startCountdown : null,
-                      icon: const Icon(Icons.flag),
-                      label:
-                          const Text('Démarrer la simulation officielle'),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Card(
+                      color: cardColor,
+                      shadowColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Règles', style: cardTitleStyle),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Une fois le chrono lancé, vous ne pouvez pas revenir en arrière.',
+                              style: bodyTextStyle,
+                            ),
+                            Text(
+                              '• À la fin du temps, l’épreuve est automatiquement soumise.',
+                              style: bodyTextStyle,
+                            ),
+                            Text(
+                              '• Évitez de quitter l’app pendant une épreuve.',
+                              style: bodyTextStyle,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: _accepted,
+                          onChanged: (v) => setState(() => _accepted = v ?? false),
+                          activeColor: Colors.white,
+                          checkColor: playPurple,
+                          side: checkboxSide,
+                          fillColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return Colors.white;
+                            }
+                            return Colors.white.withOpacity(0.2);
+                          }),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Je comprends les règles et je suis prêt(e) à commencer.',
+                            style: subduedTextStyle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _accepted && !_starting ? _startCountdown : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: playPurple,
+                          minimumSize: const Size.fromHeight(52),
+                          textStyle: bodyStyle.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: bodyFontSize + 2,
+                          ),
+                        ),
+                        icon: const Icon(Icons.flag),
+                        label: const Text('Démarrer la simulation officielle'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               if (_starting)
                 Positioned.fill(
@@ -195,7 +279,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> with SingleTi
                         '$_count',
                         style: TextStyle(
                           fontSize: countdownFontSize,
-                          color: overlayTextColor,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

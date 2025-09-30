@@ -24,6 +24,7 @@ import '../utils/rank_display_helper.dart';
 import '../utils/responsive_utils.dart';
 
 import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 
 import '../models/question.dart';
 
@@ -188,28 +189,30 @@ const CalendarOverlayConfig CAL = CalendarOverlayConfig();
 /// === ÉCRAN ==================================================================
 /// ============================================================================
 class PlayScreen extends StatelessWidget {
-  const PlayScreen({super.key});
+  const PlayScreen({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   Widget build(BuildContext context) {
-    return const HomeShell();
+    return HomeShell(initialIndex: initialIndex);
   }
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
 }
 
 class _HomeShellState extends State<HomeShell> {
-  static const Color _bottomBarColor = Color(0xFF6C4DFF);
-  static const Color _bottomBarHighlight = Color(0x29FFFFFF);
   static const Color _fabForeground = Color(0xFF6C4DFF);
 
-  int _selectedNavIndex = 0;
-  late final List<_NavDestination> _navItems;
+  late int _selectedNavIndex;
+  late final List<PlayNavDestination> _navItems;
 
   final CompetitionService _competitionService = CompetitionService();
   List<LeaderboardEntry> _topEntries = const [];
@@ -257,32 +260,12 @@ class _HomeShellState extends State<HomeShell> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    _navItems = const [
-      _NavDestination(
-        icon: Icons.home_outlined,
-        label: 'Accueil',
-      ),
-      _NavDestination(
-        icon: Icons.dashboard_outlined,
-        label: 'Dashboard',
-      ),
-      _NavDestination(
-        icon: Icons.quiz_outlined,
-        label: 'Quiz',
-      ),
-      _NavDestination(
-        icon: Icons.history,
-        label: 'Historique',
-      ),
-      _NavDestination(
-        icon: Icons.person_outline,
-        label: 'Profil',
-      ),
-      _NavDestination(
-        icon: Icons.settings_outlined,
-        label: 'Paramètres',
-      ),
-    ];
+    _navItems = playNavDestinations;
+
+    _selectedNavIndex =
+        (widget.initialIndex >= 0 && widget.initialIndex < _navItems.length)
+            ? widget.initialIndex
+            : 0;
 
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
@@ -292,6 +275,19 @@ class _HomeShellState extends State<HomeShell> {
     unawaited(_loadTopEntries());
     unawaited(_loadArcadeProgress());
     unawaited(_loadProfileNickname());
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex &&
+        widget.initialIndex >= 0 &&
+        widget.initialIndex < _navItems.length &&
+        widget.initialIndex != _selectedNavIndex) {
+      setState(() {
+        _selectedNavIndex = widget.initialIndex;
+      });
+    }
   }
 
   Future<void> _loadProfileNickname() async {
@@ -670,7 +666,11 @@ class _HomeShellState extends State<HomeShell> {
                 _selectedNavIndex == 0 ? _buildMainFab() : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
-            bottomNavigationBar: _buildBottomAppBar(),
+            bottomNavigationBar: PlayBottomNavBar(
+              destinations: _navItems,
+              selectedIndex: _selectedNavIndex,
+              onDestinationSelected: _onNavItemSelected,
+            ),
             body: _buildShellBody(
               backgroundColor: bgColor,
               surfaceColor: Theme.of(context).scaffoldBackgroundColor,
@@ -812,76 +812,6 @@ class _HomeShellState extends State<HomeShell> {
       child: ColoredBox(
         color: backgroundColor,
         child: child,
-      ),
-    );
-  }
-
-  /// NAV BAR
-  Widget _buildBottomAppBar() {
-    final buttons = <Widget>[];
-
-    final notchIndex = (_navItems.length / 2).floor();
-    for (var i = 0; i < _navItems.length; i++) {
-      if (i == notchIndex) {
-        buttons.add(const SizedBox(width: 68));
-      }
-      buttons.add(
-        Expanded(
-          child: _buildNavButton(i),
-        ),
-      );
-    }
-
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      color: _bottomBarColor,
-      elevation: 16,
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: buttons,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton(int index) {
-    final item = _navItems[index];
-    final isSelected = _selectedNavIndex == index;
-    final Color foreground =
-        isSelected ? Colors.white : Colors.white.withOpacity(0.72);
-
-    return Center(
-      child: Semantics(
-        label: item.label,
-        selected: isSelected,
-        button: true,
-        child: Material(
-          color: Colors.transparent,
-          child: Tooltip(
-            message: item.label,
-            child: InkWell(
-              onTap: () => _onNavItemSelected(index),
-              borderRadius: BorderRadius.circular(18),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color:
-                      isSelected ? _bottomBarHighlight : Colors.transparent,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(item.icon, color: foreground, size: 24),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -2057,12 +1987,3 @@ class _PromoCarousel extends StatelessWidget {
   }
 }
 
-class _NavDestination {
-  final IconData icon;
-  final String label;
-
-  const _NavDestination({
-    required this.icon,
-    required this.label,
-  });
-}
