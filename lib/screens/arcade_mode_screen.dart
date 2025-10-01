@@ -23,6 +23,19 @@ class ArcadeModeScreen extends StatefulWidget {
   State<ArcadeModeScreen> createState() => _ArcadeModeScreenState();
 }
 
+/// Palette inspirée de la maquette fournie
+class _Brand {
+  static const primary = Color(0xFF6C5CE7);       // violet principal
+  static const primaryDark = Color(0xFF5B4DE1);   // violet plus sombre
+  static const secondary = Color(0xFF7F6AF8);     // accent
+  static const surface = Color(0xFFF7F5FF);       // fond global
+  static const card = Color(0xFFFFFFFF);          // cartes blanches
+  static const chipBg = Color(0xFFEFEAFF);        // chips neutres
+  static const text = Color(0xFF1E1E28);          // texte principal
+  static const textMuted = Color(0xFF6E6B7A);     // texte secondaire
+  static const border = Color(0xFFE6E1F9);        // bordure douce
+}
+
 class _ArcadeLevel {
   final int index;
   final int difficulty;
@@ -83,7 +96,7 @@ class _PreviewLevelEntry {
 
 class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   static const ExamScoring _scoring =
-      ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
+  ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
 
   bool _preparing = false;
   String? _error;
@@ -240,7 +253,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           title: const Text('Session arcade terminée'),
           content: Text(
             'Bravo ! Vous avez répondu correctement à ${summary.correct} '
-            'questions sur ${summary.totalQuestions}.',
+                'questions sur ${summary.totalQuestions}.',
           ),
           actions: [
             TextButton(
@@ -290,7 +303,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           builder: (_) => ExamFullScreen(
             questions: questions,
             duration:
-                Duration(seconds: level.questionCount * level.perQuestionSeconds),
+            Duration(seconds: level.questionCount * level.perQuestionSeconds),
             scoring: _scoring,
             title: level.title,
             showLocalSummary: true,
@@ -317,7 +330,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           title: Text('Palier non validé — ${level.title}'),
           content: Text(
             'Vous avez répondu correctement à ${result.correctCount} '
-            'question(s). Il en fallait ${level.requiredCorrect} pour avancer.',
+                'question(s). Il en fallait ${level.requiredCorrect} pour avancer.',
           ),
           actions: [
             TextButton(
@@ -393,7 +406,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         title: const Text('Banque de questions insuffisante'),
         content: const Text(
           'Il n\'y a plus assez de questions inédites pour continuer. '
-          'Souhaitez-vous réinitialiser l\'historique des questions ?',
+              'Souhaitez-vous réinitialiser l\'historique des questions ?',
         ),
         actions: [
           TextButton(
@@ -417,102 +430,180 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final base = Theme.of(context);
+    final themed = base.copyWith(
+      scaffoldBackgroundColor: _Brand.surface,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _Brand.primary,
+        brightness: base.brightness,
+      ).copyWith(
+        primary: _Brand.primary,
+        secondary: _Brand.secondary,
+        surface: _Brand.surface,
+        background: _Brand.surface,
+        onSurface: _Brand.text,
+        onPrimary: Colors.white,
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: _Brand.text,
+        displayColor: _Brand.text,
+      ),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: _Brand.surface,
+        foregroundColor: _Brand.text,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _Brand.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(56),
+          shape: const StadiumBorder(),
+          elevation: 0,
+        ),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        labelStyle: base.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: _Brand.text,
+        ),
+        backgroundColor: _Brand.chipBg,
+        selectedColor: _Brand.primary,
+        secondarySelectedColor: _Brand.primary,
+        showCheckmark: false,
+        side: const BorderSide(color: _Brand.border),
+      ),
+      dividerColor: _Brand.border,
+    );
+
     final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
     final previewLevels = _buildPreviewLevels(resumeIndex);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mode Arcade'),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  Text(
-                    'Enchaînez des paliers de difficulté croissante. '
-                    'Chaque niveau adapte automatiquement la cadence et '
-                    'les exigences pour maintenir le défi.',
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color:
-                            theme.colorScheme.outlineVariant.withOpacity(0.5),
-                      ),
-                    ),
-                    child: Scrollbar(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        itemBuilder: (context, index) {
-                          final entry = previewLevels[index];
-                          return _buildLevelCard(
-                            entry.level,
-                            theme,
-                            isCompleted: entry.isCompleted,
-                            isCurrent: entry.isCurrent,
-                          );
-                        },
-                        itemCount: previewLevels.length,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Les niveaux au-delà de ${previewLevels.last.level.title} '
-                    'poursuivent l\'augmentation de la difficulté jusqu\'à '
-                    'épuisement de la banque de questions.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 24),
-                    Text(
-                      _error!,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.error),
-                    ),
-                  ],
-                  if (_lastSummary != null) ...[
-                    const SizedBox(height: 24),
-                    _buildSummaryCard(_lastSummary!, theme),
-                  ],
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  icon: _preparing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.play_arrow_rounded),
-                  label: Text(
-                    _preparing
-                        ? 'Préparation…'
-                        : _loadingProgress
-                            ? 'Chargement…'
-                            : 'Lancer la session',
-                  ),
-                  onPressed:
-                      _preparing || _loadingProgress ? null : _startArcade,
-                ),
-              ),
-            ),
+    // Pour la carte "Recent", calcule un pourcentage si on a un résumé.
+    final int? lastPercent = _lastSummary == null || _lastSummary!.totalQuestions == 0
+        ? null
+        : ((_lastSummary!.correct / _lastSummary!.totalQuestions) * 100).round();
+
+    return Theme(
+      data: themed,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Mode Arcade'),
+          actions: const [
+            _AvatarDot(initial: 'M'),
+            SizedBox(width: 12),
           ],
         ),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+            children: [
+              // Header dégradé style maquette
+              _GradientHeader(
+                title: 'Bonjour 👋',
+                subtitle: 'Arcade — passe les paliers et grimpe de niveau.',
+                trailing: _SmallBadge(text: 'Niv. ${resumeIndex + 1}'),
+              ),
+              const SizedBox(height: 16),
+
+              // "Recent" (donut) comme sur la maquette
+              _RecentCard(
+                title: 'Dernière session',
+                subtitle: _lastSummary == null
+                    ? 'Aucune session enregistrée.'
+                    : 'Bonnes réponses : ${_lastSummary!.correct}/${_lastSummary!.totalQuestions}',
+                trailing: _DonutBadge(label: lastPercent == null ? '—' : '$lastPercent%'),
+              ),
+              const SizedBox(height: 16),
+
+              // Bloc violet Featured avec CTA "Lancer la session"
+              _FeaturedCard(
+                title: 'Défie-toi en mode arcade',
+                subtitle: 'Vitesse, précision et niveaux de plus en plus durs.',
+                ctaLabel: _preparing
+                    ? 'Préparation…'
+                    : _loadingProgress
+                    ? 'Chargement…'
+                    : 'Lancer la session',
+                onTap: _preparing || _loadingProgress ? null : _startArcade,
+              ),
+              const SizedBox(height: 16),
+
+              // Titre de section façon "Live Quizzes"
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Aperçu des niveaux', style: themed.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                  Text('Voir tout', style: themed.textTheme.bodyMedium?.copyWith(color: _Brand.textMuted)),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Liste style "Live Quizzes" : tuiles blanches bordées
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _Brand.border),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemBuilder: (context, index) {
+                    final entry = previewLevels[index];
+                    return _LevelListTile(
+                      level: entry.level,
+                      isCompleted: entry.isCompleted,
+                      isCurrent: entry.isCurrent,
+                    );
+                  },
+                  separatorBuilder: (_, __) => Divider(height: 1, color: _Brand.border),
+                  itemCount: previewLevels.length,
+                ),
+              ),
+
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Text(
+                  _error!,
+                  style: themed.textTheme.bodyMedium?.copyWith(color: themed.colorScheme.error),
+                ),
+              ],
+
+              if (_lastSummary != null) ...[
+                const SizedBox(height: 24),
+                _SummaryCard(summary: _lastSummary!),
+              ],
+            ],
+          ),
+        ),
+
+        // Gros bouton centré (comme le “+” de la maquette)
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: ElevatedButton.icon(
+            onPressed: _preparing || _loadingProgress ? null : _startArcade,
+            icon: _preparing
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
+                : const Icon(Icons.play_arrow),
+            label: Text(_preparing
+                ? 'Préparation…'
+                : _loadingProgress
+                ? 'Chargement…'
+                : 'Commencer maintenant'),
+          ),
+        ),
+
+        // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
+        bottomNavigationBar: const SizedBox(height: 12),
       ),
     );
   }
@@ -549,140 +640,6 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     );
 
     return entries;
-  }
-
-  Widget _buildLevelCard(
-    _ArcadeLevel level,
-    ThemeData theme, {
-    bool isCompleted = false,
-    bool isCurrent = false,
-  }) {
-    final statusColor = isCompleted
-        ? theme.colorScheme.surfaceVariant
-        : theme.colorScheme.surface;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: statusColor,
-        borderRadius: BorderRadius.circular(16),
-        border: isCurrent
-            ? Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.6),
-                width: 1.5,
-              )
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ArcadeBadgeChip(label: level.title, compact: true),
-              Text(level.title, style: theme.textTheme.titleMedium),
-              if (isCompleted)
-                _buildChip(Icons.check_circle_rounded, 'Palier validé')
-              else if (isCurrent)
-                _buildChip(Icons.flag_rounded, 'Prochain palier'),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(level.description, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              _buildChip(Icons.layers, '${level.questionCount} questions'),
-              _buildChip(
-                Icons.verified,
-                '${level.requiredCorrect} bonne${level.requiredCorrect > 1 ? 's' : ''} requise${level.requiredCorrect > 1 ? 's' : ''}',
-              ),
-              _buildChip(
-                Icons.timer,
-                '${level.perQuestionSeconds}s/question (${level.questionCount * level.perQuestionSeconds}s)',
-              ),
-              _buildChip(Icons.leaderboard, 'Difficulté ${level.difficulty}'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(_ArcadeModeStateSummary summary, ThemeData theme) {
-    final percent = summary.totalQuestions == 0
-        ? 0
-        : (summary.correct / summary.totalQuestions * 100).round();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Dernière performance', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Text(
-            '${summary.correct}/${summary.totalQuestions} bonnes réponses '
-            '(${percent}%).',
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 8),
-          Text('Niveaux complétés : ${summary.levelsCompleted}'),
-          const SizedBox(height: 4),
-          Text('Temps total : ${_formatDuration(summary.durationSec)}'),
-        ],
-      ),
-    );
-  }
-
-  _ArcadeLevel? _levelForIndex(
-    int levelIndex, {
-    required int maxDifficulty,
-    required Map<int, int> totalByDifficulty,
-    required Map<int, int> consumedByDifficulty,
-  }) {
-    final difficulty = _difficultyForLevel(levelIndex, maxDifficulty);
-    final available = (totalByDifficulty[difficulty] ?? 0) -
-        (consumedByDifficulty[difficulty] ?? 0);
-    if (available <= 0) {
-      return null;
-    }
-
-    final targetCount = _questionCountForLevel(levelIndex);
-    final minRequired = math.min(3, available);
-    var questionCount = math.min(targetCount, available);
-    if (questionCount < minRequired) {
-      questionCount = minRequired;
-    }
-    if (questionCount <= 0) {
-      return null;
-    }
-
-    final requiredCorrect = _requiredCorrectForLevel(levelIndex, questionCount);
-    final perQuestionSeconds = _perQuestionSecondsForLevel(levelIndex);
-
-    return _ArcadeLevel(
-      index: levelIndex,
-      difficulty: difficulty,
-      questionCount: questionCount,
-      requiredCorrect: requiredCorrect,
-      perQuestionSeconds: perQuestionSeconds,
-    );
   }
 
   Map<int, int> _countByDifficulty(List<Question> pool) {
@@ -722,6 +679,41 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     );
   }
 
+  _ArcadeLevel? _levelForIndex(
+      int levelIndex, {
+        required int maxDifficulty,
+        required Map<int, int> totalByDifficulty,
+        required Map<int, int> consumedByDifficulty,
+      }) {
+    final difficulty = _difficultyForLevel(levelIndex, maxDifficulty);
+    final available = (totalByDifficulty[difficulty] ?? 0) -
+        (consumedByDifficulty[difficulty] ?? 0);
+    if (available <= 0) {
+      return null;
+    }
+
+    final targetCount = _questionCountForLevel(levelIndex);
+    final minRequired = math.min(3, available);
+    var questionCount = math.min(targetCount, available);
+    if (questionCount < minRequired) {
+      questionCount = minRequired;
+    }
+    if (questionCount <= 0) {
+      return null;
+    }
+
+    final requiredCorrect = _requiredCorrectForLevel(levelIndex, questionCount);
+    final perQuestionSeconds = _perQuestionSecondsForLevel(levelIndex);
+
+    return _ArcadeLevel(
+      index: levelIndex,
+      difficulty: difficulty,
+      questionCount: questionCount,
+      requiredCorrect: requiredCorrect,
+      perQuestionSeconds: perQuestionSeconds,
+    );
+  }
+
   int _difficultyForLevel(int index, int maxDifficulty) {
     return math.min(1 + (index ~/ 3), maxDifficulty);
   }
@@ -750,12 +742,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     return math.max(6, 14 - index);
   }
 
-  Widget _buildChip(IconData icon, String label) {
-    return Chip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-    );
-  }
+  // ----- UI helpers (widgets & formatters) -----
 
   String _formatDuration(int seconds) {
     final minutes = seconds ~/ 60;
@@ -764,5 +751,354 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       return '${remainder}s';
     }
     return '${minutes}m ${remainder.toString().padLeft(2, '0')}s';
+  }
+}
+
+/// ---- Widgets “design maquette” réutilisables ----
+
+class _GradientHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+
+  const _GradientHeader({
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_Brand.primary, _Brand.primaryDark],
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: DefaultTextStyle(
+              style: tt.bodyMedium!.copyWith(color: Colors.white),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('GOOD MORNING', style: tt.labelSmall?.copyWith(color: Colors.white70, letterSpacing: .6)),
+                  const SizedBox(height: 6),
+                  Text(
+                    title,
+                    style: tt.titleLarge!.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: tt.bodyMedium?.copyWith(color: Colors.white70)),
+                ],
+              ),
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallBadge extends StatelessWidget {
+  final String text;
+  const _SmallBadge({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+    );
+  }
+}
+
+class _RecentCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+  const _RecentCard({required this.title, required this.subtitle, required this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: _Brand.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _Brand.border),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _Brand.chipBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.videogame_asset_outlined, color: _Brand.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: _Brand.text)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+              ],
+            ),
+          ),
+          trailing,
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String ctaLabel;
+  final VoidCallback? onTap;
+  const _FeaturedCard({
+    required this.title,
+    required this.subtitle,
+    required this.ctaLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: _Brand.primaryDark,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('FEATURED', style: tt.labelSmall?.copyWith(color: Colors.white70, letterSpacing: .6)),
+          const SizedBox(height: 6),
+          Text(title, style: tt.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: tt.bodyMedium?.copyWith(color: Colors.white70)),
+          const SizedBox(height: 14),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: onTap,
+              icon: const Icon(Icons.play_arrow, color: _Brand.primaryDark),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: _Brand.primaryDark,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: const StadiumBorder(),
+              ),
+              label: Text(ctaLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelListTile extends StatelessWidget {
+  final _ArcadeLevel level;
+  final bool isCompleted;
+  final bool isCurrent;
+
+  const _LevelListTile({
+    required this.level,
+    required this.isCompleted,
+    required this.isCurrent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: null, // aperçu non cliquable (la session démarre via les CTA)
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            // Bloc icône gauche (carré violet comme la maquette)
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: _Brand.chipBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.flag_rounded, color: _Brand.primary),
+            ),
+            const SizedBox(width: 12),
+
+            // Titre + sous-titre
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      ArcadeBadgeChip(label: level.title, compact: true),
+                      const SizedBox(width: 8),
+                      if (isCompleted)
+                        _StatusPill(icon: Icons.check_circle_rounded, label: 'Validé')
+                      else if (isCurrent)
+                        _StatusPill(icon: Icons.play_circle_fill_rounded, label: 'À venir'),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Dif. ${level.difficulty} · ${level.questionCount} Q · '
+                        '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
+                    style: tt.bodySmall?.copyWith(color: _Brand.textMuted),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Icons.chevron_right, color: _Brand.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _StatusPill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: Icon(icon, size: 18),
+      label: Text(label),
+      backgroundColor: _Brand.chipBg,
+      side: const BorderSide(color: _Brand.border),
+      shape: const StadiumBorder(),
+      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final _ArcadeModeStateSummary summary;
+  const _SummaryCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final percent =
+    summary.totalQuestions == 0 ? 0 : (summary.correct / summary.totalQuestions * 100).round();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _Brand.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _Brand.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Dernière performance', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Text(
+            '${summary.correct}/${summary.totalQuestions} bonnes réponses (${percent}%).',
+            style: tt.bodyMedium?.copyWith(color: _Brand.text),
+          ),
+          const SizedBox(height: 8),
+          Text('Niveaux complétés : ${summary.levelsCompleted}',
+              style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+          const SizedBox(height: 4),
+          Text('Temps total : ${_formatDuration(summary.durationSec)}',
+              style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainder = seconds % 60;
+    if (minutes == 0) return '${remainder}s';
+    return '${minutes}m ${remainder.toString().padLeft(2, '0')}s';
+  }
+}
+
+class _AvatarDot extends StatelessWidget {
+  final String initial;
+  const _AvatarDot({required this.initial});
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: _Brand.chipBg,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: _Brand.primary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+/// Petit “donut” décoratif façon maquette
+class _DonutBadge extends StatelessWidget {
+  final String label;
+  const _DonutBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 54,
+      height: 54,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: label.endsWith('%')
+                ? (double.tryParse(label.replaceAll('%', '')) ?? 0) / 100.0
+                : 0.65, // fallback décoratif
+            strokeWidth: 6,
+            backgroundColor: _Brand.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(_Brand.primary),
+          ),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
   }
 }
