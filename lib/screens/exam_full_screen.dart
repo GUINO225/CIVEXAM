@@ -1,27 +1,36 @@
 // lib/screens/exam_full_screen.dart
-import 'dart:async';
+
+// =======================
+// IMPORTS
+// =======================
+import 'dart:async'; // Pour Timer.periodic (le compte à rebours)
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, debugPrint, debugPrintStack, defaultTargetPlatform, kIsWeb;
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+    show TargetPlatform, debugPrint, debugPrintStack, defaultTargetPlatform, kIsWeb; // Utilitaires de plateforme & debug
+import 'package:flutter/material.dart'; // Widgets de base
+import 'package:flutter/services.dart'; // Haptics + gestion barre système
+import 'package:wakelock_plus/wakelock_plus.dart'; // Empêcher la mise en veille en mode compétition
+import 'package:flutter_windowmanager/flutter_windowmanager.dart'; // Flag sécurisé (empêche screenshots) Android
+import 'package:device_info_plus/device_info_plus.dart'; // Détecter si l’appareil est un émulateur
 
-import '../models/question.dart';
-import '../services/scoring.dart';
-import '../app/theme.dart';
-import '../utils/responsive_utils.dart';
-import '../widgets/play_bottom_nav_bar.dart';
-import 'play_screen.dart';
+import '../models/question.dart'; // Modèle Question
+import '../services/scoring.dart'; // Calcul de score
+import '../app/theme.dart'; // Optionnel (ex: thèmes globaux)
+import '../utils/responsive_utils.dart'; // Helpers pour tailles de texte responsives
 
+// Ces deux imports sont pour ton bottom nav existant :
+import '../widgets/play_bottom_nav_bar.dart'; // Bottom nav custom de ton app
+import 'play_screen.dart'; // Écran parent pour faire un pushReplacement quand on quitte l’exam
+
+// =======================
+// DATA: Résultat d’examen
+// =======================
 class ExamResult {
-  final int correctCount;
-  final int wrongCount;
-  final int blankCount;
-  final int rawScore;
-  final int weightedScore;
-  final int total;
+  final int correctCount;   // Nombre de bonnes réponses
+  final int wrongCount;     // Nombre de mauvaises réponses
+  final int blankCount;     // Nombre de non-réponses
+  final int rawScore;       // Score brut (avant coefficient)
+  final int weightedScore;  // Score pondéré (après coefficient)
+  final int total;          // Nombre total de questions
 
   const ExamResult({
     required this.correctCount,
@@ -33,23 +42,27 @@ class ExamResult {
   });
 }
 
+// =======================
+// WIDGET: Plein écran d’examen
+// =======================
 class ExamFullScreen extends StatefulWidget {
-  final List<Question> questions;
-  final Duration duration;
-  final ExamScoring scoring;
-  final String? title;
-  final bool showLocalSummary;
+  final List<Question> questions; // Liste des questions à afficher
+  final Duration duration;        // Durée totale de l’épreuve
+  final ExamScoring scoring;      // Barème de notation
+  final String? title;            // Titre affiché en header
+  final bool showLocalSummary;    // Afficher le résumé local en fin d’épreuve ou non
 
-  /// If set (>0), total time = per-question seconds * number of questions (clamped to 5..10s).
+  /// Si défini (>0), remplace la durée totale par: (sec/par question) × nbQuestions
+  /// (clamp entre 5..10 s par question) — utile pour des modes "speed".
   final int? overridePerQuestionSeconds;
 
-  final bool competitionMode;
-  final List<int?>? initialAnswers;
-  final int? initialRemainingSeconds;
-  final void Function(int remainingSeconds, List<int?> answers)? onStateChanged;
-  final VoidCallback? onStateCleared;
+  final bool competitionMode; // Active verrouillage, orientation, etc.
+  final List<int?>? initialAnswers; // Pré-remplissage de réponses
+  final int? initialRemainingSeconds; // Reprise d’un état sauvegardé
+  final void Function(int remainingSeconds, List<int?> answers)? onStateChanged; // Callback régulier
+  final VoidCallback? onStateCleared; // Callback à la sortie de l’exam
 
-  /// Couleur de marque (par défaut #5336C6).
+  /// Couleur de marque pour l’épreuve (par défaut #5336C6).
   final Color brandColor;
 
   const ExamFullScreen({
@@ -72,29 +85,42 @@ class ExamFullScreen extends StatefulWidget {
   State<ExamFullScreen> createState() => _ExamFullScreenState();
 }
 
+// =======================
+// STATE
+// =======================
 class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObserver {
-  late List<int?> answers;
-  late int remaining;
-  Timer? timer;
+  // --- État logique ---
+  late List<int?> answers; // Réponses choisies (index de choix) ou null
+  late int remaining;      // Secondes restantes
+  Timer? timer;            // Timer du compte à rebours
 
-  late final PageController _pageController;
-  int _currentIndex = 0;
+  // --- Navigation horizontale entre questions ---
+  late final PageController _pageController; // Contrôle le PageView
+  int _currentIndex = 0;                     // Index de la question courante
 
-  bool _submitted = false;
-  ExamResult? _lastResult;
+  // --- Résultat / Soumission ---
+  bool _submitted = false;   // Flag une fois soumis
+  ExamResult? _lastResult;   // Résultat calculé
 
-  int _exitCount = 0;
-  bool _wasPaused = false;
+  // --- Discipline mode compétition ---
+  int _exitCount = 0;      // Comptage des sorties de l’app
+  bool _wasPaused = false; // L’app était en pause ?
 
-  bool _secureFlagSupported = true;
-  bool _secureFlagActive = false;
+  // --- Sécurisation Android ---
+  bool _secureFlagSupported = true; // FLAG_SECURE dispo ?
+  bool _secureFlagActive = false;   // FLAG_SECURE actif ?
 
+  // --- Couleur de marque ---
   Color get _brand => widget.brandColor;
 
+  // =======================
+  // LIFECYCLE: init / dispose
+  // =======================
   @override
   void initState() {
     super.initState();
 
+    // Mode normal: barre système edge-to-edge mais visible
     if (!widget.competitionMode) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -104,56 +130,59 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       ));
     }
 
+    // Mode compétition: verrouillage + wakelock + FLAG_SECURE (Android)
     if (widget.competitionMode) {
       WidgetsBinding.instance.addObserver(this);
-      WakelockPlus.enable();
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      WakelockPlus.enable(); // garde l’écran allumé
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // plein écran
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]); // portrait only
       if (mounted && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        unawaited(_enableSecureFlag());
+        unawaited(_enableSecureFlag()); // empêche capture/rec
       }
-      _checkEmulator();
+      _checkEmulator(); // alerte si device non physique
     }
 
-    _pageController = PageController();
+    _pageController = PageController(); // Init du PageView
 
-    // state
+    // --- État initial des réponses ---
     answers = List<int?>.filled(widget.questions.length, null);
     if (widget.initialAnswers != null) {
       for (int i = 0; i < answers.length && i < widget.initialAnswers!.length; i++) {
-        answers[i] = widget.initialAnswers![i];
+        answers[i] = widget.initialAnswers![i]; // copie des réponses sauvegardées
       }
     }
 
+    // --- Durée initiale ---
     remaining = widget.duration.inSeconds;
     if (widget.overridePerQuestionSeconds != null && widget.overridePerQuestionSeconds! > 0) {
-      final perQ = widget.overridePerQuestionSeconds!.clamp(5, 10);
-      remaining = perQ * widget.questions.length;
+      final perQ = widget.overridePerQuestionSeconds!.clamp(5, 10); // borne 5..10
+      remaining = perQ * widget.questions.length; // recalcule durée totale
     }
     if (widget.initialRemainingSeconds != null && widget.initialRemainingSeconds! > 0) {
-      remaining = widget.initialRemainingSeconds!;
+      remaining = widget.initialRemainingSeconds!; // reprise d’un timer sauvegardé
     }
 
-    _startTimer();
-    Future.microtask(_notifyStateChanged);
+    _startTimer();           // Lance le compte à rebours
+    Future.microtask(_notifyStateChanged); // Notifie l’état initial
   }
 
   @override
   void dispose() {
-    timer?.cancel();
+    timer?.cancel(); // stop timer
     if (widget.competitionMode) {
       WidgetsBinding.instance.removeObserver(this);
-      WakelockPlus.disable();
+      WakelockPlus.disable(); // réautorise veille
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values); // rend toutes les orientations
       if (mounted && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        unawaited(_disableSecureFlag());
+        unawaited(_disableSecureFlag()); // enlève FLAG_SECURE
       }
     }
-    _pageController.dispose();
+    _pageController.dispose(); // libère le contrôleur
     super.dispose();
   }
 
+  // Active le FLAG_SECURE (Android) pour bloquer captures d’écran
   Future<void> _enableSecureFlag() async {
     if (!mounted || kIsWeb || defaultTargetPlatform != TargetPlatform.android || !_secureFlagSupported) return;
     try {
@@ -166,6 +195,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Désactive le FLAG_SECURE (Android)
   Future<void> _disableSecureFlag() async {
     if (!mounted || kIsWeb || defaultTargetPlatform != TargetPlatform.android || !_secureFlagActive) return;
     try {
@@ -179,6 +209,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Gestion d’un plugin manquant (sur certaines plates-formes)
   void _handleMissingPlugin(String operation, MissingPluginException error, StackTrace stackTrace) {
     _secureFlagSupported = false;
     _secureFlagActive = false;
@@ -186,14 +217,19 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     debugPrintStack(stackTrace: stackTrace);
   }
 
+  // Log propre d’erreurs WindowManager
   void _logWindowManagerError(String operation, Object error, StackTrace stackTrace) {
     debugPrint('FlutterWindowManager $operation failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 
+  // =======================
+  // NAV BOTTOM: gestion clics sur la barre du bas
+  // =======================
   Future<void> _handleBottomNavSelection(int index) async {
-    if (index == 2) return;
+    if (index == 2) return; // index de l’onglet “jeu/exam” actuel → ne rien faire
 
+    // Si on n’a pas soumis, demander confirmation de quitter
     if (!_submitted) {
       final shouldLeave = await showDialog<bool>(
         context: context,
@@ -206,31 +242,31 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
           ],
         ),
       );
-
-      if (shouldLeave != true) {
-        return;
-      }
+      if (shouldLeave != true) return;
     }
 
+    // Notifier le parent, puis rediriger vers l’onglet choisi
     widget.onStateCleared?.call();
     if (!mounted) return;
-
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
     );
   }
 
+  // Notifie parent: temps restant + copies des réponses
   void _notifyStateChanged() {
     final callback = widget.onStateChanged;
     if (callback == null) return;
     callback(remaining, List<int?>.from(answers));
   }
 
+  // Quitte l’exam en renvoyant un résultat (ou null si abandon)
   void _leaveExam(ExamResult? result) {
     widget.onStateCleared?.call();
     Navigator.of(context).pop(result);
   }
 
+  // Lance/relance le timer 1s
   void _startTimer() {
     timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -240,10 +276,11 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         return;
       }
       if (remaining <= 0) {
-        _submit(auto: true);
+        _submit(auto: true); // envoie auto quand temps écoulé
       } else {
-        setState(() => remaining--);
-        _notifyStateChanged();
+        setState(() => remaining--); // décrémente
+        _notifyStateChanged();       // notifie parent (persist/analytics)
+        // Feedback haptique en fin de timer (mode compétition)
         if (widget.competitionMode && remaining <= 10) {
           if (remaining <= 3) {
             HapticFeedback.heavyImpact();
@@ -257,17 +294,21 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     });
   }
 
+  // Format mm:ss
   String _format(int s) {
     final m = (s ~/ 60).toString().padLeft(2, '0');
     final ss = (s % 60).toString().padLeft(2, '0');
     return '$m:$ss';
   }
 
+  // Nettoie l’énoncé s’il commence par “Question 12: ...”
   String _cleanQuestion(String q) {
     return q.replaceFirst(RegExp(r'^Question\s*\d+[:\.\)]?\s*', caseSensitive: false), '');
   }
 
-  // lifecycle (mode compétition)
+  // =======================
+  // LIFECYCLE app (mode compétition)
+  // =======================
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!widget.competitionMode) return;
@@ -281,13 +322,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Pénalités si l’utilisateur sort trop de l’app
   Future<void> _handleResume() async {
     _exitCount++;
     if (_exitCount == 1) {
       await _showAlert('Attention', 'Sortie détectée. Une nouvelle sortie sera pénalisée.');
     } else if (_exitCount == 2) {
       setState(() {
-        remaining -= 30;
+        remaining -= 30;               // −30 s
         if (remaining < 0) remaining = 0;
       });
       _notifyStateChanged();
@@ -298,6 +340,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Avertit si appareil non-physique (émulateur)
   Future<void> _checkEmulator() async {
     if (kIsWeb) return;
     final info = DeviceInfoPlugin();
@@ -316,6 +359,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Boîte d’alerte générique
   Future<void> _showAlert(String title, String msg) async {
     if (!mounted) return;
     await showDialog(
@@ -329,6 +373,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     );
   }
 
+  // Confirme la soumission s’il reste des questions vides
   Future<void> _confirmSubmitIfBlanks() async {
     final blanks = answers.where((e) => e == null).length;
     if (blanks == 0) return;
@@ -343,18 +388,21 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         ],
       ),
     );
-    if (ok != true) {
-      throw Exception('cancelled');
-    }
+    if (ok != true) throw Exception('cancelled');
   }
 
-  // === Auto-next dès qu'on répond ===
+  // =======================
+  // INTERACTIONS: réponses & navigation
+  // =======================
+
+  // Lorsqu’un choix est tapé
   void _onAnswer(int index, int choice) {
-    setState(() => answers[index] = choice);
-    _notifyStateChanged();
+    setState(() => answers[index] = choice); // enregistre la réponse
+    _notifyStateChanged();                   // notifie parent (persist/analytics)
 
-    if (_submitted) return;
+    if (_submitted) return; // si déjà soumis, ignorer
 
+    // Auto-next : si pas la dernière -> passe à la suivante, sinon soumet
     if (index < widget.questions.length - 1) {
       _currentIndex = index + 1;
       _pageController.nextPage(
@@ -366,6 +414,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Bouton "Suivant / Terminer"
   Future<void> _nextOrSubmit() async {
     if (_currentIndex < widget.questions.length - 1) {
       setState(() => _currentIndex++);
@@ -375,6 +424,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Bouton "Précédent"
   Future<void> _prev() async {
     if (_currentIndex > 0) {
       setState(() => _currentIndex--);
@@ -382,18 +432,21 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     }
   }
 
+  // Soumission finale (auto ou manuelle)
   Future<void> _submit({bool auto = false}) async {
-    if (_submitted) return;
+    if (_submitted) return;       // éviter double soumission
     if (!auto) {
       try {
-        await _confirmSubmitIfBlanks();
+        await _confirmSubmitIfBlanks(); // prévient en cas de blancs
       } catch (_) {
-        return;
+        return;                   // utilisateur a choisi "Continuer" (pas soumettre)
       }
     }
 
-    timer?.cancel();
+    timer?.cancel(); // stop le timer
     final q = widget.questions;
+
+    // Calcule scores
     int correct = 0, wrong = 0, blank = 0;
     for (int i = 0; i < q.length; i++) {
       final sel = answers[i];
@@ -405,8 +458,12 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         wrong++;
       }
     }
+
+    // Barème
     final raw = widget.scoring.rawScore(correctCount: correct, wrongCount: wrong, blankCount: blank);
     final weighted = widget.scoring.weighted(raw);
+
+    // Stocke résultat
     _lastResult = ExamResult(
       correctCount: correct,
       wrongCount: wrong,
@@ -417,11 +474,13 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     );
     setState(() => _submitted = true);
 
+    // Si pas de résumé local → remonte le résultat au parent et quitte
     if (!widget.showLocalSummary) {
       _leaveExam(_lastResult);
       return;
     }
 
+    // Affiche le résumé local
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -453,22 +512,23 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     );
   }
 
-  // ===================== UI =====================
-
+  // =======================
+  // UI: HEADER
+  // =======================
   Widget _header(BuildContext context, String title, int step, int total) {
     final mq = MediaQuery.of(context);
-    final brand = _brand;
-    final onBrand = Colors.white;
-    final progress = (step + 1) / total;
+    final brand = _brand;         // couleur de marque
+    final onBrand = Colors.white; // texte blanc sur fond violet
+    final progress = (step + 1) / total; // progression 0..1
 
     return SizedBox(
-      height: 180 + mq.padding.top,
+      height: 180 + mq.padding.top, // hauteur header + hauteur encoche
       child: Stack(
         children: [
-          // Bande + arrondi bas
+          // Fond violet arrondi en bas
           Positioned.fill(
             child: Container(
-              padding: EdgeInsets.only(top: mq.padding.top),
+              padding: EdgeInsets.only(top: mq.padding.top), // laisse l’encoche
               decoration: BoxDecoration(
                 color: brand,
                 borderRadius: const BorderRadius.only(
@@ -478,13 +538,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               ),
             ),
           ),
-          // Appbar
+          // Ligne supérieure: back + titre + timer
           Positioned(
             top: mq.padding.top + 8,
             left: 8,
             right: 8,
             child: Row(
               children: [
+                // Flèche retour (confirme si non soumis)
                 IconButton(
                   onPressed: _submitted ? () => _leaveExam(_lastResult) : () async {
                     final ok = await showDialog<bool>(
@@ -502,6 +563,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                   },
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
+                // Titre centré
                 Expanded(
                   child: Text(
                     title,
@@ -511,7 +573,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                     ),
                   ),
                 ),
-                // Timer chip
+                // Timer (MM:SS)
                 Container(
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -528,13 +590,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
             ),
           ),
 
-          // Progress + libellé FR + bouton Soumettre dans le header
+          // Barre de progression + "QUESTION X SUR Y" + bouton "Soumettre"
           Positioned(
             left: 16,
             right: 16,
             bottom: 14,
             child: Column(
               children: [
+                // Progression fine
                 LinearProgressIndicator(
                   value: progress,
                   minHeight: 6,
@@ -544,6 +607,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                 const SizedBox(height: 12),
                 Row(
                   children: [
+                    // Pastille circulaire (anneau)
                     _PieBadge(
                       value: step + 1,
                       total: total,
@@ -552,15 +616,17 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                       background: Colors.white.withOpacity(.35),
                     ),
                     const SizedBox(width: 12),
+                    // Label FR
                     Expanded(
                       child: Text(
-                        'QUESTION ${step + 1} / $total',
+                        'QUESTION ${step + 1} SUR $total',
                         style: TextStyle(
                           color: onBrand.withOpacity(.95),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+                    // Bouton "Soumettre" bien visible dans le header
                     OutlinedButton.icon(
                       onPressed: _submitted ? null : () => _submit(),
                       style: OutlinedButton.styleFrom(
@@ -582,21 +648,20 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     );
   }
 
-  /// Page de question qui occupe **tout l’espace** sous le header.
+  // =======================
+  // UI: Question + actions bas
+  // =======================
   Widget _questionArea(Question q, int index) {
     final mediaQuery = MediaQuery.of(context);
-    final scale = computeScaleFactor(mediaQuery);
-    final textScaler = MediaQuery.textScalerOf(context);
+    final scale = computeScaleFactor(mediaQuery);          // facteur device
+    final textScaler = MediaQuery.textScalerOf(context);   // facteur accessibilité
 
-    // Taille de Titre Énoncé (agrandie & réactive)
+    // Taille de l’énoncé (grosse et responsive)
     final double questionTitleSize = scaledFontSize(
-      base: 20, // plus grand qu’avant
-      scale: scale,
-      textScaler: textScaler,
-      min: 18,
-      max: 26,
+      base: 20, scale: scale, textScaler: textScaler, min: 18, max: 26,
     );
 
+    // Taille des choix
     final double optionFontSize =
     scaledFontSize(base: 18, scale: scale, textScaler: textScaler, min: 16, max: 22);
 
@@ -610,7 +675,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Column(
           children: [
-            // Carte prend tout l’espace (scroll interne si besoin)
+            // Carte qui occupe tout l’espace dispo (scroll interne si contenu long)
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -629,9 +694,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Meta (FR)
+                              // Meta: “QUESTION X SUR Y”
                               Text(
-                                'QUESTION ${index + 1} / ${widget.questions.length}',
+                                'QUESTION ${index + 1} SUR ${widget.questions.length}',
                                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   letterSpacing: 0.8,
                                   color: onSurface.withOpacity(.55),
@@ -639,7 +704,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              // Énoncé — Titre plus grand
+                              // Énoncé
                               Text(
                                 _cleanQuestion(q.question),
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -648,6 +713,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                                 ),
                               ),
                               const SizedBox(height: 12),
+                              // Choix (A, B, C, D…)
                               for (int c = 0; c < q.choices.length; c++) ...[
                                 _OptionPill(
                                   label: '${String.fromCharCode(65 + c)}. ${q.choices[c]}',
@@ -669,12 +735,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               ),
             ),
 
-            // Barre d’actions collée en bas — deux boutons (Précédent | Suivant/Terminer)
+            // Barre d’actions en bas (Précédent | Suivant/Terminer)
+            // NOTE: on ajoute de la marge en bas si la bottom bar est présente,
+            // pour éviter que les boutons soient "collés" au menu.
             SafeArea(
               top: false,
-              minimum: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+              minimum: EdgeInsets.fromLTRB(0, 12, 0, widget.competitionMode ? 12 : 28),
               child: Row(
                 children: [
+                  // Précédent
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: (_submitted || index == 0) ? null : _prev,
@@ -687,6 +756,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Suivant / Terminer
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _submitted ? null : _nextOrSubmit,
@@ -715,12 +785,16 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     );
   }
 
+  // =======================
+  // BUILD
+  // =======================
   @override
   Widget build(BuildContext context) {
-    final q = widget.questions;
-    final title = widget.title ?? 'Math Quiz';
+    final q = widget.questions;               // questions
+    final title = widget.title ?? 'Examen';   // titre fallback
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Teinte des icônes de la status bar au-dessus du header violet
       value: SystemUiOverlayStyle(
         statusBarColor: _brand,
         statusBarIconBrightness: Brightness.light,
@@ -728,19 +802,27 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       ),
       child: SelectionContainer.disabled(
         child: Scaffold(
-          extendBody: true,
+          // ⚠️ CLEF: on **n’étend** le body **que** si **pas** de bottom bar
+          // → évite que le contenu passe sous le menu quand il est présent
+          extendBody: widget.competitionMode,
           extendBodyBehindAppBar: true,
+
+          // Fond global clair/sombre
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? const Color(0xFF111318)
               : const Color(0xFFF7F8FA),
+
+          // Affiche la bottom bar seulement hors compétition
           bottomNavigationBar: widget.competitionMode
               ? null
               : PlayBottomNavBar(
-                  destinations: playNavDestinations,
-                  selectedIndex: 2,
-                  backgroundColor: _brand,
-                  onDestinationSelected: _handleBottomNavSelection,
-                ),
+            destinations: playNavDestinations,
+            selectedIndex: 2,          // onglet courant
+            backgroundColor: _brand,   // teinte violette
+            onDestinationSelected: _handleBottomNavSelection,
+          ),
+
+          // AppBar technique (hauteur 0) pour avoir un edge-to-edge propre
           appBar: AppBar(
             toolbarHeight: 0,
             elevation: 0,
@@ -748,12 +830,15 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
             surfaceTintColor: Colors.transparent,
             automaticallyImplyLeading: false,
           ),
+
+          // Corps: header + PageView des questions
           body: Column(
             children: [
               _header(context, title, _currentIndex, q.length),
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
+                  // En compétition: on bloque le swipe manuel (seulement auto-next)
                   physics: widget.competitionMode
                       ? const NeverScrollableScrollPhysics()
                       : const BouncingScrollPhysics(),
@@ -770,15 +855,16 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   }
 }
 
-// ==================== Sub-widgets ====================
-
+// =======================
+// SOUS-WIDGET: Option (puce cliquable)
+// =======================
 class _OptionPill extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback? onTap;
-  final double fontSize;
-  final Color brand;
-  final Color onSurface;
+  final String label;     // ex: "A. Paris"
+  final bool selected;    // true si l’option est choisie
+  final VoidCallback? onTap; // callback au tap
+  final double fontSize;  // taille du texte
+  final Color brand;      // couleur de marque
+  final Color onSurface;  // couleur du texte standard
 
   const _OptionPill({
     required this.label,
@@ -792,10 +878,10 @@ class _OptionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
-    final Color unselectedBg = dark ? const Color(0xFF222329) : Colors.white;
-    final Color unselectedBorder = const Color(0xFFE0E0E6);
-    final Color bg = selected ? brand : unselectedBg;
-    final Color fg = selected ? Colors.white : onSurface.withOpacity(.9);
+    final Color unselectedBg = dark ? const Color(0xFF222329) : Colors.white; // fond non sélectionné
+    final Color unselectedBorder = const Color(0xFFE0E0E6);                   // bord fin
+    final Color bg = selected ? brand : unselectedBg;                          // fond si sélectionné
+    final Color fg = selected ? Colors.white : onSurface.withOpacity(.9);      // texte
 
     return Semantics(
       button: true,
@@ -829,12 +915,15 @@ class _OptionPill extends StatelessWidget {
   }
 }
 
+// =======================
+// SOUS-WIDGET: Pastille circulaire de progression
+// =======================
 class _PieBadge extends StatelessWidget {
-  final int value;
-  final int total;
-  final double size;
-  final Color foreground;
-  final Color background;
+  final int value;        // valeur courante (ex: question 4)
+  final int total;        // total (ex: 10)
+  final double size;      // diamètre
+  final Color foreground; // couleur de la jauge avant
+  final Color background; // couleur de l’anneau de fond
 
   const _PieBadge({
     required this.value,
@@ -846,24 +935,26 @@ class _PieBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = (value / total).clamp(0.0, 1.0);
+    final pct = (value / total).clamp(0.0, 1.0); // 0..1
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Anneau complet (fond)
           CircularProgressIndicator(
             value: 1,
             strokeWidth: size / 8,
             color: background,
           ),
+          // Portion remplie
           CircularProgressIndicator(
             value: pct,
             strokeWidth: size / 8,
             color: foreground,
           ),
-          // numéro non dessiné pour laisser l’anneau propre
+          // (On n’affiche pas le texte pour garder l’anneau épuré)
         ],
       ),
     );
