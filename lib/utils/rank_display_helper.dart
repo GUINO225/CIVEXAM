@@ -18,6 +18,22 @@ const Color _kBronzeColor = Color(0xFFCD7F32);
 const Color _kDefaultBackground = Color(0xFFCFD8DC);
 const Color _kDefaultForeground = Color(0xDD000000);
 
+/// Formats a rank number using French ordinal suffixes.
+///
+/// Returns `1er` for the first rank, `2e` for the second, `3e` for the third
+/// and `<n>e` for any subsequent ranks (e.g. `4e`, `10e`).
+String formatRankLabel(int rank) {
+  if (rank <= 0) {
+    return '$rank';
+  }
+
+  if (rank == 1) {
+    return '1er';
+  }
+
+  return '${rank}e';
+}
+
 RankDisplayStyle rankDisplayStyleFor(int rank) {
   switch (rank) {
     case 1:

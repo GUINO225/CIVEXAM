@@ -966,13 +966,12 @@ class _HomeShellState extends State<HomeShell> {
                       switchInCurve: Curves.easeOut,
                       switchOutCurve: Curves.easeIn,
                       transitionBuilder: (child, animation) {
-                        final fadeTransition =
+                        final fade =
                             FadeTransition(opacity: animation, child: child);
                         return RotationTransition(
-                          turns: animation.drive(
-                            Tween<double>(begin: 0.98, end: 1.0),
-                          ),
-                          child: fadeTransition,
+                          turns: animation
+                              .drive(Tween<double>(begin: 0.98, end: 1.0)),
+                          child: fade,
                         );
                       },
                       child: rank != null && rankStyle != null
@@ -2003,4 +2002,3 @@ class _PromoCarousel extends StatelessWidget {
     );
   }
 }
-
