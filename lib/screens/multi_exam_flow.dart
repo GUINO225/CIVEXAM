@@ -1,6 +1,8 @@
+// lib/screens/multi_exam_flow.dart
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../services/question_loader.dart';
@@ -11,6 +13,7 @@ import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
+
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
 
@@ -43,21 +46,20 @@ String difficultyHint(ExamDifficulty d) {
 }
 
 /// Retourne le nombre de secondes par question pour la difficulté donnée.
-/// - Normal -> `null` pour garder la durée officielle de l’épreuve (sec.duration)
-/// - Autres -> on utilise sec/question et on calcule un temps total = sec/question × nb de questions
 int? secondsPerQuestion(ExamDifficulty d) {
   switch (d) {
     case ExamDifficulty.facile:
-      return 90; // 1 min 30 par question
+      return 90;
     case ExamDifficulty.normal:
-      return null; // garder les durées officielles des épreuves
+      return null;
     case ExamDifficulty.difficile:
-      return 45; // 45s par question
+      return 45;
     case ExamDifficulty.expert:
-      return 30; // 30s par question
+      return 30;
   }
 }
 
+// Palette de difficulté (peut rester multicolore si tu veux distinguer les modes)
 final Map<ExamDifficulty, Color> _difficultyPalette = <ExamDifficulty, Color>{
   ExamDifficulty.facile: accentColor('forestGreen'),
   ExamDifficulty.normal: accentColor('sereneBlue'),
@@ -79,8 +81,9 @@ List<Question> _filterQuestions(List<Question> all, String subject, String chapt
   };
   final s = subjectAliases[s0] ?? s0;
   final c = chapterAliases[c0] ?? c0;
-  final exact =
-      all.where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c).toList(growable: false);
+  final exact = all
+      .where((q) => QuestionLoader.canon(q.subject) == s && QuestionLoader.canon(q.chapter) == c)
+      .toList(growable: false);
   if (exact.isNotEmpty) return exact;
   final bySubject = all.where((q) => QuestionLoader.canon(q.subject) == s).toList(growable: false);
   return bySubject;
@@ -90,7 +93,7 @@ class ExamSection {
   final String title;
   final String subject;
   final String chapter;
-  final Duration duration; // durée "officielle" de l’épreuve
+  final Duration duration;
   final ExamScoring scoring;
   final int targetCount;
 
@@ -120,8 +123,6 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   ExamDifficulty _difficulty = ExamDifficulty.normal;
 
-  /// Minimum success rate required to pass the exam.
-  /// Expressed as a fraction of correct answers over total questions.
   static const double PASS_MIN_SUCCESS_RATE = 0.5;
 
   @override
@@ -182,27 +183,27 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         if (!mounted) return;
         final reason = await ScaffoldMessenger.of(context)
             .showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
-                action: SnackBarAction(
-                  label: 'Continuer',
-                  onPressed: () {},
-                ),
-              ),
-            )
-            .closed;
+          SnackBar(
+            content: Text('Seulement ${pool.length}/${sec.targetCount} questions disponibles pour ${sec.title}.'),
+            action: SnackBarAction(
+              label: 'Continuer',
+              onPressed: () {},
+            ),
+          ),
+        ).closed;
         if (!mounted) return;
         if (reason != SnackBarClosedReason.action) {
           return;
         }
         takeCount = pool.length;
       }
+
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
+
       List<Question> qs;
       try {
         qs = await pickAndShuffle(
@@ -213,6 +214,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       } finally {
         if (mounted) Navigator.pop(context);
       }
+
       if (qs.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -226,49 +228,48 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
         );
         return;
       }
+
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       unawaited(
-        QuestionHistoryStore.addAll(qs.map((q) => q.id)).catchError(
-          (Object error, _) {
-            if (!mounted) return;
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('Échec de l’enregistrement de l’historique des questions.'),
-              ),
-            );
-          },
+        QuestionHistoryStore.addAll(qs.map((q) => q.id)).catchError((Object error, _) {
+          if (!mounted) return;
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Échec de l’enregistrement de l’historique des questions.'),
+            ),
+          );
+        }),
+      );
+
+      // Durée selon difficulté
+      final Duration effDuration =
+      (perQ == null) ? sec.duration : Duration(seconds: perQ * qs.length);
+
+      if (!mounted) return;
+      final res = await Navigator.push<ExamResult?>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ExamFullScreen(
+            questions: qs,
+            duration: effDuration,
+            scoring: sec.scoring,
+            title: 'Épreuve : ${sec.title} • ${difficultyLabel(_difficulty)}',
+            showLocalSummary: false,
+            // ---> on propage la couleur #5336C6 dans l’épreuve
+            brandColor: const Color(0xFF5336C6),
+          ),
         ),
       );
 
-      // Choisir la durée en fonction de la difficulté
-      final Duration effDuration;
-      if (perQ == null) {
-        // Normal : garder la durée officielle
-        effDuration = sec.duration;
-      } else {
-        // Autres niveaux : durée = secondes/question × nb de questions
-        effDuration = Duration(seconds: perQ * qs.length);
-      }
-
-      if (!mounted) return;
-      final res = await Navigator.push<ExamResult?>(context, MaterialPageRoute(
-        builder: (_) => ExamFullScreen(
-          questions: qs,
-          duration: effDuration,
-          scoring: sec.scoring,
-          title: 'Épreuve : ${sec.title} • ${difficultyLabel(_difficulty)}',
-          showLocalSummary: false,
-        ),
-      ));
       if (res != null) {
         results.add(res);
       } else {
-        // Abandon de la session
         abandoned = true;
         break;
       }
     }
+
     if (!mounted) return;
     _showSummaryAndSave();
   }
@@ -294,11 +295,8 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       totalQuestions += r.total;
     }
 
-    final double successRate =
-        totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
-    final bool success = !abandoned &&
-        totalQuestions > 0 &&
-        successRate >= PASS_MIN_SUCCESS_RATE;
+    final double successRate = totalQuestions == 0 ? 0 : totalCorrect / totalQuestions;
+    final bool success = !abandoned && totalQuestions > 0 && successRate >= PASS_MIN_SUCCESS_RATE;
 
     final entry = ExamHistoryEntry(
       date: DateTime.now(),
@@ -308,14 +306,16 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
       scoresPonderes: ponders,
       totalPondere: totalWeighted,
       success: success,
-      abandoned: abandoned, // conservé
+      abandoned: abandoned,
     );
     await HistoryStore.add(entry);
 
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(abandoned ? 'Concours abandonné' : 'Résumé du concours — ${difficultyLabel(_difficulty)}'),
+        title: Text(abandoned
+            ? 'Concours abandonné'
+            : 'Résumé du concours — ${difficultyLabel(_difficulty)}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,9 +324,7 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
               Text('$s — Brut ${bruts[s]} • Pondéré ${ponders[s]} (${corrects[s]}/${totals[s]})'),
             const SizedBox(height: 8),
             Text('Total pondéré : $totalWeighted'),
-            Text(
-              'Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %',
-            ),
+            Text('Taux de bonnes réponses : ${(successRate * 100).toStringAsFixed(1)} %'),
             Text('Résultat : ${abandoned ? "Abandonné 🟠" : (success ? "Réussi ✅" : "Échoué ❌")}'),
           ],
         ),
@@ -338,7 +336,10 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamHistoryScreen()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ExamHistoryScreen()),
+              );
             },
             child: const Text('Voir l’historique'),
           ),
@@ -347,19 +348,29 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     );
   }
 
-  Widget _difficultyPicker() {
+  // === UI helpers ============================================================
+
+  String _formatShort(Duration d) {
+    final total = d.inSeconds;
+    final m = total ~/ 60;
+    final s = total % 60;
+    return '${m}m${s.toString().padLeft(2, '0')}s';
+  }
+
+  Widget _difficultyPicker(BuildContext context) {
     final items = ExamDifficulty.values;
     final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: items.map((d) {
         final selected = _difficulty == d;
-        late final IconData icon;
         final accent = _difficultyPalette[d] ?? theme.colorScheme.primary;
         final isDark = theme.brightness == Brightness.dark;
-        final backgroundColor = accent.withOpacity(isDark ? 0.24 : 0.12);
-        final selectedColor = accent.withOpacity(isDark ? 0.36 : 0.2);
+        final backgroundColor = accent.withOpacity(isDark ? 0.22 : 0.12);
+        final selectedColor = accent.withOpacity(isDark ? 0.32 : 0.20);
+        IconData icon;
         switch (d) {
           case ExamDifficulty.facile:
             icon = Icons.sentiment_satisfied_alt;
@@ -380,11 +391,12 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
           selected: selected,
           tooltip: difficultyHint(d),
           labelStyle: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: selected ? FontWeight.w600 : null,
+            color: onSurface,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
           backgroundColor: backgroundColor,
           selectedColor: selectedColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           onSelected: (_) => setState(() => _difficulty = d),
         );
       }).toList(),
@@ -412,84 +424,334 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final mq = MediaQuery.of(context);
+    final bool isDark = scheme.brightness == Brightness.dark;
+
+    // === Marque globale : #5336C6 ===
+    final Color brand = const Color(0xFF5336C6);
+    final Color pageBg = isDark ? const Color(0xFF111318) : const Color(0xFFF7F8FA);
+    final Color onPage = isDark ? Colors.white.withOpacity(0.92) : const Color(0xFF1B1B1F);
+    final Color cardColor = isDark ? const Color(0xFF1F1F22) : Colors.white;
+
     final perQ = secondsPerQuestion(_difficulty);
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: pageBg,
+
+      // AppBar invisible mais status bar aux couleurs de marque
       appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.flag),
-            SizedBox(width: 8),
-            Text('Parcours multi-épreuves ENA'),
-          ],
+        toolbarHeight: 0,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: brand,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        centerTitle: true,
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Niveau de difficulté',
-                          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+
+      body: Stack(
+        children: [
+          // Bande en haut (derrière l'encoche)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(height: mq.padding.top, color: brand),
+          ),
+
+          // Contenu
+          SafeArea(
+            child: loading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                // ===== HERO CARD =====
+                Container(
+                  decoration: BoxDecoration(
+                    color: brand,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Puce
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        const SizedBox(height: 8),
-                        _difficultyPicker(),
-                        const SizedBox(height: 12),
-                        if (perQ == null)
+                        child: const Text(
+                          'Parcours multi-épreuves',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Concours ENA — Simulation complète',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          color: Colors.white,
+                          letterSpacing: .2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.timer, size: 18, color: Colors.white),
+                          const SizedBox(width: 8),
                           Text(
-                            'Mode Normal : timings officiels des épreuves (réaliste).',
-                            style: textTheme.bodyLarge,
-                          )
-                        else
-                          Text(
-                            'Mode ${difficultyLabel(_difficulty)} : ~${perQ}s par question (temps total ajusté automatiquement).',
-                            style: textTheme.bodyLarge,
+                            perQ == null
+                                ? 'Mode Normal — timings officiels'
+                                : 'Mode ${difficultyLabel(_difficulty)} — ~${perQ}s/question',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.92),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        const SizedBox(height: 16),
-                        Card(
-                          child: Column(
-                            children: [
-                              for (final s in sections)
-                                ListTile(
-                                  leading: Icon(_iconForSection(s.title)),
-                                  title: Text(
-                                    s.title,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                  subtitle: Text(
-                                    'Barème: ${s.scoring} • Questions visées: ${s.targetCount}',
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                  trailing: const Icon(Icons.chevron_right),
-                                ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _startFlow,
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Démarrer le parcours'),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _difficultyPicker(context),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                // ===== Rappel important =====
+                Text(
+                  'Rappel important',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: onPage,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _InfoBadgeCard(
+                  icon: Icons.rule,
+                  primary: 'Barème',
+                  secondary: '+1 bonne · 0 blanc · −1 mauvaise',
+                  brand: brand,
+                  onPage: onPage,
+                  cardColor: cardColor,
+                ),
+                const SizedBox(height: 10),
+                _InfoBadgeCard(
+                  icon: Icons.calculate,
+                  primary: 'Coefficient',
+                  secondary: '×2 par épreuve',
+                  brand: brand,
+                  onPage: onPage,
+                  cardColor: cardColor,
+                ),
+
+                const SizedBox(height: 22),
+
+                // ===== Liste des épreuves =====
+                Text(
+                  'Épreuves',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: onPage,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final s in sections) ...[
+                  _SectionTile(
+                    icon: _iconForSection(s.title),
+                    title: s.title,
+                    subtitle:
+                    'Questions visées : ${s.targetCount} · Barème ${s.scoring.toStringShort()}',
+                    rightLabel: perQ == null
+                        ? _formatShort(s.duration)
+                        : _formatShort(Duration(seconds: (perQ * s.targetCount))),
+                    cardColor: cardColor,
+                    brand: brand,
+                    onPage: onPage,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                const SizedBox(height: 8),
+                // ===== CTA =====
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _startFlow,
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Démarrer le parcours'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: brand,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+// === Widgets ================================================================
+
+class _InfoBadgeCard extends StatelessWidget {
+  final IconData icon;
+  final String primary;
+  final String secondary;
+  final Color brand;
+  final Color onPage;
+  final Color cardColor;
+
+  const _InfoBadgeCard({
+    required this.icon,
+    required this.primary,
+    required this.secondary,
+    required this.brand,
+    required this.onPage,
+    required this.cardColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: cardColor,
+      elevation: 0,
+      shadowColor: Colors.black.withOpacity(0.08),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: brand.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: brand),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(primary,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: onPage)),
+                  const SizedBox(height: 2),
+                  Text(secondary, style: TextStyle(color: onPage.withOpacity(0.7))),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: brand.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(Icons.check, size: 16, color: brand),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String rightLabel;
+  final Color cardColor;
+  final Color brand;
+  final Color onPage;
+
+  const _SectionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.rightLabel,
+    required this.cardColor,
+    required this.brand,
+    required this.onPage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 5))],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: brand.withOpacity(0.12), borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: brand),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: onPage)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: TextStyle(color: onPage.withOpacity(0.7))),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(color: brand.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+            child: Text(
+              rightLabel,
+              style: TextStyle(fontWeight: FontWeight.w700, color: brand, letterSpacing: .2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// === Extensions utilitaires ==================================================
+
+extension on ExamScoring {
+  String toStringShort() => '+$correct • 0 • $wrong (×$coefficient)';
 }
