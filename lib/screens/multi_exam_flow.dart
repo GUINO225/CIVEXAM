@@ -13,9 +13,12 @@ import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+import '../widgets/play_themed_scaffold.dart';
 
 import 'exam_full_screen.dart';
 import 'exam_history_screen.dart';
+import 'play_screen.dart';
 
 enum ExamDifficulty { facile, normal, difficile, expert }
 
@@ -425,198 +428,195 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final mq = MediaQuery.of(context);
     final bool isDark = scheme.brightness == Brightness.dark;
 
-    // === Marque globale : #5336C6 ===
-    final Color brand = const Color(0xFF5336C6);
+    // === Marque globale ===
+    final Color brand = PlayBottomNavBar.defaultBackgroundColor;
     final Color pageBg = isDark ? const Color(0xFF111318) : const Color(0xFFF7F8FA);
     final Color onPage = isDark ? Colors.white.withOpacity(0.92) : const Color(0xFF1B1B1F);
     final Color cardColor = isDark ? const Color(0xFF1F1F22) : Colors.white;
 
     final perQ = secondsPerQuestion(_difficulty);
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: pageBg,
+    final Widget content = loading
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+            children: [
+              // ===== HERO CARD =====
+              Container(
+                decoration: BoxDecoration(
+                  color: brand,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Puce
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        'Parcours multi-épreuves',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Concours ENA — Simulation complète',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                        color: Colors.white,
+                        letterSpacing: .2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.timer, size: 18, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          perQ == null
+                              ? 'Mode Normal — timings officiels'
+                              : 'Mode ${difficultyLabel(_difficulty)} — ~${perQ}s/question',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.92),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _difficultyPicker(context),
+                  ],
+                ),
+              ),
 
-      // AppBar invisible mais status bar aux couleurs de marque
+              const SizedBox(height: 22),
+
+              // ===== Rappel important =====
+              Text(
+                'Rappel important',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: onPage,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _InfoBadgeCard(
+                icon: Icons.rule,
+                primary: 'Barème',
+                secondary: '+1 bonne · 0 blanc · −1 mauvaise',
+                brand: brand,
+                onPage: onPage,
+                cardColor: cardColor,
+              ),
+              const SizedBox(height: 10),
+              _InfoBadgeCard(
+                icon: Icons.calculate,
+                primary: 'Coefficient',
+                secondary: '×2 par épreuve',
+                brand: brand,
+                onPage: onPage,
+                cardColor: cardColor,
+              ),
+
+              const SizedBox(height: 22),
+
+              // ===== Liste des épreuves =====
+              Text(
+                'Épreuves',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: onPage,
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final s in sections) ...[
+                _SectionTile(
+                  icon: _iconForSection(s.title),
+                  title: s.title,
+                  subtitle:
+                      'Questions visées : ${s.targetCount} · Barème ${s.scoring.toStringShort()}',
+                  rightLabel: perQ == null
+                      ? _formatShort(s.duration)
+                      : _formatShort(Duration(seconds: (perQ * s.targetCount))),
+                  cardColor: cardColor,
+                  brand: brand,
+                  onPage: onPage,
+                ),
+                const SizedBox(height: 10),
+              ],
+
+              const SizedBox(height: 8),
+              // ===== CTA =====
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _startFlow,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Démarrer le parcours'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brand,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+
+    return PlayThemedScaffold(
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
-        toolbarHeight: 0,
+        leading: const BackButton(),
+        title: const Text('Parcours multi-épreuves'),
+        backgroundColor: brand,
+        foregroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        automaticallyImplyLeading: false,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: brand,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
       ),
-
-      body: Stack(
-        children: [
-          // Bande en haut (derrière l'encoche)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(height: mq.padding.top, color: brand),
-          ),
-
-          // Contenu
-          SafeArea(
-            child: loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              children: [
-                // ===== HERO CARD =====
-                Container(
-                  decoration: BoxDecoration(
-                    color: brand,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Puce
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Text(
-                          'Parcours multi-épreuves',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Concours ENA — Simulation complète',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 22,
-                          color: Colors.white,
-                          letterSpacing: .2,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.timer, size: 18, color: Colors.white),
-                          const SizedBox(width: 8),
-                          Text(
-                            perQ == null
-                                ? 'Mode Normal — timings officiels'
-                                : 'Mode ${difficultyLabel(_difficulty)} — ~${perQ}s/question',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.92),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _difficultyPicker(context),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 22),
-
-                // ===== Rappel important =====
-                Text(
-                  'Rappel important',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: onPage,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _InfoBadgeCard(
-                  icon: Icons.rule,
-                  primary: 'Barème',
-                  secondary: '+1 bonne · 0 blanc · −1 mauvaise',
-                  brand: brand,
-                  onPage: onPage,
-                  cardColor: cardColor,
-                ),
-                const SizedBox(height: 10),
-                _InfoBadgeCard(
-                  icon: Icons.calculate,
-                  primary: 'Coefficient',
-                  secondary: '×2 par épreuve',
-                  brand: brand,
-                  onPage: onPage,
-                  cardColor: cardColor,
-                ),
-
-                const SizedBox(height: 22),
-
-                // ===== Liste des épreuves =====
-                Text(
-                  'Épreuves',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: onPage,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                for (final s in sections) ...[
-                  _SectionTile(
-                    icon: _iconForSection(s.title),
-                    title: s.title,
-                    subtitle:
-                    'Questions visées : ${s.targetCount} · Barème ${s.scoring.toStringShort()}',
-                    rightLabel: perQ == null
-                        ? _formatShort(s.duration)
-                        : _formatShort(Duration(seconds: (perQ * s.targetCount))),
-                    cardColor: cardColor,
-                    brand: brand,
-                    onPage: onPage,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-
-                const SizedBox(height: 8),
-                // ===== CTA =====
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _startFlow,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Démarrer le parcours'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: brand,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      body: DecoratedBox(
+        decoration: BoxDecoration(color: pageBg),
+        child: content,
+      ),
+      bottomNavigationBar: PlayBottomNavBar(
+        destinations: playNavDestinations,
+        selectedIndex: 2,
+        backgroundColor: brand,
+        onDestinationSelected: (index) {
+          if (index == 2) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
+          );
+        },
       ),
     );
   }
