@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:civexam_pro/utils/io_stub.dart'
-    if (dart.library.io) 'dart:io' as io;
+if (dart.library.io) 'dart:io' as io;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +18,18 @@ import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
 import '../utils/arcade_level_utils.dart';
 
+/// Palette cohérente (violet + surface claire)
+class _Brand {
+  static const primary = Color(0xFF6C5CE7);
+  static const primaryDark = Color(0xFF5B4DE1);
+  static const secondary = Color(0xFF7F6AF8);
+  static const surface = Color(0xFFF7F5FF);
+  static const card = Color(0xFFFFFFFF);
+  static const text = Color(0xFF1E1E28);
+  static const textMuted = Color(0xFF6E6B7A);
+  static const border = Color(0xFFE6E1F9);
+}
+
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
 
@@ -32,6 +44,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _pseudoController = TextEditingController();
   final _professionController = TextEditingController();
   final _profileService = UserProfileService();
+
   String? _avatarPath;
   Uint8List? _avatarBytes;
   String? _photoUrl;
@@ -70,18 +83,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       try {
         final profile = await _profileService.loadProfile(uid);
         if (profile != null) {
-          if (profile.firstName.isNotEmpty) {
-            _firstNameController.text = profile.firstName;
-          }
-          if (profile.lastName.isNotEmpty) {
-            _lastNameController.text = profile.lastName;
-          }
-          if (profile.profession.isNotEmpty) {
-            _professionController.text = profile.profession;
-          }
-          if (profile.nickname.isNotEmpty) {
-            remoteNickname = profile.nickname;
-          }
+          if (profile.firstName.isNotEmpty) _firstNameController.text = profile.firstName;
+          if (profile.lastName.isNotEmpty) _lastNameController.text = profile.lastName;
+          if (profile.profession.isNotEmpty) _professionController.text = profile.profession;
+          if (profile.nickname.isNotEmpty) remoteNickname = profile.nickname;
           storedPhotoUrl = profile.photoUrl;
           remoteArcadeLevel = profile.arcadeLevel;
         }
@@ -96,9 +101,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     setState(() {
       _avatarPath = storedPath;
       _avatarBytes = storedBytes;
-      if (remoteNickname != null) {
-        _pseudoController.text = remoteNickname;
-      }
+      if (remoteNickname != null) _pseudoController.text = remoteNickname;
       _photoUrl = storedPhotoUrl ?? _photoUrl;
       _arcadeLevel = normalizeArcadeLevel(remoteArcadeLevel ?? _arcadeLevel);
     });
@@ -115,9 +118,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   bool _isImagePickerSupported() {
-    if (kIsWeb) {
-      return false;
-    }
+    if (kIsWeb) return false;
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.iOS:
@@ -131,9 +132,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   void _showImagePickerUnavailableMessage() {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("La sélection d'image n'est pas disponible sur cette plateforme."),
-      ),
+      const SnackBar(content: Text("La sélection d'image n'est pas disponible sur cette plateforme.")),
     );
   }
 
@@ -151,9 +150,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _showImagePickerUnavailableMessage();
       return;
     }
-    if (picked == null) {
-      return;
-    }
+    if (picked == null) return;
+
     if (kIsWeb) {
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
@@ -174,61 +172,35 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   String _buildPhotoUrlForStorage() {
-    if (_avatarBytes != null) {
-      return 'base64:${base64Encode(_avatarBytes!)}';
-    }
-    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-      return _avatarPath!;
-    }
+    if (_avatarBytes != null) return 'base64:${base64Encode(_avatarBytes!)}';
+    if (_avatarPath != null && _avatarPath!.isNotEmpty) return _avatarPath!;
     return _photoUrl ?? '';
   }
 
-  Widget _buildAvatarCircle() {
-    final image = _currentAvatarImage();
-    return CircleAvatar(
-      radius: 50,
-      backgroundImage: image,
-      child: image != null ? null : const Icon(Icons.person, size: 50),
-    );
-  }
-
   ImageProvider? _currentAvatarImage() {
-    if (_avatarBytes != null) {
-      return MemoryImage(_avatarBytes!);
-    }
+    if (_avatarBytes != null) return MemoryImage(_avatarBytes!);
+
     if (kIsWeb) {
       if (_photoUrl != null && _photoUrl!.isNotEmpty) {
-        if (_photoUrl!.startsWith('http')) {
-          return NetworkImage(_photoUrl!);
-        }
+        if (_photoUrl!.startsWith('http')) return NetworkImage(_photoUrl!);
         final base64Data = _extractBase64(_photoUrl!);
-        if (base64Data != null) {
-          return MemoryImage(base64Decode(base64Data));
-        }
+        if (base64Data != null) return MemoryImage(base64Decode(base64Data));
       }
       return null;
     }
-    if (!kIsWeb) {
-      if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-        final file = io.File(_avatarPath!);
-        if (file.existsSync()) {
-          return FileImage(file as dynamic);
-        }
-      }
+
+    if (!kIsWeb && _avatarPath != null && _avatarPath!.isNotEmpty) {
+      final file = io.File(_avatarPath!);
+      if (file.existsSync()) return FileImage(file as dynamic);
     }
+
     if (_photoUrl != null && _photoUrl!.isNotEmpty) {
-      if (_photoUrl!.startsWith('http')) {
-        return NetworkImage(_photoUrl!);
-      }
+      if (_photoUrl!.startsWith('http')) return NetworkImage(_photoUrl!);
       final base64Data = _extractBase64(_photoUrl!);
-      if (base64Data != null) {
-        return MemoryImage(base64Decode(base64Data));
-      }
+      if (base64Data != null) return MemoryImage(base64Decode(base64Data));
       if (!kIsWeb) {
         final file = io.File(_photoUrl!);
-        if (file.existsSync()) {
-          return FileImage(file as dynamic);
-        }
+        if (file.existsSync()) return FileImage(file as dynamic);
       }
     }
     return null;
@@ -237,9 +209,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   String? _extractBase64(String input) {
     if (input.startsWith('data:image')) {
       final commaIndex = input.indexOf(',');
-      if (commaIndex != -1) {
-        return input.substring(commaIndex + 1);
-      }
+      if (commaIndex != -1) return input.substring(commaIndex + 1);
     }
     if (input.startsWith('base64:')) {
       return input.substring('base64:'.length);
@@ -247,13 +217,49 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     return null;
   }
 
+  Widget _buildAvatarCard() {
+    final image = _currentAvatarImage();
+    return Container(
+      decoration: BoxDecoration(
+        color: _Brand.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _Brand.border),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: _pickImage,
+            borderRadius: BorderRadius.circular(100),
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: _Brand.surface,
+              backgroundImage: image,
+              child: image != null
+                  ? null
+                  : const Icon(Icons.person, size: 48, color: _Brand.primary),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: _pickImage,
+            icon: const Icon(Icons.photo_library_rounded),
+            label: const Text('Changer la photo'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('first_name', _firstNameController.text);
     await prefs.setString('last_name', _lastNameController.text);
     await prefs.setString('profession', _professionController.text);
     await prefs.setString('nickname', _pseudoController.text);
+
     if (kIsWeb) {
       if (_avatarBytes != null) {
         await prefs.setString('avatar_bytes', base64Encode(_avatarBytes!));
@@ -267,6 +273,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         await prefs.remove('avatar_path');
       }
     }
+
     final profile = UserProfile(
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
@@ -325,7 +332,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      (route) => false,
+          (route) => false,
     );
   }
 
@@ -343,31 +350,26 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             children: [
               TextField(
                 controller: oldController,
-                decoration:
-                    const InputDecoration(labelText: 'Ancien mot de passe'),
+                decoration: const InputDecoration(labelText: 'Ancien mot de passe'),
                 obscureText: true,
               ),
               TextField(
                 controller: newController,
-                decoration:
-                    const InputDecoration(labelText: 'Nouveau mot de passe'),
+                decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
                 obscureText: true,
               ),
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Annuler'),
-            ),
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Annuler')),
             TextButton(
               onPressed: () async {
                 final user = FirebaseAuth.instance.currentUser;
                 if (user == null || user.email == null) {
                   Navigator.of(dialogContext).pop();
                   if (!mounted) return;
-                  ScaffoldMessenger.of(outerContext).showSnackBar(
-                      const SnackBar(content: Text('Utilisateur non connecté')));
+                  ScaffoldMessenger.of(outerContext)
+                      .showSnackBar(const SnackBar(content: Text('Utilisateur non connecté')));
                   return;
                 }
                 try {
@@ -379,16 +381,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   await user.updatePassword(newController.text);
                   Navigator.of(dialogContext).pop();
                   if (!mounted) return;
-                  ScaffoldMessenger.of(outerContext).showSnackBar(
-                      const SnackBar(content: Text('Mot de passe mis à jour')));
+                  ScaffoldMessenger.of(outerContext)
+                      .showSnackBar(const SnackBar(content: Text('Mot de passe mis à jour')));
                 } on FirebaseAuthException catch (e) {
                   Navigator.of(dialogContext).pop();
                   if (!mounted) return;
                   ScaffoldMessenger.of(outerContext).showSnackBar(
-                    SnackBar(
-                      content: Text(e.message ??
-                          'Erreur lors du changement de mot de passe'),
-                    ),
+                    SnackBar(content: Text(e.message ?? 'Erreur lors du changement de mot de passe')),
                   );
                 }
               },
@@ -402,72 +401,124 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Modifier le profil',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      Center(
-                        child: InkWell(
-                          onTap: _pickImage,
-                          child: _buildAvatarCircle(),
+    final base = Theme.of(context);
+    final themed = base.copyWith(
+      scaffoldBackgroundColor: _Brand.surface,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _Brand.primary,
+        brightness: base.brightness,
+      ).copyWith(
+        primary: _Brand.primary,
+        surface: _Brand.surface,
+        background: _Brand.surface,
+        onSurface: _Brand.text,
+        onPrimary: Colors.white,
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: _Brand.text,
+        displayColor: _Brand.text,
+      ),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: _Brand.surface,
+        foregroundColor: _Brand.text,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: base.textTheme.titleLarge?.copyWith(
+          color: _Brand.text,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _Brand.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _Brand.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _Brand.primary),
+        ),
+        filled: true,
+        fillColor: _Brand.card,
+        labelStyle: base.textTheme.bodyMedium?.copyWith(color: _Brand.textMuted),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _Brand.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          elevation: 0,
+        ),
+      ),
+      dividerColor: _Brand.border,
+    );
+
+    return Theme(
+      data: themed,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Modifier le profil')),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  _buildAvatarCard(),
+                  const SizedBox(height: 16),
+                  // Carte formulaire
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _Brand.card,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _Brand.border),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _firstNameController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(labelText: 'Prénom'),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _firstNameController,
-                        decoration: const InputDecoration(labelText: 'Prénom'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _lastNameController,
-                        decoration: const InputDecoration(labelText: 'Nom'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _pseudoController,
-                        decoration: const InputDecoration(labelText: 'Pseudonyme'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _professionController,
-                        decoration: const InputDecoration(labelText: 'Profession'),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _save,
-                        child: const Text('Enregistrer'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: _showChangePasswordDialog,
-                        child: const Text('Changer le mot de passe'),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _lastNameController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(labelText: 'Nom'),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _pseudoController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(labelText: 'Pseudonyme'),
+                          validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Choisis un pseudonyme' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _professionController,
+                          textInputAction: TextInputAction.done,
+                          decoration: const InputDecoration(labelText: 'Profession'),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(onPressed: _save, child: const Text('Enregistrer')),
+                  const SizedBox(height: 8),
+                  TextButton(onPressed: _showChangePasswordDialog, child: const Text('Changer le mot de passe')),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-
