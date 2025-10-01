@@ -1,3 +1,4 @@
+import 'dart:ui' show clampDouble; // pour clampDouble
 import 'package:flutter/material.dart';
 
 import '../models/question.dart';
@@ -49,52 +50,39 @@ class CompetitionScreen extends StatefulWidget {
 
 class _CompetitionScreenState extends State<CompetitionScreen>
     with SingleTickerProviderStateMixin {
-  /// Currently selected answer index. `-1` means no selection yet.
   int _selected = -1;
-
-  /// Index of the option currently highlighted by a press gesture.
   int _highlighted = -1;
-
-  /// Animation controller driving the countdown timer.
   late final AnimationController _controller;
 
-  /// Convenient getter for the question being displayed.
   Question get _currentQuestion => widget.questions[widget.currentIndex];
-
-  /// Remaining seconds on the countdown clock.
   int get _remainingSeconds =>
       (_controller.value * widget.timePerQuestion).ceil();
 
   @override
   void initState() {
     super.initState();
-    // Initialize the timer controller with the provided duration.
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: widget.timePerQuestion),
     )
-      // Rebuild the widget tree every tick to update the remaining time.
       ..addListener(() => setState(() {}))
-      // When the animation completes (time runs out), move to the next question.
       ..addStatusListener((s) {
         if (s == AnimationStatus.dismissed) _goNext();
       });
-    // Start the countdown immediately.
     _controller.reverse(from: 1.0);
   }
 
   @override
   void dispose() {
-    // Always dispose animation controllers to free resources.
     _controller.dispose();
     super.dispose();
   }
 
-  /// Removes any "Question XX:" prefix from the question text.
   String _cleanQuestion(String q) {
     return q.replaceFirst(
-        RegExp(r'^Question\s*\d+[:\.\)]?\s*', caseSensitive: false),
-        '');
+      RegExp(r'^Question\s*\d+[:\.\)]?\s*', caseSensitive: false),
+      '',
+    );
   }
 
   @override
@@ -103,10 +91,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     final scale = computeScaleFactor(mediaQuery);
     final textScaler = MediaQuery.textScalerOf(context);
     final theme =
-        (widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context)))
-            .scaled(scale, textScaler);
+    (widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context)))
+        .scaled(scale, textScaler);
+
     final TextStyle resolvedChipTextStyle =
-        DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
+    DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
+
     final double optionFontSize = scaledFontSize(
       base: 18,
       scale: scale,
@@ -114,24 +104,31 @@ class _CompetitionScreenState extends State<CompetitionScreen>
       min: 15,
       max: 26,
     );
+
     final double chipMinHeight =
         (resolvedChipTextStyle.fontSize ?? 16) *
-                (resolvedChipTextStyle.height ?? 1.0) +
+            (resolvedChipTextStyle.height ?? 1.0) +
             16;
+
     final double topCardHeight = clampDouble(
       mediaQuery.size.height * 0.3,
       240.0,
       320.0,
     );
+
+    // Couleur + icône spécifiques à la matière courante
+    final Color subjectFg = _colorForSubject(_currentQuestion.subject);
+    final Color subjectBg = subjectFg.withOpacity(0.14);
+    final IconData subjectIcon = _iconForSubject(_currentQuestion.subject);
+
     return Scaffold(
-      // Global background color comes from the theme.
       backgroundColor: theme.backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Top card displaying the timer, question text and progress bar.
+              // Top card with timer, question & progress
               SizedBox(
                 width: double.infinity,
                 height: topCardHeight,
@@ -140,14 +137,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                   decoration: BoxDecoration(
                     color: theme.questionCardColor,
                     borderRadius:
-                        BorderRadius.circular(theme.questionCardRadius),
+                    BorderRadius.circular(theme.questionCardRadius),
                     boxShadow: theme.questionCardShadow,
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Countdown circle.
                       Center(
                         child: Container(
                           padding: const EdgeInsets.all(8),
@@ -169,28 +164,43 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                   color: theme.timerColor,
                                 ),
                               ),
-                              Text(
-                                '$_remainingSeconds',
-                                style: theme.timerTextStyle,
-                              ),
+                              Text('$_remainingSeconds',
+                                  style: theme.timerTextStyle),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Question number within the current session.
                       Text(
                         'Question ${widget.currentIndex + 1}/${widget.questions.length}',
                         style: theme.questionIndexTextStyle,
                       ),
                       const SizedBox(height: 4),
-                      // Rubric/subject of the current question.
-                      Text(
-                        'Rubrique : ${_currentQuestion.subject}',
-                        style: theme.questionIndexTextStyle,
+
+                      // === Rubrique avec icône adaptée à la matière ===
+                      Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: subjectBg,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(subjectIcon, color: subjectFg, size: 18),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _currentQuestion.subject,
+                              style: theme.questionIndexTextStyle,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
+
                       const SizedBox(height: 8),
-                      // Actual question text.
                       Expanded(
                         child: Align(
                           alignment: Alignment.topLeft,
@@ -203,20 +213,20 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // Progress bar for overall quiz progression.
                       LinearProgressIndicator(
                         value:
-                            (widget.currentIndex + 1) / widget.questions.length,
+                        (widget.currentIndex + 1) / widget.questions.length,
                         color: theme.progressBarColor,
                         backgroundColor:
-                            theme.progressBarColor.withOpacity(0.3),
+                        theme.progressBarColor.withOpacity(0.3),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              // Chip displaying the selected answer when user taps an option.
+
+              // Selected answer chip area
               SizedBox(
                 height: chipMinHeight,
                 child: AnimatedSwitcher(
@@ -238,7 +248,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                         ).animate(curved),
                         child: ScaleTransition(
                           scale:
-                              Tween<double>(begin: 0.92, end: 1).animate(curved),
+                          Tween<double>(begin: 0.92, end: 1).animate(curved),
                           child: child,
                         ),
                       ),
@@ -246,32 +256,33 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                   },
                   child: _selected >= 0
                       ? AnimatedAlign(
-                          key: ValueKey<int>(_selected),
-                          alignment: Alignment.center,
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: theme.selectedChipBackgroundColor,
-                              borderRadius: BorderRadius.circular(
-                                theme.selectedChipRadius,
-                              ),
-                            ),
-                            constraints:
-                                BoxConstraints(minHeight: chipMinHeight),
-                            child: Text(
-                              _currentQuestion.choices[_selected],
-                              style: theme.selectedChipTextStyle,
-                            ),
-                          ),
-                        )
+                    key: ValueKey<int>(_selected),
+                    alignment: Alignment.center,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: theme.selectedChipBackgroundColor,
+                        borderRadius: BorderRadius.circular(
+                          theme.selectedChipRadius,
+                        ),
+                      ),
+                      constraints:
+                      BoxConstraints(minHeight: chipMinHeight),
+                      child: Text(
+                        _currentQuestion.choices[_selected],
+                        style: theme.selectedChipTextStyle,
+                      ),
+                    ),
+                  )
                       : SizedBox(height: chipMinHeight),
                 ),
               ),
               const SizedBox(height: 24),
-              // Answer options list.
+
+              // Options
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -279,17 +290,18 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     final bool isSelected = _selected == i;
                     final bool isHighlighted = _highlighted == i;
                     final borderRadius =
-                        BorderRadius.circular(theme.optionCardRadius);
+                    BorderRadius.circular(theme.optionCardRadius);
                     final Color baseColor = theme.optionCardColor;
                     final Color highlightOverlay =
-                        theme.optionSelectedBorderColor.withOpacity(0.06);
+                    theme.optionSelectedBorderColor.withOpacity(0.06);
                     final Color selectedOverlay =
-                        theme.optionSelectedBorderColor.withOpacity(0.12);
+                    theme.optionSelectedBorderColor.withOpacity(0.12);
                     final Color resolvedColor = isSelected
                         ? Color.alphaBlend(selectedOverlay, baseColor)
                         : isHighlighted
-                            ? Color.alphaBlend(highlightOverlay, baseColor)
-                            : baseColor;
+                        ? Color.alphaBlend(highlightOverlay, baseColor)
+                        : baseColor;
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Container(
@@ -314,15 +326,14 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                   _highlighted = value ? i : -1;
                                 });
                               },
-                              onTap: _selected >= 0
-                                  ? null
-                                  : () => _onOptionTap(i),
+                              onTap:
+                              _selected >= 0 ? null : () => _onOptionTap(i),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 curve: Curves.easeOut,
                                 width: double.infinity,
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
                                   color: resolvedColor,
                                   borderRadius: borderRadius,
@@ -357,13 +368,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
   }
 
   void _onOptionTap(int i) {
-    // Prevent selecting multiple answers.
     if (_selected >= 0) return;
     setState(() {
       _selected = i;
       _highlighted = -1;
     });
-    // Pause the timer and move to next question shortly after.
     _controller.stop();
     Future.delayed(const Duration(milliseconds: 300), () {
       if (!mounted) return;
@@ -373,19 +382,18 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
   void _goNext([int? selected]) {
     if (!mounted) return;
-    // Determine whether the chosen option (if any) is correct, wrong or blank.
+
     final bool isBlank = selected == null;
     final bool isCorrect =
         selected != null && selected == _currentQuestion.answerIndex;
-    final bool isWrong = selected != null && selected != _currentQuestion.answerIndex;
+    final bool isWrong =
+        selected != null && selected != _currentQuestion.answerIndex;
 
-    final int totalCorrect =
-        widget.correctCount + (isCorrect ? 1 : 0);
+    final int totalCorrect = widget.correctCount + (isCorrect ? 1 : 0);
     final int totalWrong = widget.wrongCount + (isWrong ? 1 : 0);
     final int totalBlank = widget.blankCount + (isBlank ? 1 : 0);
 
     if (widget.currentIndex + 1 < widget.questions.length) {
-      // Continue to the next question by replacing the current screen.
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -402,7 +410,6 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         ),
       );
     } else {
-      // All questions answered: show result screen.
       final durationSec =
           DateTime.now().difference(widget.startTime).inSeconds;
       Navigator.pushReplacement(
@@ -423,22 +430,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 }
 
 class CompetitionResultScreen extends StatefulWidget {
-  /// Total number of questions answered.
   final int total;
-
-  /// Number of correct answers.
   final int correct;
-
-  /// Number of wrong answers.
   final int wrong;
-
-  /// Number of unanswered questions.
   final int blank;
-
-  /// Total duration of the competition (in seconds).
   final int durationSec;
-
-  /// Theme used to style the result screen.
   final CompetitionTheme? theme;
 
   const CompetitionResultScreen({
@@ -452,7 +448,8 @@ class CompetitionResultScreen extends StatefulWidget {
   });
 
   @override
-  State<CompetitionResultScreen> createState() => _CompetitionResultScreenState();
+  State<CompetitionResultScreen> createState() =>
+      _CompetitionResultScreenState();
 }
 
 class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
@@ -480,13 +477,8 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Title of the result screen.
-            Text(
-              'Résultat',
-              style: theme.questionTextStyle,
-            ),
+            Text('Résultat', style: theme.questionTextStyle),
             const SizedBox(height: 16),
-            // Display final score.
             Text('Score: ${widget.correct} / ${widget.total}',
                 style: theme.optionTextStyle),
             const SizedBox(height: 24),
@@ -501,3 +493,68 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
   }
 }
 
+/// ---------- Helpers: choix d’icône/couleur par matière ----------
+String _normalize(String s) {
+  final lower = s.toLowerCase();
+  return lower
+      .replaceAll('é', 'e')
+      .replaceAll('è', 'e')
+      .replaceAll('ê', 'e')
+      .replaceAll('ë', 'e')
+      .replaceAll('à', 'a')
+      .replaceAll('â', 'a')
+      .replaceAll('ä', 'a')
+      .replaceAll('î', 'i')
+      .replaceAll('ï', 'i')
+      .replaceAll('ô', 'o')
+      .replaceAll('ö', 'o')
+      .replaceAll('û', 'u')
+      .replaceAll('ü', 'u')
+      .replaceAll('ç', 'c');
+}
+
+IconData _iconForSubject(String name) {
+  final n = _normalize(name);
+  if (n.contains('droit')) return Icons.gavel_rounded;
+  if (n.contains('culture') || n.contains('generale')) return Icons.public_rounded;
+  if (n.contains('communication')) return Icons.forum_rounded;
+  if (n.contains('administrat')) return Icons.admin_panel_settings_rounded;
+  if (n.contains('economie') || n.contains('economi')) return Icons.trending_up_rounded;
+  if (n.contains('finance')) return Icons.account_balance_rounded;
+  if (n.contains('statist')) return Icons.stacked_line_chart_rounded;
+  if (n.contains('math')) return Icons.calculate_rounded;
+  if (n.contains('informatique') || n.contains('tic')) return Icons.computer_rounded;
+  if (n.contains('science')) return Icons.biotech_rounded;
+  if (n.contains('geograph')) return Icons.map_rounded;
+  if (n.contains('histoire')) return Icons.history_edu_rounded;
+  if (n.contains('anglais') || n.contains('francais') || n.contains('français')) {
+    return Icons.translate_rounded;
+  }
+  if (n.contains('logique') || n.contains('raisonnement') || n.contains('aptitude')) {
+    return Icons.psychology_rounded;
+  }
+  return Icons.menu_book_rounded;
+}
+
+Color _colorForSubject(String name) {
+  final n = _normalize(name);
+  if (n.contains('droit')) return const Color(0xFF3949AB); // indigo
+  if (n.contains('culture') || n.contains('generale')) return const Color(0xFF6A1B9A); // purple
+  if (n.contains('communication')) return const Color(0xFF00897B); // teal
+  if (n.contains('administrat')) return const Color(0xFF5C6BC0); // indigo lighten
+  if (n.contains('economie') || n.contains('economi')) return const Color(0xFFF57C00); // orange
+  if (n.contains('finance')) return const Color(0xFF2E7D32); // green
+  if (n.contains('statist')) return const Color(0xFF0277BD); // blue
+  if (n.contains('math')) return const Color(0xFF1565C0); // blue darker
+  if (n.contains('informatique') || n.contains('tic')) return const Color(0xFF546E7A); // blueGrey
+  if (n.contains('science')) return const Color(0xFF512DA8); // deep purple
+  if (n.contains('geograph')) return const Color(0xFF2E7D32); // green
+  if (n.contains('histoire')) return const Color(0xFF6D4C41); // brown
+  if (n.contains('anglais') || n.contains('francais') || n.contains('français')) {
+    return const Color(0xFFAD1457); // pink
+  }
+  if (n.contains('logique') || n.contains('raisonnement') || n.contains('aptitude')) {
+    return const Color(0xFF00838F); // cyan dark
+  }
+  return const Color(0xFF6C5CE7); // fallback (violet)
+}

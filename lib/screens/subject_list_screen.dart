@@ -2,8 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../data/ena_taxonomy.dart';
 import '../services/question_loader.dart';
-import '../widgets/play_themed_scaffold.dart';
 import 'chapter_list_screen.dart';
+
+/// Palette cohérente (violet + surface claire)
+class _Brand {
+  static const primary = Color(0xFF6C5CE7);
+  static const primaryDark = Color(0xFF5B4DE1);
+  static const secondary = Color(0xFF7F6AF8);
+  static const surface = Color(0xFFF7F5FF);
+  static const card = Color(0xFFFFFFFF);
+  static const text = Color(0xFF1E1E28);
+  static const textMuted = Color(0xFF6E6B7A);
+  static const border = Color(0xFFE6E1F9);
+  static const chipBg = Color(0xFFEFEAFF);
+}
 
 class SubjectListScreen extends StatefulWidget {
   const SubjectListScreen({super.key});
@@ -45,8 +57,8 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
     }
   }
 
-  Future<void> _openChapter(String subjectName, String chapterName) async {
-    await Navigator.push(
+  Future<void> _openChapter(String subjectName, String chapterName) {
+    return Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ChapterListScreen(
@@ -59,46 +71,59 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
 
   Widget _buildError() {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 48),
-          const SizedBox(height: 16),
-          Text(
-            _error ?? 'Une erreur est survenue.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadSubjects,
-            child: const Text('Réessayer'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: _Brand.secondary),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Une erreur est survenue.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _loadSubjects,
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_error != null) {
-      return _buildError();
-    }
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) return _buildError();
+
     if (_subjects.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.menu_book_outlined, size: 48),
-            const SizedBox(height: 16),
-            const Text('Aucune matière disponible pour le moment.'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadSubjects,
-              child: const Text('Actualiser'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.menu_book_outlined, size: 48, color: _Brand.secondary),
+              const SizedBox(height: 12),
+              Text(
+                'Aucune matière disponible pour le moment.',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _loadSubjects,
+                child: const Text('Actualiser'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -106,27 +131,15 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
     return RefreshIndicator(
       onRefresh: _loadSubjects,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         itemCount: _subjects.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final subject = _subjects[index];
-          return Card(
-            elevation: 3,
-            child: ExpansionTile(
-              title: Text(
-                subject.name,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              children: [
-                for (final chapter in subject.chapters)
-                  ListTile(
-                    title: Text(chapter.name),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _openChapter(subject.name, chapter.name),
-                  ),
-              ],
-            ),
+          return _SubjectTile(
+            subject: subject,
+            onOpenChapter: (chapterName) =>
+                _openChapter(subject.name, chapterName),
           );
         },
       ),
@@ -135,11 +148,180 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PlayThemedScaffold(
-      appBar: AppBar(title: const Text('Choisir une matière')),
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      panelHeightFactor: 0.92,
-      body: _buildBody(),
+    final base = Theme.of(context);
+    final themed = base.copyWith(
+      scaffoldBackgroundColor: _Brand.surface,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _Brand.primary,
+        brightness: base.brightness,
+      ).copyWith(
+        primary: _Brand.primary,
+        surface: _Brand.surface,
+        background: _Brand.surface,
+        onSurface: _Brand.text,
+        onPrimary: Colors.white,
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: _Brand.text,
+        displayColor: _Brand.text,
+      ),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: _Brand.surface,
+        foregroundColor: _Brand.text,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      dividerColor: _Brand.border,
+      expansionTileTheme: const ExpansionTileThemeData(
+        tilePadding: EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: EdgeInsets.only(left: 8, right: 8, bottom: 12),
+        collapsedIconColor: _Brand.textMuted,
+        iconColor: _Brand.primaryDark,
+      ),
+    );
+
+    return Theme(
+      data: themed,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Choisir une matière')),
+        body: _buildBody(),
+      ),
+    );
+  }
+}
+
+/// ---------- Helpers: choix d’icône/couleur par matière ----------
+
+String _normalize(String s) {
+  final lower = s.toLowerCase();
+  return lower
+      .replaceAll('é', 'e')
+      .replaceAll('è', 'e')
+      .replaceAll('ê', 'e')
+      .replaceAll('ë', 'e')
+      .replaceAll('à', 'a')
+      .replaceAll('â', 'a')
+      .replaceAll('ä', 'a')
+      .replaceAll('î', 'i')
+      .replaceAll('ï', 'i')
+      .replaceAll('ô', 'o')
+      .replaceAll('ö', 'o')
+      .replaceAll('û', 'u')
+      .replaceAll('ü', 'u')
+      .replaceAll('ç', 'c');
+}
+
+IconData _iconForSubject(String name) {
+  final n = _normalize(name);
+  if (n.contains('droit')) return Icons.gavel_rounded;
+  if (n.contains('culture') || n.contains('generale')) return Icons.public_rounded;
+  if (n.contains('communication')) return Icons.forum_rounded;
+  if (n.contains('administrat')) return Icons.admin_panel_settings_rounded;
+  if (n.contains('economie') || n.contains('economi')) return Icons.trending_up_rounded;
+  if (n.contains('finance')) return Icons.account_balance_rounded;
+  if (n.contains('statist')) return Icons.stacked_line_chart_rounded;
+  if (n.contains('math')) return Icons.calculate_rounded;
+  if (n.contains('informatique') || n.contains('tic')) return Icons.computer_rounded;
+  if (n.contains('science')) return Icons.biotech_rounded;
+  if (n.contains('geograph')) return Icons.map_rounded;
+  if (n.contains('histoire')) return Icons.history_edu_rounded;
+  if (n.contains('anglais') || n.contains('francais') || n.contains('français')) {
+    return Icons.translate_rounded;
+  }
+  if (n.contains('logique') || n.contains('raisonnement') || n.contains('aptitude')) {
+    return Icons.psychology_rounded;
+  }
+  return Icons.menu_book_rounded;
+}
+
+Color _colorForSubject(String name) {
+  final n = _normalize(name);
+  if (n.contains('droit')) return const Color(0xFF3949AB); // indigo
+  if (n.contains('culture') || n.contains('generale')) return const Color(0xFF6A1B9A); // purple
+  if (n.contains('communication')) return const Color(0xFF00897B); // teal
+  if (n.contains('administrat')) return const Color(0xFF5C6BC0); // indigo lighten
+  if (n.contains('economie') || n.contains('economi')) return const Color(0xFFF57C00); // orange
+  if (n.contains('finance')) return const Color(0xFF2E7D32); // green
+  if (n.contains('statist')) return const Color(0xFF0277BD); // blue
+  if (n.contains('math')) return const Color(0xFF1565C0); // blue darker
+  if (n.contains('informatique') || n.contains('tic')) return const Color(0xFF546E7A); // blueGrey
+  if (n.contains('science')) return const Color(0xFF512DA8); // deep purple
+  if (n.contains('geograph')) return const Color(0xFF2E7D32); // green
+  if (n.contains('histoire')) return const Color(0xFF6D4C41); // brown
+  if (n.contains('anglais') || n.contains('francais') || n.contains('français')) {
+    return const Color(0xFFAD1457); // pink
+  }
+  if (n.contains('logique') || n.contains('raisonnement') || n.contains('aptitude')) {
+    return const Color(0xFF00838F); // cyan dark
+  }
+  return _Brand.primary; // fallback cohérent
+}
+
+/// Tuile “Live Quizzes” style (carte blanche bordée, arrondis)
+class _SubjectTile extends StatelessWidget {
+  final Subject subject;
+  final void Function(String chapterName) onOpenChapter;
+
+  const _SubjectTile({
+    required this.subject,
+    required this.onOpenChapter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final Color fg = _colorForSubject(subject.name);
+    final Color bg = fg.withOpacity(0.14); // fond doux
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _Brand.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _Brand.border),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Row(
+            children: [
+              // Icône adaptée à la matière
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_iconForSubject(subject.name), color: fg),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  subject.name,
+                  style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          children: [
+            for (final chapter in subject.chapters)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                decoration: BoxDecoration(
+                  color: _Brand.card,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _Brand.border),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.chevron_right, color: fg), // rappel couleur matière
+                  title: Text(chapter.name, style: tt.bodyMedium),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _Brand.textMuted),
+                  onTap: () => onOpenChapter(chapter.name),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -302,8 +302,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         MaterialPageRoute(
           builder: (_) => ExamFullScreen(
             questions: questions,
-            duration:
-            Duration(seconds: level.questionCount * level.perQuestionSeconds),
+            duration: Duration(
+                seconds: level.questionCount * level.perQuestionSeconds),
             scoring: _scoring,
             title: level.title,
             showLocalSummary: true,
@@ -465,7 +465,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       ),
       chipTheme: base.chipTheme.copyWith(
         shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding:
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         labelStyle: base.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w600,
           color: _Brand.text,
@@ -482,11 +483,6 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
     final previewLevels = _buildPreviewLevels(resumeIndex);
 
-    // Pour la carte "Recent", calcule un pourcentage si on a un résumé.
-    final int? lastPercent = _lastSummary == null || _lastSummary!.totalQuestions == 0
-        ? null
-        : ((_lastSummary!.correct / _lastSummary!.totalQuestions) * 100).round();
-
     return Theme(
       data: themed,
       child: Scaffold(
@@ -501,28 +497,13 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
             children: [
-              // Header dégradé style maquette
-              _GradientHeader(
-                title: 'Bonjour 👋',
-                subtitle: 'Arcade — passe les paliers et grimpe de niveau.',
-                trailing: _SmallBadge(text: 'Niv. ${resumeIndex + 1}'),
-              ),
-              const SizedBox(height: 16),
-
-              // "Recent" (donut) comme sur la maquette
-              _RecentCard(
-                title: 'Dernière session',
-                subtitle: _lastSummary == null
-                    ? 'Aucune session enregistrée.'
-                    : 'Bonnes réponses : ${_lastSummary!.correct}/${_lastSummary!.totalQuestions}',
-                trailing: _DonutBadge(label: lastPercent == null ? '—' : '$lastPercent%'),
-              ),
-              const SizedBox(height: 16),
+              // === EN-TÊTE & "DERNIÈRE SESSION" SUPPRIMÉS ===
 
               // Bloc violet Featured avec CTA "Lancer la session"
               _FeaturedCard(
                 title: 'Défie-toi en mode arcade',
-                subtitle: 'Vitesse, précision et niveaux de plus en plus durs.',
+                subtitle:
+                'Vitesse, précision et niveaux de plus en plus durs.',
                 ctaLabel: _preparing
                     ? 'Préparation…'
                     : _loadingProgress
@@ -536,8 +517,12 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Aperçu des niveaux', style: themed.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-                  Text('Voir tout', style: themed.textTheme.bodyMedium?.copyWith(color: _Brand.textMuted)),
+                  Text('Aperçu des niveaux',
+                      style: themed.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800)),
+                  Text('Voir tout',
+                      style: themed.textTheme.bodyMedium
+                          ?.copyWith(color: _Brand.textMuted)),
                 ],
               ),
               const SizedBox(height: 10),
@@ -560,7 +545,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                       isCurrent: entry.isCurrent,
                     );
                   },
-                  separatorBuilder: (_, __) => Divider(height: 1, color: _Brand.border),
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: _Brand.border),
                   itemCount: previewLevels.length,
                 ),
               ),
@@ -569,7 +555,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                 const SizedBox(height: 24),
                 Text(
                   _error!,
-                  style: themed.textTheme.bodyMedium?.copyWith(color: themed.colorScheme.error),
+                  style: themed.textTheme.bodyMedium
+                      ?.copyWith(color: themed.colorScheme.error),
                 ),
               ],
 
@@ -582,7 +569,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         ),
 
         // Gros bouton centré (comme le “+” de la maquette)
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation:
+        FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
           child: ElevatedButton.icon(
@@ -591,7 +579,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                 ? const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white),
             )
                 : const Icon(Icons.play_arrow),
             label: Text(_preparing
@@ -702,7 +691,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       return null;
     }
 
-    final requiredCorrect = _requiredCorrectForLevel(levelIndex, questionCount);
+    final requiredCorrect =
+    _requiredCorrectForLevel(levelIndex, questionCount);
     final perQuestionSeconds = _perQuestionSecondsForLevel(levelIndex);
 
     return _ArcadeLevel(
@@ -754,124 +744,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   }
 }
 
-/// ---- Widgets “design maquette” réutilisables ----
-
-class _GradientHeader extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-
-  const _GradientHeader({
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_Brand.primary, _Brand.primaryDark],
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: DefaultTextStyle(
-              style: tt.bodyMedium!.copyWith(color: Colors.white),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('GOOD MORNING', style: tt.labelSmall?.copyWith(color: Colors.white70, letterSpacing: .6)),
-                  const SizedBox(height: 6),
-                  Text(
-                    title,
-                    style: tt.titleLarge!.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: tt.bodyMedium?.copyWith(color: Colors.white70)),
-                ],
-              ),
-            ),
-          ),
-          if (trailing != null) trailing!,
-        ],
-      ),
-    );
-  }
-}
-
-class _SmallBadge extends StatelessWidget {
-  final String text;
-  const _SmallBadge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class _RecentCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget trailing;
-  const _RecentCard({required this.title, required this.subtitle, required this.trailing});
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: _Brand.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Brand.border),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _Brand.chipBg,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.videogame_asset_outlined, color: _Brand.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: _Brand.text)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
-              ],
-            ),
-          ),
-          trailing,
-        ],
-      ),
-    );
-  }
-}
+/// ---- Widgets réutilisables (nets des blocs retirés) ----
 
 class _FeaturedCard extends StatelessWidget {
   final String title;
@@ -897,24 +770,32 @@ class _FeaturedCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('FEATURED', style: tt.labelSmall?.copyWith(color: Colors.white70, letterSpacing: .6)),
+          Text('FEATURED',
+              style: tt.labelSmall
+                  ?.copyWith(color: Colors.white70, letterSpacing: .6)),
           const SizedBox(height: 6),
-          Text(title, style: tt.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+          Text(title,
+              style: tt.titleMedium
+                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text(subtitle, style: tt.bodyMedium?.copyWith(color: Colors.white70)),
+          Text(subtitle,
+              style: tt.bodyMedium?.copyWith(color: Colors.white70)),
           const SizedBox(height: 14),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: onTap,
-              icon: const Icon(Icons.play_arrow, color: _Brand.primaryDark),
+              icon:
+              const Icon(Icons.play_arrow, color: _Brand.primaryDark),
               style: TextButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: _Brand.primaryDark,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
                 shape: const StadiumBorder(),
               ),
-              label: Text(ctaLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
+              label: Text(ctaLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -941,11 +822,12 @@ class _LevelListTile extends StatelessWidget {
     return InkWell(
       onTap: null, // aperçu non cliquable (la session démarre via les CTA)
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding:
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         color: Colors.transparent,
         child: Row(
           children: [
-            // Bloc icône gauche (carré violet comme la maquette)
+            // Bloc icône gauche (carré violet)
             Container(
               width: 46,
               height: 46,
@@ -967,9 +849,13 @@ class _LevelListTile extends StatelessWidget {
                       ArcadeBadgeChip(label: level.title, compact: true),
                       const SizedBox(width: 8),
                       if (isCompleted)
-                        _StatusPill(icon: Icons.check_circle_rounded, label: 'Validé')
+                        _StatusPill(
+                            icon: Icons.check_circle_rounded,
+                            label: 'Validé')
                       else if (isCurrent)
-                        _StatusPill(icon: Icons.play_circle_fill_rounded, label: 'À venir'),
+                        _StatusPill(
+                            icon: Icons.play_circle_fill_rounded,
+                            label: 'À venir'),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -1003,7 +889,10 @@ class _StatusPill extends StatelessWidget {
       backgroundColor: _Brand.chipBg,
       side: const BorderSide(color: _Brand.border),
       shape: const StadiumBorder(),
-      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+      labelStyle: Theme.of(context)
+          .textTheme
+          .bodySmall
+          ?.copyWith(fontWeight: FontWeight.w600),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
@@ -1017,8 +906,9 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final percent =
-    summary.totalQuestions == 0 ? 0 : (summary.correct / summary.totalQuestions * 100).round();
+    final percent = summary.totalQuestions == 0
+        ? 0
+        : (summary.correct / summary.totalQuestions * 100).round();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1030,7 +920,9 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Dernière performance', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+          Text('Dernière performance',
+              style: tt.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
           Text(
             '${summary.correct}/${summary.totalQuestions} bonnes réponses (${percent}%).',
@@ -1038,10 +930,12 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text('Niveaux complétés : ${summary.levelsCompleted}',
-              style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+              style:
+              tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
           const SizedBox(height: 4),
           Text('Temps total : ${_formatDuration(summary.durationSec)}',
-              style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+              style:
+              tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
         ],
       ),
     );
@@ -1070,34 +964,6 @@ class _AvatarDot extends StatelessWidget {
           color: _Brand.primary,
           fontWeight: FontWeight.w800,
         ),
-      ),
-    );
-  }
-}
-
-/// Petit “donut” décoratif façon maquette
-class _DonutBadge extends StatelessWidget {
-  final String label;
-  const _DonutBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 54,
-      height: 54,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: label.endsWith('%')
-                ? (double.tryParse(label.replaceAll('%', '')) ?? 0) / 100.0
-                : 0.65, // fallback décoratif
-            strokeWidth: 6,
-            backgroundColor: _Brand.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(_Brand.primary),
-          ),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-        ],
       ),
     );
   }

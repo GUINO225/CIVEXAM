@@ -304,38 +304,20 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Entraînement'),
-          actions: const [
-            _AvatarDot(initial: 'M'), // avatar rond “M” comme sur la maquette
-            SizedBox(width: 12),
-          ],
+          // actions supprimées (avatar "M" retiré)
         ),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
-              // Header en dégradé violet (style "Good morning / Recent quiz")
-              _GradientHeader(
+              // Header en dégradé violet (avatar "M" retiré)
+              const _GradientHeader(
                 title: 'Bonjour 👋',
                 subtitle: 'Prêt(e) pour un rapide entraînement ?',
               ),
               const SizedBox(height: 16),
 
-              // Carte "Dernier réglage" + roue de progression stylisée (texte)
-              _RecentCard(
-                title: 'Réglages rapides',
-                subtitle: 'Ajuste le temps et la longueur du quiz.',
-                trailing: _DonutBadge(label: '${_perQuestionSeconds}s'),
-              ),
-              const SizedBox(height: 16),
-
-              // Bloc violet "Featured" => on y met le CTA principal façon "Find friends"
-              _FeaturedCard(
-                title: 'Entraîne-toi en défis chronométrés',
-                subtitle: 'Gagne en vitesse et précision.',
-                ctaLabel: _loading ? 'Chargement…' : 'Commencer',
-                onTap: _loading ? null : _start,
-              ),
-              const SizedBox(height: 16),
+              // --- Blocs "Réglages rapides" et "Featured" SUPPRIMÉS ---
 
               // Section chips : Temps par question
               _SectionCard(
@@ -376,7 +358,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           ),
         ),
 
-        // Bouton d’action centré (comme le “+” flottant de la maquette, mais ici CTA)
+        // Bouton d’action centré
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -389,7 +371,7 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           ),
         ),
 
-        // Nav bar fantôme pour laisser respirer le CTA (si tu as déjà ta BottomNav, remplace)
+        // Nav bar fantôme pour laisser respirer le CTA
         bottomNavigationBar: const SizedBox(height: 12),
       ),
     );
@@ -438,103 +420,7 @@ class _GradientHeader extends StatelessWidget {
               ),
             ),
           ),
-          const _AvatarDot(initial: 'M', darkInHeader: true),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget trailing;
-  const _RecentCard({required this.title, required this.subtitle, required this.trailing});
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: _Brand.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Brand.border),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(
-              color: _Brand.chipBg,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.ad_units_sharp, color: _Brand.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: _Brand.text)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
-              ],
-            ),
-          ),
-          trailing,
-        ],
-      ),
-    );
-  }
-}
-
-class _FeaturedCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String ctaLabel;
-  final VoidCallback? onTap;
-  const _FeaturedCard({
-    required this.title,
-    required this.subtitle,
-    required this.ctaLabel,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: _Brand.primaryDark,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('FEATURED', style: tt.labelSmall?.copyWith(color: Colors.white70, letterSpacing: .6)),
-          const SizedBox(height: 6),
-          Text(title,
-              style: tt.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: tt.bodyMedium?.copyWith(color: Colors.white70)),
-          const SizedBox(height: 14),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: onTap,
-              icon: const Icon(Icons.play_arrow, color: _Brand.primaryDark),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: _Brand.primaryDark,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: const StadiumBorder(),
-              ),
-              label: Text(ctaLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
+          // Avatar "M" retiré
         ],
       ),
     );
@@ -599,53 +485,6 @@ class _InfoTile extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(child: Text(label, style: tt.bodyMedium?.copyWith(color: _Brand.textMuted))),
           Text(value, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-        ],
-      ),
-    );
-  }
-}
-
-class _AvatarDot extends StatelessWidget {
-  final String initial;
-  final bool darkInHeader;
-  const _AvatarDot({required this.initial, this.darkInHeader = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor: darkInHeader ? Colors.white24 : _Brand.chipBg,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: darkInHeader ? Colors.white : _Brand.primary,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-/// Petit badge “donut” simple (style indicateur circulaire)
-class _DonutBadge extends StatelessWidget {
-  final String label;
-  const _DonutBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 54,
-      height: 54,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: .65, // décoratif (comme la maquette) — tu peux relier à une vraie valeur
-            strokeWidth: 6,
-            backgroundColor: _Brand.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(_Brand.primary),
-          ),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
         ],
       ),
     );
