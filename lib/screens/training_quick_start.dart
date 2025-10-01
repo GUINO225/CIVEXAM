@@ -9,7 +9,6 @@ import '../services/question_history_store.dart';
 import '../models/training_history_entry.dart';
 import '../services/training_history_store.dart';
 import 'exam_full_screen.dart';
-import '../services/leaderboard_hooks.dart';
 import '../services/ongoing_quiz_store.dart';
 import '../widgets/chip_selector.dart';
 
@@ -145,18 +144,6 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
           abandoned: false,
         );
         await TrainingHistoryStore.add(entry);
-        await LeaderboardHooks.saveTraining(
-          context: context,
-          subject: 'Entraînement (mix)',
-          chapter: 'Général',
-          total: res.total,
-          correct: res.correctCount,
-          wrong: res.wrongCount,
-          blank: res.blankCount,
-          durationSec: elapsedSeconds,
-          percent: res.total == 0 ? 0.0 : (res.correctCount / res.total) * 100.0,
-        );
-
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(success ? 'Tentative enregistrée — Validé.' : 'Tentative enregistrée — Échoué.')),
