@@ -12,6 +12,8 @@ import '../models/question.dart';
 import '../services/scoring.dart';
 import '../app/theme.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+import 'play_screen.dart';
 
 class ExamResult {
   final int correctCount;
@@ -187,6 +189,35 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   void _logWindowManagerError(String operation, Object error, StackTrace stackTrace) {
     debugPrint('FlutterWindowManager $operation failed: $error');
     debugPrintStack(stackTrace: stackTrace);
+  }
+
+  Future<void> _handleBottomNavSelection(int index) async {
+    if (index == 2) return;
+
+    if (!_submitted) {
+      final shouldLeave = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Quitter ?'),
+          content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+          ],
+        ),
+      );
+
+      if (shouldLeave != true) {
+        return;
+      }
+    }
+
+    widget.onStateCleared?.call();
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
+    );
   }
 
   void _notifyStateChanged() {
@@ -702,6 +733,14 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? const Color(0xFF111318)
               : const Color(0xFFF7F8FA),
+          bottomNavigationBar: widget.competitionMode
+              ? null
+              : PlayBottomNavBar(
+                  destinations: playNavDestinations,
+                  selectedIndex: 2,
+                  backgroundColor: _brand,
+                  onDestinationSelected: _handleBottomNavSelection,
+                ),
           appBar: AppBar(
             toolbarHeight: 0,
             elevation: 0,
