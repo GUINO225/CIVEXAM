@@ -963,7 +963,7 @@ class _HomeShellState extends State<HomeShell> {
                         rankStyle?.backgroundColor ?? Colors.white,
                     child: rank != null && rankStyle != null
                         ? Text(
-                            '$rank',
+                            formatRankLabel(rank),
                             style: TextStyle(
                               color: rankStyle.foregroundColor,
                               fontWeight: FontWeight.w700,
