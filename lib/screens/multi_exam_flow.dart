@@ -52,13 +52,13 @@ String difficultyHint(ExamDifficulty d) {
 int? secondsPerQuestion(ExamDifficulty d) {
   switch (d) {
     case ExamDifficulty.facile:
-      return 90;
+      return 216;
     case ExamDifficulty.normal:
       return null;
     case ExamDifficulty.difficile:
-      return 45;
+      return 108;
     case ExamDifficulty.expert:
-      return 30;
+      return 72;
   }
 }
 
