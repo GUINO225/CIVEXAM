@@ -1,29 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../services/question_loader.dart';
+import '../models/design_config.dart';
 import '../models/question.dart';
-import '../services/scoring.dart';
-import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
 import '../models/training_history_entry.dart';
-import '../services/training_history_store.dart';
-import 'exam_full_screen.dart';
+import '../services/design_bus.dart';
 import '../services/ongoing_quiz_store.dart';
+import '../services/question_history_store.dart';
+import '../services/question_loader.dart';
+import '../services/question_randomizer.dart';
+import '../services/scoring.dart';
+import '../services/training_history_store.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/chip_selector.dart';
-
-/// Palette inspirée du design fourni (violets, surfaces très claires).
-class _Brand {
-  static const primary = Color(0xFF6C5CE7);       // violet principal
-  static const primaryDark = Color(0xFF5B4DE1);   // violet plus profond
-  static const secondary = Color(0xFF7F6AF8);     // accent
-  static const surface = Color(0xFFF7F5FF);       // fond app
-  static const card = Color(0xFFFFFFFF);          // cartes blanches
-  static const chipBg = Color(0xFFEFEAFF);        // chip non sélectionnée
-  static const text = Color(0xFF1E1E28);          // texte principal
-  static const textMuted = Color(0xFF6E6B7A);     // texte secondaire
-  static const border = Color(0xFFE6E1F9);        // bordure douce
-}
+import 'exam_full_screen.dart';
 
 class TrainingQuickStartScreen extends StatefulWidget {
   const TrainingQuickStartScreen({super.key});
@@ -231,136 +221,155 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context);
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final base = Theme.of(context);
+        final palette = _QuickStartPalette.fromConfig(cfg);
 
-    // Thème local qui impose la palette violette du design fourni
-    final themed = base.copyWith(
-      scaffoldBackgroundColor: _Brand.surface,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _Brand.primary,
-        brightness: base.brightness,
-      ).copyWith(
-        primary: _Brand.primary,
-        secondary: _Brand.secondary,
-        surface: _Brand.surface,
-        background: _Brand.surface,
-        onSurface: _Brand.text,
-        onPrimary: Colors.white,
-      ),
-      textTheme: base.textTheme.apply(
-        bodyColor: _Brand.text,
-        displayColor: _Brand.text,
-      ),
-      appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: _Brand.surface,
-        foregroundColor: _Brand.text,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _Brand.primary,
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(56),
-          shape: const StadiumBorder(),
-          elevation: 0,
-        ),
-      ),
-      chipTheme: base.chipTheme.copyWith(
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        labelStyle: base.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: _Brand.text,
-        ),
-        backgroundColor: _Brand.chipBg,
-        selectedColor: _Brand.primary,
-        secondarySelectedColor: _Brand.primary,
-        showCheckmark: false,
-        side: const BorderSide(color: _Brand.border),
-      ),
-      dividerColor: _Brand.border,
-    );
-
-    final total = Duration(seconds: _perQuestionSeconds * _questionCount);
-    String two(int x) => x.toString().padLeft(2, '0');
-    final totalLabel = '${two(total.inMinutes)}:${two(total.inSeconds % 60)}';
-
-    return Theme(
-      data: themed,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Entraînement'),
-          // actions supprimées (avatar "M" retiré)
-        ),
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            children: [
-              // Header en dégradé violet (avatar "M" retiré)
-              const _GradientHeader(
-                title: 'Bonjour 👋',
-                subtitle: 'Prêt(e) pour un rapide entraînement ?',
-              ),
-              const SizedBox(height: 16),
-
-              // --- Blocs "Réglages rapides" et "Featured" SUPPRIMÉS ---
-
-              // Section chips : Temps par question
-              _SectionCard(
-                title: 'Temps par question',
-                icon: Icons.timer_outlined,
-                child: ChipSelector<int>(
-                  options: _secondOptions,
-                  selected: _perQuestionSeconds,
-                  onSelected: (s) => setState(() => _perQuestionSeconds = s),
-                  spacing: 10,
-                  runSpacing: 10,
-                  labelBuilder: (s) => '${s}s',
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Section chips : Nombre de questions
-              _SectionCard(
-                title: 'Nombre de questions',
-                icon: Icons.confirmation_number_outlined,
-                child: ChipSelector<int>(
-                  options: _countOptions,
-                  selected: _questionCount,
-                  onSelected: (n) => setState(() => _questionCount = n),
-                  spacing: 10,
-                  runSpacing: 10,
-                  labelBuilder: (n) => '$n',
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              _InfoTile(
-                icon: Icons.schedule,
-                label: 'Temps total estimé',
-                value: totalLabel,
-              ),
-            ],
+        final themed = base.copyWith(
+          scaffoldBackgroundColor: palette.surface,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: palette.primary,
+            brightness: base.brightness,
+          ).copyWith(
+            primary: palette.primary,
+            secondary: palette.secondary,
+            surface: palette.card,
+            background: palette.surface,
+            onSurface: palette.text,
+            onPrimary: palette.onPrimary,
+            outline: palette.border,
           ),
-        ),
-
-        // Bouton d’action centré
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: ElevatedButton.icon(
-            onPressed: _loading ? null : _start,
-            icon: _loading
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.play_arrow),
-            label: Text(_loading ? 'Chargement…' : 'Commencer maintenant'),
+          textTheme: base.textTheme.apply(
+            bodyColor: palette.text,
+            displayColor: palette.text,
           ),
-        ),
+          appBarTheme: base.appBarTheme.copyWith(
+            backgroundColor: palette.surface,
+            foregroundColor: palette.text,
+            elevation: 0,
+            centerTitle: false,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: palette.primary,
+              foregroundColor: palette.onPrimary,
+              minimumSize: const Size.fromHeight(56),
+              shape: const StadiumBorder(),
+              elevation: 0,
+            ),
+          ),
+          chipTheme: base.chipTheme.copyWith(
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            labelStyle: base.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: palette.text,
+            ),
+            backgroundColor: palette.chip,
+            selectedColor: palette.primary,
+            secondarySelectedColor: palette.primary,
+            showCheckmark: false,
+            side: BorderSide(color: palette.border),
+          ),
+          dividerColor: palette.border,
+        );
 
-        // Nav bar fantôme pour laisser respirer le CTA
-        bottomNavigationBar: const SizedBox(height: 12),
-      ),
+        final total = Duration(seconds: _perQuestionSeconds * _questionCount);
+        String two(int x) => x.toString().padLeft(2, '0');
+        final totalLabel = '${two(total.inMinutes)}:${two(total.inSeconds % 60)}';
+
+        return Theme(
+          data: themed,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Entraînement'),
+              // actions supprimées (avatar "M" retiré)
+            ),
+            body: SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                children: [
+                  // Header en dégradé (avatar "M" retiré)
+                  _GradientHeader(
+                    title: 'Bonjour 👋',
+                    subtitle: 'Prêt(e) pour un rapide entraînement ?',
+                    palette: palette,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- Blocs "Réglages rapides" et "Featured" SUPPRIMÉS ---
+
+                  // Section chips : Temps par question
+                  _SectionCard(
+                    title: 'Temps par question',
+                    icon: Icons.timer_outlined,
+                    palette: palette,
+                    child: ChipSelector<int>(
+                      options: _secondOptions,
+                      selected: _perQuestionSeconds,
+                      onSelected: (s) => setState(() => _perQuestionSeconds = s),
+                      spacing: 10,
+                      runSpacing: 10,
+                      labelBuilder: (s) => '${s}s',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Section chips : Nombre de questions
+                  _SectionCard(
+                    title: 'Nombre de questions',
+                    icon: Icons.confirmation_number_outlined,
+                    palette: palette,
+                    child: ChipSelector<int>(
+                      options: _countOptions,
+                      selected: _questionCount,
+                      onSelected: (n) => setState(() => _questionCount = n),
+                      spacing: 10,
+                      runSpacing: 10,
+                      labelBuilder: (n) => '$n',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _InfoTile(
+                    icon: Icons.schedule,
+                    label: 'Temps total estimé',
+                    value: totalLabel,
+                    palette: palette,
+                  ),
+                ],
+              ),
+            ),
+
+            // Bouton d’action centré
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: ElevatedButton.icon(
+                onPressed: _loading ? null : _start,
+                icon: _loading
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(palette.onPrimary),
+                        ),
+                      )
+                    : const Icon(Icons.play_arrow),
+                label: Text(_loading ? 'Chargement…' : 'Commencer maintenant'),
+              ),
+            ),
+
+            // Nav bar fantôme pour laisser respirer le CTA
+            bottomNavigationBar: const SizedBox(height: 12),
+          ),
+        );
+      },
     );
   }
 }
@@ -370,7 +379,12 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
 class _GradientHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  const _GradientHeader({required this.title, required this.subtitle});
+  final _QuickStartPalette palette;
+  const _GradientHeader({
+    required this.title,
+    required this.subtitle,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -378,10 +392,10 @@ class _GradientHeader extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [_Brand.primary, _Brand.primaryDark],
+          colors: [palette.primaryDark, palette.primary],
         ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -390,16 +404,22 @@ class _GradientHeader extends StatelessWidget {
         children: [
           Expanded(
             child: DefaultTextStyle(
-              style: tt.bodyMedium!.copyWith(color: Colors.white),
+              style: tt.bodyMedium!.copyWith(color: palette.onPrimary),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: tt.titleSmall!.copyWith(color: Colors.white70, letterSpacing: .3)),
+                  Text(
+                    title,
+                    style: tt.titleSmall!.copyWith(
+                      color: palette.onPrimary.withOpacity(0.7),
+                      letterSpacing: .3,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     subtitle,
                     style: tt.titleLarge!.copyWith(
-                      color: Colors.white,
+                      color: palette.onPrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -418,28 +438,40 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
+  final _QuickStartPalette palette;
 
-  const _SectionCard({required this.title, required this.icon, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.icon,
+    required this.child,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
-        color: _Brand.card,
+        color: palette.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Brand.border),
+        border: Border.all(color: palette.border),
       ),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.circle, size: 8, color: _Brand.primary),
+            Icon(Icons.circle, size: 8, color: palette.primary),
             const SizedBox(width: 8),
-            Icon(icon, color: _Brand.primary),
+            Icon(icon, color: palette.primary),
             const SizedBox(width: 8),
-            Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              title,
+              style: tt.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: palette.text,
+              ),
+            ),
           ]),
           const SizedBox(height: 12),
           child,
@@ -453,27 +485,113 @@ class _InfoTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final _QuickStartPalette palette;
 
-  const _InfoTile({required this.icon, required this.label, required this.value});
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
-        color: _Brand.card,
+        color: palette.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _Brand.border),
+        border: Border.all(color: palette.border),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: _Brand.secondary),
+          Icon(icon, color: palette.secondary),
           const SizedBox(width: 10),
-          Expanded(child: Text(label, style: tt.bodyMedium?.copyWith(color: _Brand.textMuted))),
-          Text(value, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Expanded(
+            child: Text(
+              label,
+              style: tt.bodyMedium?.copyWith(color: palette.textMuted),
+            ),
+          ),
+          Text(
+            value,
+            style: tt.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: palette.text,
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _QuickStartPalette {
+  final Color primary;
+  final Color primaryDark;
+  final Color secondary;
+  final Color surface;
+  final Color card;
+  final Color chip;
+  final Color text;
+  final Color textMuted;
+  final Color border;
+  final Color onPrimary;
+
+  const _QuickStartPalette({
+    required this.primary,
+    required this.primaryDark,
+    required this.secondary,
+    required this.surface,
+    required this.card,
+    required this.chip,
+    required this.text,
+    required this.textMuted,
+    required this.border,
+    required this.onPrimary,
+  });
+
+  factory _QuickStartPalette.fromConfig(DesignConfig cfg) {
+    final gradient = playIconColors(cfg.bgPaletteName);
+    const fallbackPrimary = Color(0xFF6C5CE7);
+    final Color primary = gradient.isNotEmpty ? gradient.last : fallbackPrimary;
+    final Color primaryDark =
+        gradient.length > 1 ? gradient.first : darken(primary, 0.12);
+    final Color secondary = complementaryColor(cfg.bgPaletteName);
+    final surfaces = pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode);
+    final Color surface =
+        surfaces.isNotEmpty ? surfaces.last : const Color(0xFFF7F5FF);
+    final Color surfaceAlt = surfaces.length > 1 ? surfaces.first : surface;
+    final Color card = Color.alphaBlend(
+      (cfg.darkMode ? Colors.white : Colors.black)
+          .withOpacity(cfg.darkMode ? 0.12 : 0.03),
+      surface,
+    );
+    final Color chip =
+        Color.alphaBlend(primary.withOpacity(cfg.darkMode ? 0.24 : 0.1), surface);
+    final Color text =
+        textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+    final Color textMuted =
+        Color.alphaBlend(text.withOpacity(cfg.darkMode ? 0.4 : 0.5), surfaceAlt);
+    final Color border =
+        Color.alphaBlend(text.withOpacity(cfg.darkMode ? 0.3 : 0.12), surfaceAlt);
+    final Color onPrimary =
+        ThemeData.estimateBrightnessForColor(primary) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+
+    return _QuickStartPalette(
+      primary: primary,
+      primaryDark: primaryDark,
+      secondary: secondary,
+      surface: surface,
+      card: card,
+      chip: chip,
+      text: text,
+      textMuted: textMuted,
+      border: border,
+      onPrimary: onPrimary,
     );
   }
 }
