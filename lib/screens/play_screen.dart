@@ -733,11 +733,13 @@ class _HomeShellState extends State<HomeShell> {
     required double scale,
     required double panelHeightFactor,
     required Color brand,
+    required Color onBrand,
     required Color accent,
     required Color brandOverlay,
     required Color accentOverlay,
     required Color brandVariant,
   }) {
+    final shellOnBrand = onBrand;
     final tabChildren = <Widget>[
       KeyedSubtree(
         key: const ValueKey('home_tab'),
@@ -753,7 +755,7 @@ class _HomeShellState extends State<HomeShell> {
           scale: scale,
           panelHeightFactor: panelHeightFactor,
           brand: brand,
-          onBrand: onBrand,
+          onBrand: shellOnBrand,
           accent: accent,
           brandOverlay: brandOverlay,
           accentOverlay: accentOverlay,
@@ -847,6 +849,7 @@ class _HomeShellState extends State<HomeShell> {
           scale: scale,
           panelHeightFactor: panelHeightFactor,
           brand: brand,
+          onBrand: onBrand,
           accent: accent,
           brandOverlay: brandOverlay,
           accentOverlay: accentOverlay,
