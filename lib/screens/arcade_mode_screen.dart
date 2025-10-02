@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../models/design_config.dart';
 import '../models/question.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
@@ -11,6 +12,8 @@ import '../services/question_history_store.dart';
 import '../services/scoring.dart';
 import '../services/leaderboard_hooks.dart';
 import '../services/arcade_progress_store.dart';
+import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/arcade_badge_chip.dart';
 import 'exam_full_screen.dart';
 
@@ -21,19 +24,6 @@ class ArcadeModeScreen extends StatefulWidget {
 
   @override
   State<ArcadeModeScreen> createState() => _ArcadeModeScreenState();
-}
-
-/// Palette inspirée de la maquette fournie
-class _Brand {
-  static const primary = Color(0xFF6C5CE7);       // violet principal
-  static const primaryDark = Color(0xFF5B4DE1);   // violet plus sombre
-  static const secondary = Color(0xFF7F6AF8);     // accent
-  static const surface = Color(0xFFF7F5FF);       // fond global
-  static const card = Color(0xFFFFFFFF);          // cartes blanches
-  static const chipBg = Color(0xFFEFEAFF);        // chips neutres
-  static const text = Color(0xFF1E1E28);          // texte principal
-  static const textMuted = Color(0xFF6E6B7A);     // texte secondaire
-  static const border = Color(0xFFE6E1F9);        // bordure douce
 }
 
 class _ArcadeLevel {
@@ -92,6 +82,148 @@ class _PreviewLevelEntry {
     this.isCompleted = false,
     this.isCurrent = false,
   });
+}
+
+class _ArcadePalette {
+  final Color primary;
+  final Color primaryDark;
+  final Color secondary;
+  final Color surface;
+  final Color surfaceAlt;
+  final Color card;
+  final Color chip;
+  final Color chipStrong;
+  final Color text;
+  final Color textMuted;
+  final Color border;
+  final Color onPrimary;
+  final Color onSecondary;
+  final Color onChip;
+  final Color onChipStrong;
+  final Color buttonOverlay;
+  final Color buttonDisabled;
+  final Color buttonDisabledForeground;
+  final Color ctaBackground;
+  final Color ctaForeground;
+
+  const _ArcadePalette({
+    required this.primary,
+    required this.primaryDark,
+    required this.secondary,
+    required this.surface,
+    required this.surfaceAlt,
+    required this.card,
+    required this.chip,
+    required this.chipStrong,
+    required this.text,
+    required this.textMuted,
+    required this.border,
+    required this.onPrimary,
+    required this.onSecondary,
+    required this.onChip,
+    required this.onChipStrong,
+    required this.buttonOverlay,
+    required this.buttonDisabled,
+    required this.buttonDisabledForeground,
+    required this.ctaBackground,
+    required this.ctaForeground,
+  });
+
+  Color get primaryContainer => chip;
+  Color get onPrimaryContainer => onChip;
+  Color get secondaryContainer => chipStrong;
+  Color get onSecondaryContainer => onChipStrong;
+
+  factory _ArcadePalette.fromConfig(DesignConfig cfg) {
+    final gradient = playIconColors(cfg.bgPaletteName);
+    const fallbackPrimary = Color(0xFF6C5CE7);
+    final Color primary = gradient.isNotEmpty ? gradient.last : fallbackPrimary;
+    final Color primaryDark =
+        gradient.length > 1 ? gradient.first : darken(primary, 0.12);
+    final Color secondary = complementaryColor(cfg.bgPaletteName);
+    final surfaces = pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode);
+    final Color surface =
+        surfaces.isNotEmpty ? surfaces.last : const Color(0xFFF7F5FF);
+    final Color surfaceAlt = surfaces.length > 1 ? surfaces.first : surface;
+    final overlayBase = cfg.darkMode ? Colors.white : Colors.black;
+    final Color card = Color.alphaBlend(
+      overlayBase.withOpacity(cfg.darkMode ? 0.12 : 0.05),
+      surface,
+    );
+    final Color chip = Color.alphaBlend(
+      primary.withOpacity(cfg.darkMode ? 0.32 : 0.14),
+      surfaceAlt,
+    );
+    final Color chipStrong = Color.alphaBlend(
+      secondary.withOpacity(cfg.darkMode ? 0.26 : 0.12),
+      surfaceAlt,
+    );
+    final Color text =
+        textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
+    final Color textMuted = Color.alphaBlend(
+      text.withOpacity(cfg.darkMode ? 0.45 : 0.55),
+      surfaceAlt,
+    );
+    final Color border = Color.alphaBlend(
+      text.withOpacity(cfg.darkMode ? 0.35 : 0.16),
+      surfaceAlt,
+    );
+    final Color onPrimary =
+        ThemeData.estimateBrightnessForColor(primary) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+    final Color onSecondary =
+        ThemeData.estimateBrightnessForColor(secondary) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+    final Color onChip =
+        ThemeData.estimateBrightnessForColor(chip) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+    final Color onChipStrong =
+        ThemeData.estimateBrightnessForColor(chipStrong) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+    final Color buttonOverlay =
+        onPrimary.withOpacity(cfg.darkMode ? 0.22 : 0.12);
+    final Color buttonDisabled = Color.alphaBlend(
+      text.withOpacity(cfg.darkMode ? 0.32 : 0.18),
+      surface,
+    );
+    final Color buttonDisabledForeground =
+        onPrimary.withOpacity(cfg.darkMode ? 0.5 : 0.4);
+    final Color ctaBackground = Color.alphaBlend(
+      onPrimary.withOpacity(cfg.darkMode ? 0.18 : 0.82),
+      surface,
+    );
+    final Color ctaForeground =
+        ThemeData.estimateBrightnessForColor(ctaBackground) == Brightness.dark
+            ? Colors.white
+            : primaryDark;
+
+    return _ArcadePalette(
+      primary: primary,
+      primaryDark: primaryDark,
+      secondary: secondary,
+      surface: surface,
+      surfaceAlt: surfaceAlt,
+      card: card,
+      chip: chip,
+      chipStrong: chipStrong,
+      text: text,
+      textMuted: textMuted,
+      border: border,
+      onPrimary: onPrimary,
+      onSecondary: onSecondary,
+      onChip: onChip,
+      onChipStrong: onChipStrong,
+      buttonOverlay: buttonOverlay,
+      buttonDisabled: buttonDisabled,
+      buttonDisabledForeground: buttonDisabledForeground,
+      ctaBackground: ctaBackground,
+      ctaForeground: ctaForeground,
+    );
+  }
 }
 
 class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
@@ -430,170 +562,249 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context);
-    final themed = base.copyWith(
-      scaffoldBackgroundColor: _Brand.surface,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _Brand.primary,
-        brightness: base.brightness,
-      ).copyWith(
-        primary: _Brand.primary,
-        secondary: _Brand.secondary,
-        surface: _Brand.surface,
-        background: _Brand.surface,
-        onSurface: _Brand.text,
-        onPrimary: Colors.white,
-      ),
-      textTheme: base.textTheme.apply(
-        bodyColor: _Brand.text,
-        displayColor: _Brand.text,
-      ),
-      appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: _Brand.surface,
-        foregroundColor: _Brand.text,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _Brand.primary,
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(56),
-          shape: const StadiumBorder(),
-          elevation: 0,
-        ),
-      ),
-      chipTheme: base.chipTheme.copyWith(
-        shape: const StadiumBorder(),
-        padding:
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        labelStyle: base.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: _Brand.text,
-        ),
-        backgroundColor: _Brand.chipBg,
-        selectedColor: _Brand.primary,
-        secondarySelectedColor: _Brand.primary,
-        showCheckmark: false,
-        side: const BorderSide(color: _Brand.border),
-      ),
-      dividerColor: _Brand.border,
-    );
-
-    final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
-    final previewLevels = _buildPreviewLevels(resumeIndex);
-
-    return Theme(
-      data: themed,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Mode Arcade'),
-          actions: const [
-            _AvatarDot(initial: 'M'),
-            SizedBox(width: 12),
-          ],
-        ),
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-            children: [
-              // === EN-TÊTE & "DERNIÈRE SESSION" SUPPRIMÉS ===
-
-              // Bloc violet Featured avec CTA "Lancer la session"
-              _FeaturedCard(
-                title: 'Défie-toi en mode arcade',
-                subtitle:
-                'Vitesse, précision et niveaux de plus en plus durs.',
-                ctaLabel: _preparing
-                    ? 'Préparation…'
-                    : _loadingProgress
-                    ? 'Chargement…'
-                    : 'Lancer la session',
-                onTap: _preparing || _loadingProgress ? null : _startArcade,
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final base = Theme.of(context);
+        final palette = _ArcadePalette.fromConfig(cfg);
+        final colorScheme = ColorScheme.fromSeed(
+          seedColor: palette.primary,
+          brightness: base.brightness,
+        ).copyWith(
+          primary: palette.primary,
+          onPrimary: palette.onPrimary,
+          primaryContainer: palette.primaryContainer,
+          onPrimaryContainer: palette.onPrimaryContainer,
+          secondary: palette.secondary,
+          onSecondary: palette.onSecondary,
+          secondaryContainer: palette.secondaryContainer,
+          onSecondaryContainer: palette.onSecondaryContainer,
+          surface: palette.surface,
+          surfaceTint: palette.primary,
+          background: palette.surface,
+          surfaceVariant: palette.card,
+          onSurface: palette.text,
+          onSurfaceVariant: palette.textMuted,
+          outline: palette.border,
+          outlineVariant: Color.alphaBlend(
+            palette.border.withOpacity(0.5),
+            palette.surfaceAlt,
+          ),
+        );
+        final themed = base.copyWith(
+          colorScheme: colorScheme,
+          scaffoldBackgroundColor: palette.surface,
+          cardColor: palette.card,
+          dividerColor: palette.border,
+          textTheme: base.textTheme.apply(
+            bodyColor: palette.text,
+            displayColor: palette.text,
+          ),
+          appBarTheme: base.appBarTheme.copyWith(
+            backgroundColor: palette.surface,
+            foregroundColor: palette.text,
+            elevation: 0,
+            centerTitle: false,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.resolveWith((states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return palette.buttonDisabled;
+                }
+                return palette.primary;
+              }),
+              foregroundColor: MaterialStateProperty.resolveWith((states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return palette.buttonDisabledForeground;
+                }
+                return palette.onPrimary;
+              }),
+              overlayColor: MaterialStateProperty.resolveWith((states) {
+                if (states.contains(MaterialState.pressed) ||
+                    states.contains(MaterialState.hovered) ||
+                    states.contains(MaterialState.focused)) {
+                  return palette.buttonOverlay;
+                }
+                return null;
+              }),
+              minimumSize:
+                  const MaterialStatePropertyAll(Size.fromHeight(56)),
+              shape: const MaterialStatePropertyAll(StadiumBorder()),
+              elevation: const MaterialStatePropertyAll(0),
+            ),
+          ),
+          filledButtonTheme: FilledButtonThemeData(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.resolveWith((states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return palette.buttonDisabled;
+                }
+                return palette.secondary;
+              }),
+              foregroundColor: MaterialStateProperty.resolveWith((states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return palette.buttonDisabledForeground;
+                }
+                return palette.onSecondary;
+              }),
+              overlayColor: MaterialStatePropertyAll(
+                palette.onSecondary.withOpacity(0.12),
               ),
-              const SizedBox(height: 16),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              foregroundColor: MaterialStatePropertyAll(palette.primary),
+              overlayColor: MaterialStatePropertyAll(
+                palette.primary.withOpacity(0.12),
+              ),
+            ),
+          ),
+          chipTheme: base.chipTheme.copyWith(
+            shape: const StadiumBorder(),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            labelStyle: base.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: palette.onPrimaryContainer,
+            ),
+            backgroundColor: palette.primaryContainer,
+            selectedColor: palette.primary,
+            secondarySelectedColor: palette.primaryDark,
+            showCheckmark: false,
+            side: BorderSide(color: palette.border),
+          ),
+          dividerTheme: base.dividerTheme.copyWith(
+            color: palette.border,
+            thickness: 1,
+          ),
+        );
 
-              // Titre de section façon "Live Quizzes"
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
+        final previewLevels = _buildPreviewLevels(resumeIndex);
+
+        return Theme(
+          data: themed,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Mode Arcade'),
+              actions: [
+                _AvatarDot(initial: 'M'),
+                const SizedBox(width: 12),
+              ],
+            ),
+            body: SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                 children: [
-                  Text('Aperçu des niveaux',
-                      style: themed.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w800)),
-                  Text('Voir tout',
-                      style: themed.textTheme.bodyMedium
-                          ?.copyWith(color: _Brand.textMuted)),
+                  // Bloc violet Featured avec CTA "Lancer la session"
+                  _FeaturedCard(
+                    palette: palette,
+                    title: 'Défie-toi en mode arcade',
+                    subtitle:
+                        'Vitesse, précision et niveaux de plus en plus durs.',
+                    ctaLabel: _preparing
+                        ? 'Préparation…'
+                        : _loadingProgress
+                            ? 'Chargement…'
+                            : 'Lancer la session',
+                    onTap:
+                        _preparing || _loadingProgress ? null : _startArcade,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Titre de section façon "Live Quizzes"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Aperçu des niveaux',
+                          style: themed.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800)),
+                      Text('Voir tout',
+                          style: themed.textTheme.bodyMedium?.copyWith(
+                              color: themed.colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Liste style "Live Quizzes" : tuiles bordées
+                  Container(
+                    decoration: BoxDecoration(
+                      color: themed.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border:
+                          Border.all(color: themed.colorScheme.outline),
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemBuilder: (context, index) {
+                        final entry = previewLevels[index];
+                        return _LevelListTile(
+                          level: entry.level,
+                          isCompleted: entry.isCompleted,
+                          isCurrent: entry.isCurrent,
+                        );
+                      },
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: themed.dividerColor,
+                      ),
+                      itemCount: previewLevels.length,
+                    ),
+                  ),
+
+                  if (_error != null) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      _error!,
+                      style: themed.textTheme.bodyMedium?.copyWith(
+                        color: themed.colorScheme.error,
+                      ),
+                    ),
+                  ],
+
+                  if (_lastSummary != null) ...[
+                    const SizedBox(height: 24),
+                    _SummaryCard(summary: _lastSummary!),
+                  ],
                 ],
               ),
-              const SizedBox(height: 10),
+            ),
 
-              // Liste style "Live Quizzes" : tuiles blanches bordées
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _Brand.border),
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemBuilder: (context, index) {
-                    final entry = previewLevels[index];
-                    return _LevelListTile(
-                      level: entry.level,
-                      isCompleted: entry.isCompleted,
-                      isCurrent: entry.isCurrent,
-                    );
-                  },
-                  separatorBuilder: (_, __) =>
-                      Divider(height: 1, color: _Brand.border),
-                  itemCount: previewLevels.length,
-                ),
+            // Gros bouton centré (comme le “+” de la maquette)
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: ElevatedButton.icon(
+                onPressed:
+                    _preparing || _loadingProgress ? null : _startArcade,
+                icon: _preparing
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: themed.colorScheme.onPrimary,
+                        ),
+                      )
+                    : const Icon(Icons.play_arrow),
+                label: Text(_preparing
+                    ? 'Préparation…'
+                    : _loadingProgress
+                        ? 'Chargement…'
+                        : 'Commencer maintenant'),
               ),
+            ),
 
-              if (_error != null) ...[
-                const SizedBox(height: 24),
-                Text(
-                  _error!,
-                  style: themed.textTheme.bodyMedium
-                      ?.copyWith(color: themed.colorScheme.error),
-                ),
-              ],
-
-              if (_lastSummary != null) ...[
-                const SizedBox(height: 24),
-                _SummaryCard(summary: _lastSummary!),
-              ],
-            ],
+            // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
+            bottomNavigationBar: const SizedBox(height: 12),
           ),
-        ),
-
-        // Gros bouton centré (comme le “+” de la maquette)
-        floatingActionButtonLocation:
-        FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: ElevatedButton.icon(
-            onPressed: _preparing || _loadingProgress ? null : _startArcade,
-            icon: _preparing
-                ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white),
-            )
-                : const Icon(Icons.play_arrow),
-            label: Text(_preparing
-                ? 'Préparation…'
-                : _loadingProgress
-                ? 'Chargement…'
-                : 'Commencer maintenant'),
-          ),
-        ),
-
-        // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
-        bottomNavigationBar: const SizedBox(height: 12),
-      ),
+        );
+      },
     );
   }
 
@@ -747,11 +958,13 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
 /// ---- Widgets réutilisables (nets des blocs retirés) ----
 
 class _FeaturedCard extends StatelessWidget {
+  final _ArcadePalette palette;
   final String title;
   final String subtitle;
   final String ctaLabel;
   final VoidCallback? onTap;
   const _FeaturedCard({
+    required this.palette,
     required this.title,
     required this.subtitle,
     required this.ctaLabel,
@@ -763,7 +976,7 @@ class _FeaturedCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
-        color: _Brand.primaryDark,
+        color: palette.primaryDark,
         borderRadius: BorderRadius.circular(26),
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
@@ -771,31 +984,33 @@ class _FeaturedCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('FEATURED',
-              style: tt.labelSmall
-                  ?.copyWith(color: Colors.white70, letterSpacing: .6)),
+              style: tt.labelSmall?.copyWith(
+                  color: palette.onPrimary.withOpacity(0.7),
+                  letterSpacing: .6)),
           const SizedBox(height: 6),
           Text(title,
-              style: tt.titleMedium
-                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
+              style: tt.titleMedium?.copyWith(
+                  color: palette.onPrimary, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(subtitle,
-              style: tt.bodyMedium?.copyWith(color: Colors.white70)),
+              style: tt.bodyMedium
+                  ?.copyWith(color: palette.onPrimary.withOpacity(0.72))),
           const SizedBox(height: 14),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: onTap,
-              icon:
-              const Icon(Icons.play_arrow, color: _Brand.primaryDark),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: _Brand.primaryDark,
+                backgroundColor: palette.ctaBackground,
+                foregroundColor: palette.ctaForeground,
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 10),
                 shape: const StadiumBorder(),
+                overlayColor: palette.primary.withOpacity(0.12),
               ),
               label: Text(ctaLabel,
                   style: const TextStyle(fontWeight: FontWeight.w700)),
+              icon: const Icon(Icons.play_arrow),
             ),
           ),
         ],
@@ -818,6 +1033,7 @@ class _LevelListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: null, // aperçu non cliquable (la session démarre via les CTA)
@@ -832,10 +1048,10 @@ class _LevelListTile extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: _Brand.chipBg,
+                color: scheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.flag_rounded, color: _Brand.primary),
+              child: Icon(Icons.flag_rounded, color: scheme.primary),
             ),
             const SizedBox(width: 12),
 
@@ -862,13 +1078,14 @@ class _LevelListTile extends StatelessWidget {
                   Text(
                     'Dif. ${level.difficulty} · ${level.questionCount} Q · '
                         '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
-                    style: tt.bodySmall?.copyWith(color: _Brand.textMuted),
+                    style: tt.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
 
-            const Icon(Icons.chevron_right, color: _Brand.textMuted),
+            Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -883,16 +1100,16 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     return Chip(
-      avatar: Icon(icon, size: 18),
+      avatar: Icon(icon, size: 18, color: scheme.primary),
       label: Text(label),
-      backgroundColor: _Brand.chipBg,
-      side: const BorderSide(color: _Brand.border),
+      backgroundColor: scheme.primaryContainer,
+      side: BorderSide(color: scheme.outline),
       shape: const StadiumBorder(),
-      labelStyle: Theme.of(context)
-          .textTheme
-          .bodySmall
-          ?.copyWith(fontWeight: FontWeight.w600),
+      labelStyle:
+          tt.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: scheme.onPrimaryContainer),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
@@ -905,7 +1122,9 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final tt = theme.textTheme;
+    final scheme = theme.colorScheme;
     final percent = summary.totalQuestions == 0
         ? 0
         : (summary.correct / summary.totalQuestions * 100).round();
@@ -913,9 +1132,9 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _Brand.card,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _Brand.border),
+        border: Border.all(color: scheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -926,16 +1145,16 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '${summary.correct}/${summary.totalQuestions} bonnes réponses (${percent}%).',
-            style: tt.bodyMedium?.copyWith(color: _Brand.text),
+            style: tt.bodyMedium?.copyWith(color: scheme.onSurface),
           ),
           const SizedBox(height: 8),
           Text('Niveaux complétés : ${summary.levelsCompleted}',
-              style:
-              tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+              style: tt.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           Text('Temps total : ${_formatDuration(summary.durationSec)}',
-              style:
-              tt.bodyMedium?.copyWith(color: _Brand.textMuted)),
+              style: tt.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -955,13 +1174,14 @@ class _AvatarDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return CircleAvatar(
       radius: 16,
-      backgroundColor: _Brand.chipBg,
+      backgroundColor: scheme.primaryContainer,
       child: Text(
         initial,
-        style: const TextStyle(
-          color: _Brand.primary,
+        style: TextStyle(
+          color: scheme.primary,
           fontWeight: FontWeight.w800,
         ),
       ),
