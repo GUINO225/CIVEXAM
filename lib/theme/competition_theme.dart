@@ -26,6 +26,16 @@ class CompetitionTheme {
   /// Color of the progress bar displayed under the question.
   final Color progressBarColor;
 
+  /// Styling for the top app bar and its accents.
+  final Color appBarBackgroundColor;
+  final Color appBarForegroundColor;
+  final Color appBarProgressColor;
+  final Color appBarProgressBackgroundColor;
+
+  /// Colors for the information pills displayed in the app bar.
+  final Color topPillBackgroundColor;
+  final Color topPillForegroundColor;
+
   /// Dimensions and appearance of the countdown circle.
   final double timerSize;
   final double timerStrokeWidth;
@@ -59,6 +69,12 @@ class CompetitionTheme {
     ],
     this.optionSelectedBorderColor = Colors.pinkAccent,
     this.progressBarColor = Colors.pinkAccent,
+    this.appBarBackgroundColor = const Color(0xFF6C5CE7),
+    this.appBarForegroundColor = Colors.white,
+    this.appBarProgressColor = Colors.white,
+    this.appBarProgressBackgroundColor = const Color(0x40FFFFFF),
+    this.topPillBackgroundColor = const Color(0x40FFFFFF),
+    this.topPillForegroundColor = Colors.white,
     this.timerSize = 80.0,
     this.timerStrokeWidth = 6.0,
     this.timerColor = Colors.pinkAccent,
@@ -106,6 +122,12 @@ class CompetitionTheme {
       optionCardColor: theme.cardColor,
       optionSelectedBorderColor: scheme.primary,
       progressBarColor: scheme.primary,
+      appBarBackgroundColor: scheme.primary,
+      appBarForegroundColor: scheme.onPrimary,
+      appBarProgressColor: scheme.onPrimary,
+      appBarProgressBackgroundColor: scheme.onPrimary.withOpacity(0.24),
+      topPillBackgroundColor: scheme.onPrimary.withOpacity(0.24),
+      topPillForegroundColor: scheme.onPrimary,
       timerColor: scheme.primary,
       timerContainerColor: theme.cardColor,
       timerTextStyle:
@@ -201,6 +223,12 @@ class CompetitionTheme {
     List<BoxShadow>? optionCardShadow,
     Color? optionSelectedBorderColor,
     Color? progressBarColor,
+    Color? appBarBackgroundColor,
+    Color? appBarForegroundColor,
+    Color? appBarProgressColor,
+    Color? appBarProgressBackgroundColor,
+    Color? topPillBackgroundColor,
+    Color? topPillForegroundColor,
     double? timerSize,
     double? timerStrokeWidth,
     Color? timerColor,
@@ -226,6 +254,18 @@ class CompetitionTheme {
       optionSelectedBorderColor:
           optionSelectedBorderColor ?? this.optionSelectedBorderColor,
       progressBarColor: progressBarColor ?? this.progressBarColor,
+      appBarBackgroundColor:
+          appBarBackgroundColor ?? this.appBarBackgroundColor,
+      appBarForegroundColor:
+          appBarForegroundColor ?? this.appBarForegroundColor,
+      appBarProgressColor:
+          appBarProgressColor ?? this.appBarProgressColor,
+      appBarProgressBackgroundColor: appBarProgressBackgroundColor ??
+          this.appBarProgressBackgroundColor,
+      topPillBackgroundColor:
+          topPillBackgroundColor ?? this.topPillBackgroundColor,
+      topPillForegroundColor:
+          topPillForegroundColor ?? this.topPillForegroundColor,
       timerSize: timerSize ?? this.timerSize,
       timerStrokeWidth: timerStrokeWidth ?? this.timerStrokeWidth,
       timerColor: timerColor ?? this.timerColor,

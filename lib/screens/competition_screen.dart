@@ -6,8 +6,6 @@ import '../theme/competition_theme.dart';
 import '../services/leaderboard_hooks.dart';
 import '../utils/responsive_utils.dart';
 
-const Color kPrimary = Color(0xFF6C5CE7); // 6C5CE7FF
-
 /// Competition quiz screen with a circular countdown and progress tracking.
 class CompetitionScreen extends StatefulWidget {
   final List<Question> questions;
@@ -83,11 +81,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     final scale = computeScaleFactor(mediaQuery);
     final textScaler = MediaQuery.textScalerOf(context);
     final theme =
-    (widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context)))
-        .scaled(scale, textScaler);
+        (widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context)))
+            .scaled(scale, textScaler);
 
     final TextStyle resolvedChipTextStyle =
-    DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
+        DefaultTextStyle.of(context).style.merge(theme.selectedChipTextStyle);
 
     final double optionFontSize = scaledFontSize(
       base: 18,
@@ -109,30 +107,40 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     );
 
     // Couleur + icône spécifiques à la matière courante
-    final Color subjectFg = _colorForSubject(_currentQuestion.subject);
-    final Color subjectBg = kPrimary.withOpacity(0.10); // “partie grise” -> violet doux
+    final Color subjectFg =
+        _colorForSubject(_currentQuestion.subject, theme.timerColor);
+    final Color subjectBg = subjectFg.withOpacity(0.10);
     final IconData subjectIcon = _iconForSubject(_currentQuestion.subject);
 
-    final String appBarTitle =
-    (_currentQuestion.subject.isEmpty) ? 'Quiz' : '${_currentQuestion.subject} Quiz';
+    final String appBarTitle = (_currentQuestion.subject.isEmpty)
+        ? 'Quiz'
+        : '${_currentQuestion.subject} Quiz';
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
 
       // ---------- AppBar violette ----------
       appBar: AppBar(
-        backgroundColor: kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: theme.appBarBackgroundColor,
+        foregroundColor: theme.appBarForegroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(appBarTitle),
-        actions: const [
-          _TopInfoPill(icon: Icons.person_outline_rounded, value: '1'),
-          SizedBox(width: 8),
-          _TopInfoPill(icon: Icons.emoji_events_outlined, value: '1'),
-          SizedBox(width: 12),
+        actions: [
+          _TopInfoPill(
+            icon: Icons.person_outline_rounded,
+            value: '1',
+            theme: theme,
+          ),
+          const SizedBox(width: 8),
+          _TopInfoPill(
+            icon: Icons.emoji_events_outlined,
+            value: '1',
+            theme: theme,
+          ),
+          const SizedBox(width: 12),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(18),
@@ -145,8 +153,8 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                 value: widget.questions.isEmpty
                     ? 0
                     : (widget.currentIndex) / widget.questions.length,
-                backgroundColor: Colors.white24,
-                color: Colors.white,
+                backgroundColor: theme.appBarProgressBackgroundColor,
+                color: theme.appBarProgressColor,
               ),
             ),
           ),
@@ -179,9 +187,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: kPrimary.withOpacity(0.08), // “partie grise” -> violet
+                            color: theme.timerColor
+                                .withOpacity(0.08), // “partie grise” -> violet
                             borderRadius:
-                            BorderRadius.circular(theme.timerContainerRadius),
+                                BorderRadius.circular(theme.timerContainerRadius),
                             boxShadow: theme.timerContainerShadow,
                           ),
                           child: Stack(
@@ -190,21 +199,21 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                               SizedBox(
                                 width: theme.timerSize,
                                 height: theme.timerSize,
-                                child: CircularProgressIndicator(
-                                  value: _controller.value,
-                                  strokeWidth: theme.timerStrokeWidth,
-                                  color: kPrimary, // couleur du timer
-                                  backgroundColor:
-                                  kPrimary.withOpacity(0.18), // anneau de fond
-                                ),
-                              ),
-                              Text(
-                                '$_remainingSeconds',
-                                style: theme.timerTextStyle.copyWith(
-                                  color: kPrimary, // texte du timer en violet
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
+                            child: CircularProgressIndicator(
+                              value: _controller.value,
+                              strokeWidth: theme.timerStrokeWidth,
+                              color: theme.timerColor, // couleur du timer
+                              backgroundColor: theme.timerColor
+                                  .withOpacity(0.18), // anneau de fond
+                            ),
+                          ),
+                          Text(
+                            '$_remainingSeconds',
+                            style: theme.timerTextStyle.copyWith(
+                              color: theme.timerColor, // texte du timer en violet
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                             ],
                           ),
                         ),
@@ -283,26 +292,25 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                   },
                   child: _selected >= 0
                       ? AnimatedAlign(
-                    key: ValueKey<int>(_selected),
-                    alignment: Alignment.center,
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutCubic,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: kPrimary.withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(theme.selectedChipRadius),
-                      ),
-                      constraints: BoxConstraints(minHeight: chipMinHeight),
-                      child: Text(
-                        _currentQuestion.choices[_selected],
-                        style: theme.selectedChipTextStyle.copyWith(
-                          color: kPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  )
+                          key: ValueKey<int>(_selected),
+                          alignment: Alignment.center,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color:
+                                  theme.selectedChipBackgroundColor.withOpacity(0.10),
+                              borderRadius: BorderRadius.circular(theme.selectedChipRadius),
+                            ),
+                            constraints: BoxConstraints(minHeight: chipMinHeight),
+                            child: Text(
+                              _currentQuestion.choices[_selected],
+                              style: theme.selectedChipTextStyle
+                                  .copyWith(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        )
                       : SizedBox(height: chipMinHeight),
                 ),
               ),
@@ -319,13 +327,15 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     final borderRadius =
                     BorderRadius.circular(theme.optionCardRadius);
                     final Color baseColor = theme.optionCardColor;
-                    final Color highlightOverlay = kPrimary.withOpacity(0.06);
-                    final Color selectedOverlay = kPrimary.withOpacity(0.12);
+                    final Color highlightOverlay =
+                        theme.selectedChipBackgroundColor.withOpacity(0.06);
+                    final Color selectedOverlay =
+                        theme.selectedChipBackgroundColor.withOpacity(0.12);
                     final Color resolvedColor = isSelected
                         ? Color.alphaBlend(selectedOverlay, baseColor)
                         : isHighlighted
-                        ? Color.alphaBlend(highlightOverlay, baseColor)
-                        : baseColor;
+                            ? Color.alphaBlend(highlightOverlay, baseColor)
+                            : baseColor;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -341,8 +351,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                             borderRadius: borderRadius,
                             child: InkWell(
                               borderRadius: borderRadius,
-                              splashColor: kPrimary.withOpacity(0.08),
-                              highlightColor: kPrimary.withOpacity(0.04),
+                              splashColor:
+                                  theme.selectedChipBackgroundColor.withOpacity(0.08),
+                              highlightColor:
+                                  theme.selectedChipBackgroundColor.withOpacity(0.04),
                               onHighlightChanged: (value) {
                                 if (_selected >= 0 || _advanced) return;
                                 setState(() {
@@ -363,7 +375,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                   borderRadius: borderRadius,
                                   boxShadow: theme.optionCardShadow,
                                   border: Border.all(
-                                    color: isSelected ? kPrimary : Colors.transparent,
+                                    color: isSelected
+                                        ? theme.optionSelectedBorderColor
+                                        : Colors.transparent,
                                     width: 2,
                                   ),
                                 ),
@@ -560,7 +574,7 @@ IconData _iconForSubject(String name) {
   return Icons.menu_book_rounded;
 }
 
-Color _colorForSubject(String name) {
+Color _colorForSubject(String name, Color fallbackColor) {
   final n = _normalize(name);
   if (n.contains('droit')) return const Color(0xFF3949AB); // indigo
   if (n.contains('culture') || n.contains('generale')) return const Color(0xFF6A1B9A); // purple
@@ -580,14 +594,19 @@ Color _colorForSubject(String name) {
   if (n.contains('logique') || n.contains('raisonnement') || n.contains('aptitude')) {
     return const Color(0xFF00838F); // cyan dark
   }
-  return kPrimary; // fallback (violet 6C5CE7)
+  return fallbackColor; // fallback basé sur le thème
 }
 
 /// Petite pastille pour l’AppBar (icône + valeur)
 class _TopInfoPill extends StatelessWidget {
   final IconData icon;
   final String value;
-  const _TopInfoPill({required this.icon, required this.value});
+  final CompetitionTheme theme;
+  const _TopInfoPill({
+    required this.icon,
+    required this.value,
+    required this.theme,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -595,14 +614,20 @@ class _TopInfoPill extends StatelessWidget {
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white24,
+        color: theme.topPillBackgroundColor,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.white),
+          Icon(icon, size: 18, color: theme.topPillForegroundColor),
           const SizedBox(width: 6),
-          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          Text(
+            value,
+            style: TextStyle(
+              color: theme.topPillForegroundColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
