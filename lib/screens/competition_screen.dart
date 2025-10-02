@@ -108,8 +108,8 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
     // Couleur + icône spécifiques à la matière courante
     final Color subjectFg =
-        _colorForSubject(_currentQuestion.subject, theme.timerColor);
-    final Color subjectBg = subjectFg.withOpacity(0.10);
+        _colorForSubject(_currentQuestion.subject, theme.questionCardForegroundColor);
+    final Color subjectBg = subjectFg.withOpacity(0.12);
     final IconData subjectIcon = _iconForSubject(_currentQuestion.subject);
 
     final String appBarTitle = (_currentQuestion.subject.isEmpty)
@@ -174,21 +174,26 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.questionCardColor,
+                    color: theme.questionCardBackgroundGradient == null
+                        ? theme.questionCardColor
+                        : null,
+                    gradient: theme.questionCardBackgroundGradient,
                     borderRadius:
-                    BorderRadius.circular(theme.questionCardRadius),
+                        BorderRadius.circular(theme.questionCardRadius),
                     boxShadow: theme.questionCardShadow,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Compte à rebours (en violet 6C5CE7)
+                      // Compte à rebours sur fond accentué
                       Center(
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: theme.timerColor
-                                .withOpacity(0.08), // “partie grise” -> violet
+                            color: theme.timerContainerBackgroundGradient == null
+                                ? theme.timerContainerColor
+                                : null,
+                            gradient: theme.timerContainerBackgroundGradient,
                             borderRadius:
                                 BorderRadius.circular(theme.timerContainerRadius),
                             boxShadow: theme.timerContainerShadow,
@@ -199,21 +204,22 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                               SizedBox(
                                 width: theme.timerSize,
                                 height: theme.timerSize,
-                            child: CircularProgressIndicator(
-                              value: _controller.value,
-                              strokeWidth: theme.timerStrokeWidth,
-                              color: theme.timerColor, // couleur du timer
-                              backgroundColor: theme.timerColor
-                                  .withOpacity(0.18), // anneau de fond
-                            ),
-                          ),
-                          Text(
-                            '$_remainingSeconds',
-                            style: theme.timerTextStyle.copyWith(
-                              color: theme.timerColor, // texte du timer en violet
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                                child: CircularProgressIndicator(
+                                  value: _controller.value,
+                                  strokeWidth: theme.timerStrokeWidth,
+                                  color: theme.timerOnColor,
+                                  backgroundColor:
+                                      theme.timerOnColor.withOpacity(0.24),
+                                ),
+                              ),
+                              Text(
+                                '$_remainingSeconds',
+                                style: theme.timerTextStyle.copyWith(
+                                  color: theme.timerTextStyle.color ??
+                                      theme.timerOnColor,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ],
                           ),
                         ),

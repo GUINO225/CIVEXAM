@@ -14,6 +14,11 @@ class CompetitionTheme {
 
   /// Styling for the card that holds the question and progress information.
   final Color questionCardColor;
+  /// Optional accent gradient applied behind [questionCardColor].
+  final Gradient? questionCardBackgroundGradient;
+
+  /// Text color to use on top of the question card accent.
+  final Color questionCardForegroundColor;
   final double questionCardRadius;
   final List<BoxShadow> questionCardShadow;
 
@@ -41,6 +46,11 @@ class CompetitionTheme {
   final double timerStrokeWidth;
   final Color timerColor;
   final Color timerContainerColor;
+  /// Optional accent gradient applied to the timer container.
+  final Gradient? timerContainerBackgroundGradient;
+
+  /// Foreground color that keeps the countdown legible on its accent.
+  final Color timerOnColor;
   final double timerContainerRadius;
   final List<BoxShadow> timerContainerShadow;
 
@@ -58,6 +68,8 @@ class CompetitionTheme {
   const CompetitionTheme({
     this.backgroundColor = const Color(0xFFF5F5F5),
     this.questionCardColor = Colors.white,
+    this.questionCardBackgroundGradient,
+    this.questionCardForegroundColor = Colors.black,
     this.questionCardRadius = 16.0,
     this.questionCardShadow = const [
       BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
@@ -79,6 +91,8 @@ class CompetitionTheme {
     this.timerStrokeWidth = 6.0,
     this.timerColor = Colors.pinkAccent,
     this.timerContainerColor = Colors.white,
+    this.timerContainerBackgroundGradient,
+    this.timerOnColor = Colors.black,
     this.timerContainerRadius = 12.0,
     this.timerContainerShadow = const [
       BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
@@ -116,9 +130,27 @@ class CompetitionTheme {
   factory CompetitionTheme.fromTheme(ThemeData theme) {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final Gradient questionCardGradient = LinearGradient(
+      colors: [
+        scheme.primaryContainer,
+        Color.lerp(scheme.primaryContainer, scheme.primary, 0.35)!,
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+    final Gradient timerGradient = LinearGradient(
+      colors: [
+        scheme.primary,
+        Color.lerp(scheme.primary, scheme.primaryContainer, 0.35)!,
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
     return CompetitionTheme(
       backgroundColor: theme.scaffoldBackgroundColor,
-      questionCardColor: theme.cardColor,
+      questionCardColor: scheme.primaryContainer,
+      questionCardBackgroundGradient: questionCardGradient,
+      questionCardForegroundColor: scheme.onPrimaryContainer,
       optionCardColor: theme.cardColor,
       optionSelectedBorderColor: scheme.primary,
       progressBarColor: scheme.primary,
@@ -129,14 +161,22 @@ class CompetitionTheme {
       topPillBackgroundColor: scheme.onPrimary.withOpacity(0.24),
       topPillForegroundColor: scheme.onPrimary,
       timerColor: scheme.primary,
-      timerContainerColor: theme.cardColor,
-      timerTextStyle:
-          textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold) ??
-              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      questionIndexTextStyle: textTheme.bodySmall ?? const TextStyle(),
+      timerContainerColor: scheme.primary,
+      timerContainerBackgroundGradient: timerGradient,
+      timerOnColor: scheme.onPrimary,
+      timerTextStyle: (textTheme.titleLarge ?? const TextStyle(fontSize: 24)).copyWith(
+        fontWeight: FontWeight.bold,
+        color: scheme.onPrimary,
+      ),
+      questionIndexTextStyle:
+          (textTheme.bodySmall ?? const TextStyle(fontSize: 14)).copyWith(
+        color: scheme.onPrimaryContainer.withOpacity(0.82),
+      ),
       questionTextStyle:
-          textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
-              const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          (textTheme.titleMedium ?? const TextStyle(fontSize: 20)).copyWith(
+        fontWeight: FontWeight.bold,
+        color: scheme.onPrimaryContainer,
+      ),
       optionTextStyle: textTheme.bodyMedium ??
           const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       selectedChipTextStyle: textTheme.bodyMedium?.copyWith(
@@ -216,6 +256,8 @@ class CompetitionTheme {
   CompetitionTheme copyWith({
     Color? backgroundColor,
     Color? questionCardColor,
+    Gradient? questionCardBackgroundGradient,
+    Color? questionCardForegroundColor,
     double? questionCardRadius,
     List<BoxShadow>? questionCardShadow,
     Color? optionCardColor,
@@ -233,6 +275,8 @@ class CompetitionTheme {
     double? timerStrokeWidth,
     Color? timerColor,
     Color? timerContainerColor,
+    Gradient? timerContainerBackgroundGradient,
+    Color? timerOnColor,
     double? timerContainerRadius,
     List<BoxShadow>? timerContainerShadow,
     TextStyle? timerTextStyle,
@@ -246,6 +290,10 @@ class CompetitionTheme {
     return CompetitionTheme(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       questionCardColor: questionCardColor ?? this.questionCardColor,
+      questionCardBackgroundGradient:
+          questionCardBackgroundGradient ?? this.questionCardBackgroundGradient,
+      questionCardForegroundColor:
+          questionCardForegroundColor ?? this.questionCardForegroundColor,
       questionCardRadius: questionCardRadius ?? this.questionCardRadius,
       questionCardShadow: questionCardShadow ?? this.questionCardShadow,
       optionCardColor: optionCardColor ?? this.optionCardColor,
@@ -270,6 +318,9 @@ class CompetitionTheme {
       timerStrokeWidth: timerStrokeWidth ?? this.timerStrokeWidth,
       timerColor: timerColor ?? this.timerColor,
       timerContainerColor: timerContainerColor ?? this.timerContainerColor,
+      timerContainerBackgroundGradient: timerContainerBackgroundGradient ??
+          this.timerContainerBackgroundGradient,
+      timerOnColor: timerOnColor ?? this.timerOnColor,
       timerContainerRadius: timerContainerRadius ?? this.timerContainerRadius,
       timerContainerShadow: timerContainerShadow ?? this.timerContainerShadow,
       timerTextStyle: timerTextStyle ?? this.timerTextStyle,
