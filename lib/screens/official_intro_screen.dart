@@ -3,6 +3,7 @@
 // IMPORTS
 // =======================
 import 'dart:async'; // Pour Timer.periodic (le compte à rebours)
+import 'dart:math';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, debugPrintStack, defaultTargetPlatform, kIsWeb; // Utilitaires de plateforme & debug
 import 'package:flutter/material.dart'; // Widgets de base
@@ -13,6 +14,10 @@ import 'package:device_info_plus/device_info_plus.dart'; // Détecter si l’app
 
 import '../models/question.dart'; // Modèle Question
 import '../services/scoring.dart'; // Calcul de score
+import '../services/question_loader.dart';
+import '../services/question_history_store.dart';
+import '../services/question_randomizer.dart';
+import '../services/exam_blueprint.dart';
 import '../app/theme.dart'; // Optionnel (ex: thèmes globaux)
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
@@ -25,6 +30,302 @@ import 'play_screen.dart'; // Écran parent pour faire un pushReplacement quand 
 // =======================
 // DATA: Résultat d’examen
 // =======================
+
+class _ExamSection {
+  final String subject;
+  final int questionCount;
+
+  const _ExamSection(this.subject, this.questionCount);
+}
+
+const List<_ExamSection> _officialExamSections = <_ExamSection>[
+  _ExamSection('Culture Générale', ExamBlueprint.cultureGenerale),
+  _ExamSection('Droit Constitutionnel', ExamBlueprint.droitConstitutionnel),
+  _ExamSection('Problèmes Économiques & Sociaux', ExamBlueprint.problemesEconomiquesSociaux),
+  _ExamSection('Aptitude Numérique', ExamBlueprint.aptitudeNumerique),
+  _ExamSection('Aptitude Verbale', ExamBlueprint.aptitudeVerbale),
+  _ExamSection('Organisation & Logique', ExamBlueprint.organisationLogique),
+];
+
+class OfficialIntroScreen extends StatefulWidget {
+  const OfficialIntroScreen({super.key});
+
+  @override
+  State<OfficialIntroScreen> createState() => _OfficialIntroScreenState();
+}
+
+class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
+  static const int _countdownStart = 3;
+  static const int _minutesPerSection = 60;
+
+  bool _acceptedRules = false;
+  bool _loading = false;
+  bool _countdownActive = false;
+  int _countdown = _countdownStart;
+  Timer? _countdownTimer;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleStartPressed() {
+    if (_loading || _countdownActive) {
+      return;
+    }
+    if (!_acceptedRules) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Merci d’accepter les règles avant de commencer.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _countdownActive = true;
+      _countdown = _countdownStart;
+      _errorMessage = null;
+    });
+
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_countdown <= 1) {
+        timer.cancel();
+        setState(() {
+          _countdownActive = false;
+          _countdown = _countdownStart;
+        });
+        unawaited(HapticFeedback.heavyImpact());
+        _launchExam();
+      } else {
+        setState(() => _countdown--);
+        HapticFeedback.mediumImpact();
+      }
+    });
+  }
+
+  Future<void> _launchExam() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final all = await QuestionLoader.loadENA();
+      if (!mounted) return;
+
+      final questions = await _prepareQuestions(all);
+      if (!mounted) return;
+
+      final durationMinutes = _minutesPerSection * _officialExamSections.length;
+      final duration = Duration(minutes: durationMinutes);
+      const scoring = ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2);
+
+      final sessionIds = questions.map((q) => q.id);
+      unawaited(
+        QuestionHistoryStore.addAll(sessionIds).catchError((Object error, StackTrace stackTrace) {
+          debugPrint('OfficialIntroScreen: failed to persist history: $error');
+          debugPrintStack(stackTrace: stackTrace);
+        }),
+      );
+
+      final result = await Navigator.of(context).push<ExamResult?>(
+        MaterialPageRoute(
+          builder: (_) => ExamFullScreen(
+            questions: questions,
+            duration: duration,
+            scoring: scoring,
+            title: 'Concours ENA — Simulation',
+            competitionMode: true,
+            showLocalSummary: true,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+      if (result != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Tentative enregistrée — Score pondéré : ${result.weightedScore}',
+            ),
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('OfficialIntroScreen: unable to start exam: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Impossible de démarrer le concours. Veuillez réessayer.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Échec du chargement de l’épreuve.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<List<Question>> _prepareQuestions(List<Question> all) async {
+    final rng = Random();
+    final selected = <Question>[];
+    final usedIds = <String>{};
+
+    for (final section in _officialExamSections) {
+      if (section.questionCount <= 0) {
+        continue;
+      }
+
+      final canonical = QuestionLoader.canon(section.subject);
+      final pool = all
+          .where((q) => QuestionLoader.canon(q.subject) == canonical)
+          .toList(growable: false);
+
+      if (pool.isEmpty) {
+        throw Exception('Aucune question disponible pour ${section.subject}.');
+      }
+
+      final draw = await pickAndShuffle(
+        pool,
+        section.questionCount,
+        dedupeByQuestion: true,
+      );
+
+      final sectionSelection = <Question>[];
+      for (final q in draw) {
+        if (usedIds.add(q.id)) {
+          sectionSelection.add(q);
+        }
+      }
+
+      if (sectionSelection.length < section.questionCount) {
+        final remaining = pool.where((q) => !usedIds.contains(q.id)).toList(growable: false);
+        remaining.shuffle(rng);
+        final needed = section.questionCount - sectionSelection.length;
+        sectionSelection.addAll(remaining.take(needed));
+        usedIds.addAll(sectionSelection.map((q) => q.id));
+      }
+
+      if (sectionSelection.length < section.questionCount) {
+        throw Exception('Pas assez de questions pour ${section.subject}.');
+      }
+
+      selected.addAll(sectionSelection);
+    }
+
+    selected.shuffle(rng);
+    return selected;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final totalQuestions = _officialExamSections.fold<int>(
+      0,
+      (sum, section) => sum + section.questionCount,
+    );
+
+    final body = ListView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      children: [
+        Text(
+          'Simulation officielle ENA',
+          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Durée : ${_minutesPerSection * _officialExamSections.length} minutes (6 épreuves de 60 min).',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Barème : +1 bonne réponse, 0 sans réponse, −1 mauvaise réponse (coef 2).',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Répartition des questions :',
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        ..._officialExamSections.map(
+          (section) => ListTile(
+            leading: const Icon(Icons.book_outlined),
+            title: Text(section.subject),
+            subtitle: Text('${section.questionCount} questions'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Total : $totalQuestions questions. Préparez votre matériel et installez-vous dans un environnement calme. '
+          'Les sorties de l’application déclenchent des avertissements puis des pénalités.',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 24),
+        CheckboxListTile(
+          value: _acceptedRules,
+          onChanged: (_loading || _countdownActive)
+              ? null
+              : (value) => setState(() => _acceptedRules = value ?? false),
+          title: const Text('Je m’engage à respecter le règlement du concours et à ne pas quitter l’app.'),
+        ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _errorMessage!,
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+          ),
+        ],
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: (_loading || _countdownActive) ? null : _handleStartPressed,
+          icon: const Icon(Icons.flag),
+          label: Text(_loading ? 'Préparation…' : 'Commencer l’épreuve'),
+        ),
+        if (_loading) ...[
+          const SizedBox(height: 16),
+          const Center(child: CircularProgressIndicator()),
+        ],
+      ],
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Concours ENA — Introduction')),
+      body: Stack(
+        children: [
+          body,
+          if (_countdownActive)
+            Positioned.fill(
+              child: Container(
+                color: theme.colorScheme.scrim.withOpacity(0.65),
+                alignment: Alignment.center,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Text(
+                    '$_countdown',
+                    key: ValueKey<int>(_countdown),
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class ExamResult {
   final int correctCount;   // Nombre de bonnes réponses
   final int wrongCount;     // Nombre de mauvaises réponses
