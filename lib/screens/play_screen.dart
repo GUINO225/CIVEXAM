@@ -47,7 +47,7 @@ import 'categories/ressources_officielles_screen.dart';
 import 'categories/historique_suivi_screen.dart';
 import 'categories/defis_classement_screen.dart';
 import 'categories/aide_themes_screen.dart';
-import 'official_intro_screen.dart';
+import 'official_intro_screen.dart' show OfficialIntroScreen;
 
 /// ============================================================================
 /// === CONFIG UI (éditable facilement) ========================================
