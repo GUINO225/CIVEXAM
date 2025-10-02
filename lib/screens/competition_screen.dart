@@ -1,3 +1,4 @@
+// lib/screens/competition_screen.dart
 import 'dart:ui' show clampDouble; // pour clampDouble
 import 'package:flutter/material.dart';
 
@@ -55,8 +56,15 @@ class _CompetitionScreenState extends State<CompetitionScreen>
       ..addListener(() => setState(() {}))
       ..addStatusListener((s) {
         if (s == AnimationStatus.dismissed && !_advanced) {
-          _advanced = true;
-          _goNext(); // temps écoulé => réponse blanche
+          final nextSelection = _selected >= 0 ? _selected : null;
+          if (mounted) {
+            setState(() {
+              _advanced = true;
+            });
+          } else {
+            _advanced = true;
+          }
+          _goNext(nextSelection); // temps écoulé => réponse (ou blanche)
         }
       });
     _controller.reverse(from: 1.0);
@@ -107,7 +115,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
     final double chipMinHeight =
         (resolvedChipTextStyle.fontSize ?? 16) *
-            (resolvedChipTextStyle.height ?? 1.0) +
+                (resolvedChipTextStyle.height ?? 1.0) +
             16;
 
     final double topCardHeight = clampDouble(
@@ -122,14 +130,13 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     final Color subjectBg = subjectFg.withOpacity(0.10);
     final IconData subjectIcon = _iconForSubject(_currentQuestion.subject);
 
-    final String appBarTitle = (_currentQuestion.subject.isEmpty)
-        ? 'Quiz'
-        : '${_currentQuestion.subject} Quiz';
+    final String appBarTitle =
+        (_currentQuestion.subject.isEmpty) ? 'Quiz' : '${_currentQuestion.subject} Quiz';
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
 
-      // ---------- AppBar violette ----------
+      // ---------- AppBar ----------
       appBar: AppBar(
         backgroundColor: theme.appBarBackgroundColor,
         foregroundColor: theme.appBarForegroundColor,
@@ -177,275 +184,287 @@ class _CompetitionScreenState extends State<CompetitionScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // ---------- Carte du haut ----------
-              SizedBox(
-                width: double.infinity,
-                height: topCardHeight,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.questionCardColor,
-                    borderRadius:
-                    BorderRadius.circular(theme.questionCardRadius),
-                    boxShadow: theme.questionCardShadow,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Compte à rebours (en violet 6C5CE7)
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: theme.timerColor
-                                .withOpacity(0.08), // “partie grise” -> violet
-                            borderRadius:
-                                BorderRadius.circular(theme.timerContainerRadius),
-                            boxShadow: theme.timerContainerShadow,
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                width: theme.timerSize,
-                                height: theme.timerSize,
-                            child: CircularProgressIndicator(
-                              value: _controller.value,
-                              strokeWidth: theme.timerStrokeWidth,
-                              color: theme.timerColor, // couleur du timer
-                              backgroundColor: theme.timerColor
-                                  .withOpacity(0.18), // anneau de fond
-                            ),
-                          ),
-                          Text(
-                            '$_remainingSeconds',
-                            style: theme.timerTextStyle.copyWith(
-                              color: theme.timerColor, // texte du timer en violet
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Question ${widget.currentIndex + 1}/${widget.questions.length}',
-                        style: theme.questionIndexTextStyle,
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Rubrique + icône matière (fond violet doux)
-                      Row(
-                        children: [
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: subjectBg,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(subjectIcon, color: subjectFg, size: 18),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              _currentQuestion.subject,
-                              style: theme.questionIndexTextStyle,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            _cleanQuestion(_currentQuestion.question),
-                            style: theme.questionTextStyle,
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ---------- Chip "réponse sélectionnée" ----------
-              SizedBox(
-                height: chipMinHeight,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  // courbes sans overshoot
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    // pas de CurvedAnimation supplémentaire ici
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.08),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: ScaleTransition(
-                          scale: Tween<double>(begin: 0.98, end: 1).animate(animation),
-                          child: child,
-                        ),
-                      ),
-                    );
-                  },
-                  child: _selected >= 0
-                      ? AnimatedAlign(
-                          key: ValueKey<int>(_selected),
-                          alignment: Alignment.center,
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                            decoration: BoxDecoration(
-                              color:
-                                  theme.selectedChipBackgroundColor.withOpacity(0.10),
-                              borderRadius: BorderRadius.circular(theme.selectedChipRadius),
-                            ),
-                            constraints: BoxConstraints(minHeight: chipMinHeight),
-                            child: Text(
-                              _currentQuestion.choices[_selected],
-                              style: theme.selectedChipTextStyle
-                                  .copyWith(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                        )
-                      : SizedBox(height: chipMinHeight),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // ---------- Options ----------
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: List.generate(_currentQuestion.choices.length, (i) {
-                    final bool isSelected = _selected == i;
-                    final bool isHighlighted = _highlighted == i;
-                    final borderRadius =
-                        BorderRadius.circular(theme.optionCardRadius);
-                    final Color baseColor = theme.optionCardColor;
-                    final Color hoverOverlay =
-                        theme.optionSelectedBackgroundColor.withOpacity(0.06);
-                    final Color resolvedBackground = isSelected
-                        ? theme.optionSelectedBackgroundColor
-                        : isHighlighted
-                            ? Color.alphaBlend(hoverOverlay, baseColor)
-                            : baseColor;
-                    final TextStyle resolvedTextStyle = theme.optionTextStyle
-                        .copyWith(
-                      fontSize: optionFontSize,
-                      color: isSelected
-                          ? theme.optionSelectedTextColor
-                          : theme.optionTextStyle.color,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : theme.optionTextStyle.fontWeight,
-                    );
-                    final Color badgeBackground = isSelected
-                        ? theme.optionBadgeSelectedBackgroundColor
-                        : theme.optionBadgeBackgroundColor;
-                    final Color badgeForeground = isSelected
-                        ? theme.optionBadgeSelectedForegroundColor
-                        : theme.optionBadgeForegroundColor;
-                    final double badgeSize = theme.optionBadgeSize;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    // ---------- Carte du haut ----------
+                    SizedBox(
+                      width: double.infinity,
+                      height: topCardHeight,
                       child: Container(
-                        width: double.infinity,
-                        constraints: const BoxConstraints(maxWidth: 460),
-                        child: AnimatedScale(
-                          scale: isHighlighted ? 0.97 : 1.0,
-                          duration: const Duration(milliseconds: 140),
-                          curve: Curves.easeOut,
-                          child: Material(
-                            color: Colors.transparent,
-                            borderRadius: borderRadius,
-                            child: InkWell(
-                              borderRadius: borderRadius,
-                              splashColor: theme.optionSelectedBackgroundColor
-                                  .withOpacity(0.08),
-                              highlightColor:
-                                  theme.optionSelectedBackgroundColor
-                                      .withOpacity(0.04),
-                              onHighlightChanged: (value) {
-                                if (_selected >= 0 || _advanced) return;
-                                setState(() {
-                                  _highlighted = value ? i : -1;
-                                });
-                              },
-                              onTap: (_selected >= 0 || _advanced)
-                                  ? null
-                                  : () => _onOptionTap(i),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOut,
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                  horizontal: 20,
-                                ),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.questionCardColor,
+                          borderRadius:
+                              BorderRadius.circular(theme.questionCardRadius),
+                          boxShadow: theme.questionCardShadow,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Compte à rebours
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: resolvedBackground,
-                                  borderRadius: borderRadius,
-                                  boxShadow: theme.optionCardShadow,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? theme.optionSelectedBorderColor
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
+                                  color: theme.timerColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(
+                                      theme.timerContainerRadius),
+                                  boxShadow: theme.timerContainerShadow,
                                 ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                child: Stack(
+                                  alignment: Alignment.center,
                                   children: [
-                                    Container(
-                                      width: badgeSize,
-                                      height: badgeSize,
-                                      decoration: BoxDecoration(
-                                        color: badgeBackground,
-                                        borderRadius: BorderRadius.circular(
-                                            theme.optionBadgeRadius),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        _optionBadgeLabel(i),
-                                        style: theme.optionTextStyle.copyWith(
-                                          fontSize: optionFontSize * 0.9,
-                                          fontWeight: FontWeight.bold,
-                                          color: badgeForeground,
-                                        ),
+                                    SizedBox(
+                                      width: theme.timerSize,
+                                      height: theme.timerSize,
+                                      child: CircularProgressIndicator(
+                                        value: _controller.value,
+                                        strokeWidth: theme.timerStrokeWidth,
+                                        color: theme.timerColor,
+                                        backgroundColor:
+                                            theme.timerColor.withOpacity(0.18),
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        _currentQuestion.choices[i],
-                                        style: resolvedTextStyle,
+                                    Text(
+                                      '$_remainingSeconds',
+                                      style: theme.timerTextStyle.copyWith(
+                                        color: theme.timerColor,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Question ${widget.currentIndex + 1}/${widget.questions.length}',
+                              style: theme.questionIndexTextStyle,
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Rubrique + icône matière
+                            Row(
+                              children: [
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: subjectBg,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    subjectIcon,
+                                    color: subjectFg,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    _currentQuestion.subject,
+                                    style: theme.questionIndexTextStyle,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  _cleanQuestion(_currentQuestion.question),
+                                  style: theme.questionTextStyle,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ---------- Chip "réponse sélectionnée" ----------
+                    SizedBox(
+                      height: chipMinHeight,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.08),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: ScaleTransition(
+                                scale: Tween<double>(begin: 0.98, end: 1)
+                                    .animate(animation),
+                                child: child,
+                              ),
+                            ),
+                          );
+                        },
+                        child: _selected >= 0
+                            ? AnimatedAlign(
+                                key: ValueKey<int>(_selected),
+                                alignment: Alignment.center,
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeOutCubic,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.selectedChipBackgroundColor
+                                        .withOpacity(0.10),
+                                    borderRadius: BorderRadius.circular(
+                                        theme.selectedChipRadius),
+                                  ),
+                                  constraints:
+                                      BoxConstraints(minHeight: chipMinHeight),
+                                  child: Text(
+                                    _currentQuestion.choices[_selected],
+                                    style: theme.selectedChipTextStyle
+                                        .copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(height: chipMinHeight),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ---------- Options ----------
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: List.generate(
+                          _currentQuestion.choices.length,
+                          (i) {
+                            final bool isSelected = _selected == i;
+                            final bool isHighlighted = _highlighted == i;
+                            final borderRadius =
+                                BorderRadius.circular(theme.optionCardRadius);
+                            final Color baseColor = theme.optionCardColor;
+                            final Color highlightOverlay =
+                                theme.selectedChipBackgroundColor
+                                    .withOpacity(0.06);
+                            final Color selectedOverlay =
+                                theme.selectedChipBackgroundColor
+                                    .withOpacity(0.12);
+                            final Color resolvedColor = isSelected
+                                ? Color.alphaBlend(selectedOverlay, baseColor)
+                                : isHighlighted
+                                    ? Color.alphaBlend(
+                                        highlightOverlay, baseColor)
+                                    : baseColor;
+
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8),
+                              child: Container(
+                                width: double.infinity,
+                                constraints:
+                                    const BoxConstraints(maxWidth: 460),
+                                child: AnimatedScale(
+                                  scale: isHighlighted ? 0.97 : 1.0,
+                                  duration:
+                                      const Duration(milliseconds: 140),
+                                  curve: Curves.easeOut,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    borderRadius: borderRadius,
+                                    child: InkWell(
+                                      borderRadius: borderRadius,
+                                      splashColor:
+                                          theme.selectedChipBackgroundColor
+                                              .withOpacity(0.08),
+                                      highlightColor:
+                                          theme.selectedChipBackgroundColor
+                                              .withOpacity(0.04),
+                                      onHighlightChanged: (value) {
+                                        if (_selected >= 0 || _advanced) {
+                                          return;
+                                        }
+                                        setState(() {
+                                          _highlighted = value ? i : -1;
+                                        });
+                                      },
+                                      onTap: (_selected >= 0 || _advanced)
+                                          ? null
+                                          : () => _onOptionTap(i),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                            milliseconds: 200),
+                                        curve: Curves.easeOut,
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                          horizontal: 20,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: resolvedColor,
+                                          borderRadius: borderRadius,
+                                          boxShadow:
+                                              theme.optionCardShadow,
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? theme
+                                                    .optionSelectedBorderColor
+                                                : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _currentQuestion.choices[i],
+                                          textAlign: TextAlign.center,
+                                          style: theme.optionTextStyle
+                                              .copyWith(
+                                            fontSize: optionFontSize,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ---------- Bouton "Next" ----------
+              SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed:
+                        (_selected >= 0 && !_advanced) ? _onNextPressed : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('Next'),
+                  ),
                 ),
               ),
             ],
@@ -455,19 +474,21 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     );
   }
 
-  // tap : on NE stoppe PAS le timer et on avance de suite
   void _onOptionTap(int i) {
     if (_selected >= 0 || _advanced) return;
     setState(() {
       _selected = i;
       _highlighted = -1;
     });
-    Future.microtask(() {
-      if (!_advanced) {
-        _advanced = true;
-        _goNext(i);
-      }
+  }
+
+  void _onNextPressed() {
+    if (_selected < 0 || _advanced) return;
+    setState(() {
+      _advanced = true;
     });
+    _controller.stop();
+    _goNext(_selected);
   }
 
   void _goNext([int? selected]) {
