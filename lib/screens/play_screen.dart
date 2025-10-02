@@ -1145,6 +1145,36 @@ class _HomeShellState extends State<HomeShell> {
               // === CONTENU (carrousel + tuiles) ===
               LayoutBuilder(
                 builder: (context, _) {
+                  final designCfg = DesignBus.notifier.value;
+                  final theme = Theme.of(context);
+                  final colorScheme = theme.colorScheme;
+                  final Color paletteTextColor = textColorForPalette(
+                    designCfg.bgPaletteName,
+                    darkMode: designCfg.darkMode,
+                  );
+                  final Color leaderboardHeadlineColor = Color.alphaBlend(
+                    onBrand.withOpacity(0.2),
+                    colorScheme.onSurface,
+                  );
+                  final Color leaderboardBodyColor = Color.alphaBlend(
+                    colorScheme.onSurface.withOpacity(0.7),
+                    paletteTextColor,
+                  );
+                  final Color leaderboardBackgroundColor = Color.alphaBlend(
+                    onBrand.withOpacity(0.08),
+                    colorScheme.surface,
+                  );
+                  final Color leaderboardChipColor = Color.alphaBlend(
+                    colorScheme.onSurface.withOpacity(0.08),
+                    brand,
+                  );
+                  final Color leaderboardChipTextColor =
+                      ThemeData.estimateBrightnessForColor(
+                                leaderboardChipColor,
+                              ) ==
+                              Brightness.dark
+                          ? Colors.white
+                          : Colors.black;
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
@@ -1226,6 +1256,11 @@ class _HomeShellState extends State<HomeShell> {
                             brand: brand,
                             brandVariant: brandVariant,
                             onBrand: onBrand,
+                            headlineColor: leaderboardHeadlineColor,
+                            bodyColor: leaderboardBodyColor,
+                            chipColor: leaderboardChipColor,
+                            chipTextColor: leaderboardChipTextColor,
+                            backgroundColor: leaderboardBackgroundColor,
                           ),
                         ),
                       ),
@@ -1578,6 +1613,11 @@ class _LeaderboardHighlightCard extends StatelessWidget {
     required this.brand,
     required this.brandVariant,
     required this.onBrand,
+    required this.headlineColor,
+    required this.bodyColor,
+    required this.chipColor,
+    required this.chipTextColor,
+    required this.backgroundColor,
   });
 
   final List<LeaderboardEntry> entries;
@@ -1587,16 +1627,20 @@ class _LeaderboardHighlightCard extends StatelessWidget {
   final Color brand;
   final Color brandVariant;
   final Color onBrand;
+  final Color headlineColor;
+  final Color bodyColor;
+  final Color chipColor;
+  final Color chipTextColor;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final Color cardBackground =
-        Color.alphaBlend(brand.withOpacity(0.08), Colors.white);
+    final Color cardBackground = backgroundColor;
     final Color iconBackground =
         Color.alphaBlend(onBrand.withOpacity(0.12), brand);
-    final Color titleColor = Color.lerp(onBrand, brand, 0.15) ?? onBrand;
-    final Color bodyColor = Color.lerp(onBrand, brand, 0.35) ?? onBrand;
+    final Color titleColor = headlineColor;
+    final Color supportingTextColor = bodyColor;
 
     Widget body;
     if (isLoading) {
@@ -1607,7 +1651,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              backgroundColor: onBrand.withOpacity(0.16),
+              backgroundColor: supportingTextColor.withOpacity(0.16),
               valueColor: AlwaysStoppedAnimation<Color>(brand),
             ),
           ),
@@ -1616,7 +1660,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             child: Text(
               'Chargement du classement...',
               style: theme.textTheme.bodyMedium?.copyWith(
-                    color: bodyColor,
+                    color: supportingTextColor,
                   ),
             ),
           ),
@@ -1626,14 +1670,14 @@ class _LeaderboardHighlightCard extends StatelessWidget {
       body = Text(
         error!,
         style: theme.textTheme.bodyMedium?.copyWith(
-              color: bodyColor,
+              color: supportingTextColor,
             ),
       );
     } else if (entries.isEmpty) {
       body = Text(
         'Aucun score pour le moment. Sois le premier à entrer dans le classement !',
         style: theme.textTheme.bodyMedium?.copyWith(
-              color: bodyColor,
+              color: supportingTextColor,
             ),
       );
     } else {
@@ -1693,8 +1737,8 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: onBrand,
-                      backgroundColor: brand,
+                      foregroundColor: chipTextColor,
+                      backgroundColor: chipColor,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 12,
@@ -1707,11 +1751,11 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                     child: Text(
                       'Voir tout le classement',
                       style: theme.textTheme.labelLarge?.copyWith(
-                            color: onBrand,
+                            color: chipTextColor,
                             fontWeight: FontWeight.w700,
                           ) ??
                           TextStyle(
-                            color: onBrand,
+                            color: chipTextColor,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
