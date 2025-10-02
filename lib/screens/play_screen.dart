@@ -626,16 +626,8 @@ class _HomeShellState extends State<HomeShell> {
                 Brightness.dark
             ? Colors.white
             : Colors.black;
-        final Color onAccent = ThemeData.estimateBrightnessForColor(accent) ==
-                Brightness.dark
-            ? Colors.white
-            : Colors.black;
         final Color navHighlight =
             Color.alphaBlend(onBrand.withOpacity(0.14), brand);
-        final Color brandOverlay =
-            Color.alphaBlend(onBrand.withOpacity(0.12), brand);
-        final Color accentOverlay =
-            Color.alphaBlend(onAccent.withOpacity(0.12), accent);
 
         final mq = MediaQuery.of(context);
         final scale = computeScaleFactor(mq);
@@ -710,8 +702,6 @@ class _HomeShellState extends State<HomeShell> {
               brand: brand,
               onBrand: onBrand,
               accent: accent,
-              brandOverlay: brandOverlay,
-              accentOverlay: accentOverlay,
               brandVariant: brandVariant,
             ),
           ),
@@ -735,8 +725,6 @@ class _HomeShellState extends State<HomeShell> {
     required Color brand,
     required Color onBrand,
     required Color accent,
-    required Color brandOverlay,
-    required Color accentOverlay,
     required Color brandVariant,
   }) {
     final shellOnBrand = onBrand;
@@ -757,8 +745,6 @@ class _HomeShellState extends State<HomeShell> {
           brand: brand,
           onBrand: shellOnBrand,
           accent: accent,
-          brandOverlay: brandOverlay,
-          accentOverlay: accentOverlay,
           brandVariant: brandVariant,
         ),
       ),
@@ -819,8 +805,6 @@ class _HomeShellState extends State<HomeShell> {
     required Color brand,
     required Color onBrand,
     required Color accent,
-    required Color brandOverlay,
-    required Color accentOverlay,
     required Color brandVariant,
   }) {
     return Stack(
@@ -851,8 +835,6 @@ class _HomeShellState extends State<HomeShell> {
           brand: brand,
           onBrand: onBrand,
           accent: accent,
-          brandOverlay: brandOverlay,
-          accentOverlay: accentOverlay,
           brandVariant: brandVariant,
         ),
       ],
@@ -1075,15 +1057,66 @@ class _HomeShellState extends State<HomeShell> {
     required Color brand,
     required Color onBrand,
     required Color accent,
-    required Color brandOverlay,
-    required Color accentOverlay,
     required Color brandVariant,
   }) {
+    Color lighten(Color color, double amount) {
+      final hsl = HSLColor.fromColor(color);
+      final lightness = (hsl.lightness + amount).clamp(0.0, 1.0);
+      return hsl.withLightness(lightness).toColor();
+    }
+
+    Color darken(Color color, double amount) {
+      final hsl = HSLColor.fromColor(color);
+      final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
+      return hsl.withLightness(lightness).toColor();
+    }
+
+    Color pastelize(Color color) {
+      final hsl = HSLColor.fromColor(color);
+      final saturation = (hsl.saturation * 0.6).clamp(0.0, 1.0);
+      final lightness = (hsl.lightness + 0.3).clamp(0.0, 1.0);
+      return hsl.withSaturation(saturation).withLightness(lightness).toColor();
+    }
+
+    Color contrastOn(Color background,
+        {Color? preferLight, Color? preferDark, double threshold = 0.45}) {
+      final luminance = background.computeLuminance();
+      if (luminance < threshold) {
+        return preferLight ?? Colors.white;
+      }
+      return preferDark ?? const Color(0xFF1F1A3D);
+    }
+
+    final quickBadgeBackground = pastelize(brand);
+    final quickBorder = lighten(brand, 0.28);
+
+    final arcadeBase = brandVariant;
+    final arcadeBackground = pastelize(arcadeBase);
+    final arcadeBadgeBackground = lighten(arcadeBackground, 0.08);
+    final arcadeBorder = darken(arcadeBase, 0.06);
+
+    final competitionBase = accent;
+    final competitionBadgeBackground = pastelize(competitionBase);
+    final competitionBorder = lighten(competitionBase, 0.24);
+
+    final officialBase = Color.lerp(brand, accent, 0.35) ?? brand;
+    final officialBackground = darken(officialBase, 0.04);
+    final officialBadgeBackground = pastelize(officialBase);
+    final officialBorder = lighten(officialBase, 0.3);
+
     final liveQuizItems = <_LiveQuizItem>[
       _LiveQuizItem(
         icon: Icons.flash_on_rounded,
-        iconColor: brand,
-        iconBackground: brandOverlay,
+        iconColor: contrastOn(
+          brand,
+          preferLight: onBrand,
+          preferDark: darken(brand, 0.32),
+        ),
+        iconBackground: brand,
+        iconBorderColor: quickBorder,
+        badgeBackground: quickBadgeBackground,
+        badgeBorderColor: lighten(brand, 0.42),
+        badgeForeground: darken(brand, 0.24),
         title: 'Quiz rapide',
         subtitle: 'Démarre un entraînement instantané',
         brand: brand,
@@ -1091,8 +1124,16 @@ class _HomeShellState extends State<HomeShell> {
       ),
       _LiveQuizItem(
         icon: Icons.videogame_asset_rounded,
-        iconColor: brandVariant,
-        iconBackground: brandVariant.withOpacity(0.12),
+        iconColor: contrastOn(
+          arcadeBackground,
+          preferLight: Colors.white,
+          preferDark: darken(arcadeBase, 0.28),
+        ),
+        iconBackground: arcadeBackground,
+        iconBorderColor: arcadeBorder,
+        badgeBackground: arcadeBadgeBackground,
+        badgeBorderColor: lighten(arcadeBase, 0.34),
+        badgeForeground: darken(arcadeBase, 0.3),
         title: 'Mode arcade',
         subtitle: 'Grimpe les paliers de difficulté',
         brand: brand,
@@ -1100,8 +1141,16 @@ class _HomeShellState extends State<HomeShell> {
       ),
       _LiveQuizItem(
         icon: Icons.people_alt_rounded,
-        iconColor: accent,
-        iconBackground: accentOverlay,
+        iconColor: contrastOn(
+          competitionBase,
+          preferLight: Colors.white,
+          preferDark: darken(competitionBase, 0.28),
+        ),
+        iconBackground: competitionBase,
+        iconBorderColor: competitionBorder,
+        badgeBackground: competitionBadgeBackground,
+        badgeBorderColor: lighten(competitionBase, 0.38),
+        badgeForeground: darken(competitionBase, 0.2),
         title: 'Défi compétition',
         subtitle: '60 questions pour grimper au classement',
         brand: brand,
@@ -1109,10 +1158,16 @@ class _HomeShellState extends State<HomeShell> {
       ),
       _LiveQuizItem(
         icon: Icons.workspace_premium_rounded,
-        iconColor:
-            Color.lerp(brand, accent, 0.45) ?? brand,
-        iconBackground:
-            Color.lerp(brandOverlay, accentOverlay, 0.5) ?? brandOverlay,
+        iconColor: contrastOn(
+          officialBackground,
+          preferLight: Colors.white,
+          preferDark: darken(officialBase, 0.32),
+        ),
+        iconBackground: officialBackground,
+        iconBorderColor: officialBorder,
+        badgeBackground: officialBadgeBackground,
+        badgeBorderColor: lighten(officialBase, 0.36),
+        badgeForeground: darken(officialBase, 0.26),
         title: 'Simulation officielle',
         subtitle: 'Sujet d’entraînement en conditions réelles',
         brand: brand,
@@ -1872,6 +1927,7 @@ class _LiveQuizListState extends State<_LiveQuizList> {
               decoration: BoxDecoration(
                 color: item.iconBackground,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: item.iconBorderColor, width: 1.4),
               ),
               child: Icon(item.icon, color: item.iconColor, size: 26),
             ),
@@ -1893,12 +1949,25 @@ class _LiveQuizListState extends State<_LiveQuizList> {
                     dimension: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(item.iconColor),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(item.badgeForeground),
+                      backgroundColor: item.badgeBackground,
                     ),
                   )
-                : Icon(
-                    Icons.chevron_right_rounded,
-                    color: item.brand,
+                : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.badgeBackground,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: item.badgeBorderColor, width: 1.2),
+                    ),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: item.badgeForeground,
+                    ),
                   ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -2065,6 +2134,10 @@ class _LiveQuizItem {
     required this.icon,
     required this.iconColor,
     required this.iconBackground,
+    required this.iconBorderColor,
+    required this.badgeBackground,
+    required this.badgeBorderColor,
+    required this.badgeForeground,
     required this.title,
     required this.subtitle,
     required this.brand,
@@ -2074,6 +2147,10 @@ class _LiveQuizItem {
   final IconData icon;
   final Color iconColor;
   final Color iconBackground;
+  final Color iconBorderColor;
+  final Color badgeBackground;
+  final Color badgeBorderColor;
+  final Color badgeForeground;
   final String title;
   final String subtitle;
   final Color brand;
