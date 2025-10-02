@@ -15,6 +15,8 @@ import 'package:device_info_plus/device_info_plus.dart'; // Détecter si l’app
 import '../models/question.dart'; // Modèle Question
 import '../services/scoring.dart'; // Calcul de score
 import '../app/theme.dart'; // Optionnel (ex: thèmes globaux)
+import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart'; // Helpers pour tailles de texte responsives
 
 // Ces deux imports sont pour ton bottom nav existant :
@@ -62,8 +64,8 @@ class ExamFullScreen extends StatefulWidget {
   final void Function(int remainingSeconds, List<int?> answers)? onStateChanged; // Callback régulier
   final VoidCallback? onStateCleared; // Callback à la sortie de l’exam
 
-  /// Couleur de marque pour l’épreuve (par défaut #5336C6).
-  final Color brandColor;
+  /// Couleur de marque pour l’épreuve (si null, déduite de la palette active).
+  final Color? brandColor;
 
   const ExamFullScreen({
     super.key,
@@ -78,7 +80,7 @@ class ExamFullScreen extends StatefulWidget {
     this.initialRemainingSeconds,
     this.onStateChanged,
     this.onStateCleared,
-    this.brandColor = const Color(0xFF5336C6),
+    this.brandColor,
   });
 
   @override
@@ -111,7 +113,25 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   bool _secureFlagActive = false;   // FLAG_SECURE actif ?
 
   // --- Couleur de marque ---
-  Color get _brand => widget.brandColor;
+  Color _brandColor(BuildContext context) {
+    if (widget.brandColor != null) return widget.brandColor!;
+    final cfg = DesignBus.notifier.value;
+    final palette = playIconColors(cfg.bgPaletteName);
+    if (palette.isNotEmpty) {
+      return palette.first;
+    }
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  Color _accentColor() {
+    final cfg = DesignBus.notifier.value;
+    return complementaryColor(cfg.bgPaletteName);
+  }
+
+  Color _onBrand(Color brand) {
+    final brightness = ThemeData.estimateBrightnessForColor(brand);
+    return brightness == Brightness.dark ? Colors.white : Colors.black;
+  }
 
   // =======================
   // LIFECYCLE: init / dispose
@@ -515,10 +535,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   // =======================
   // UI: HEADER
   // =======================
-  Widget _header(BuildContext context, String title, int step, int total) {
+  Widget _header(
+      BuildContext context, String title, int step, int total, Color brand, Color onBrand) {
     final mq = MediaQuery.of(context);
-    final brand = _brand;         // couleur de marque
-    final onBrand = Colors.white; // texte blanc sur fond violet
     final progress = (step + 1) / total; // progression 0..1
 
     return SizedBox(
@@ -561,15 +580,17 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                     );
                     if (ok == true) _leaveExam(null);
                   },
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back, color: onBrand),
                 ),
                 // Titre centré
                 Expanded(
                   child: Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18,
+                    style: TextStyle(
+                      color: onBrand,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -578,12 +599,12 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.2),
+                    color: onBrand.withOpacity(.18),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Text(
                     _format(remaining),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    style: TextStyle(color: onBrand, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -601,8 +622,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                 LinearProgressIndicator(
                   value: progress,
                   minHeight: 6,
-                  backgroundColor: Colors.white.withOpacity(.25),
-                  color: Colors.white,
+                  backgroundColor: onBrand.withOpacity(.25),
+                  color: onBrand,
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -612,8 +633,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                       value: step + 1,
                       total: total,
                       size: 56,
-                      foreground: Colors.white,
-                      background: Colors.white.withOpacity(.35),
+                      foreground: onBrand,
+                      background: onBrand.withOpacity(.35),
                     ),
                     const SizedBox(width: 12),
                     // Label FR
@@ -630,8 +651,8 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                     OutlinedButton.icon(
                       onPressed: _submitted ? null : () => _submit(),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withOpacity(.8)),
+                        foregroundColor: onBrand,
+                        side: BorderSide(color: onBrand.withOpacity(.8)),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
@@ -651,7 +672,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   // =======================
   // UI: Question + actions bas
   // =======================
-  Widget _questionArea(Question q, int index) {
+  Widget _questionArea(Question q, int index, Color brand, Color onBrand) {
     final mediaQuery = MediaQuery.of(context);
     final scale = computeScaleFactor(mediaQuery);          // facteur device
     final textScaler = MediaQuery.textScalerOf(context);   // facteur accessibilité
@@ -666,7 +687,6 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     scaledFontSize(base: 18, scale: scale, textScaler: textScaler, min: 16, max: 22);
 
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final brand = _brand;
 
     return SafeArea(
       top: false,
@@ -721,6 +741,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                                   onTap: _submitted ? null : () => _onAnswer(index, c),
                                   fontSize: optionFontSize,
                                   brand: brand,
+                                  onBrand: onBrand,
                                   onSurface: onSurface,
                                 ),
                                 const SizedBox(height: 10),
@@ -763,7 +784,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(56),
                         backgroundColor: brand,
-                        foregroundColor: Colors.white,
+                        foregroundColor: onBrand,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         textStyle: const TextStyle(fontWeight: FontWeight.w700),
                       ),
@@ -792,13 +813,25 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final q = widget.questions;               // questions
     final title = widget.title ?? 'Examen';   // titre fallback
+    final Color brand = _brandColor(context);
+    final Brightness brandBrightness =
+        ThemeData.estimateBrightnessForColor(brand);
+    final Color onBrand =
+        brandBrightness == Brightness.dark ? Colors.white : Colors.black;
+    final Color accent = _accentColor();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color navHighlight = accent.withOpacity(isDark ? 0.32 : 0.20);
+    final Brightness overlayIconBrightness =
+        brandBrightness == Brightness.dark ? Brightness.light : Brightness.dark;
+    final Brightness overlayStatusBrightness =
+        brandBrightness == Brightness.dark ? Brightness.dark : Brightness.light;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Teinte des icônes de la status bar au-dessus du header violet
       value: SystemUiOverlayStyle(
-        statusBarColor: _brand,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: brand,
+        statusBarIconBrightness: overlayIconBrightness,
+        statusBarBrightness: overlayStatusBrightness,
       ),
       child: SelectionContainer.disabled(
         child: Scaffold(
@@ -818,7 +851,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               : PlayBottomNavBar(
             destinations: playNavDestinations,
             selectedIndex: 2,          // onglet courant
-            backgroundColor: _brand,   // teinte violette
+            backgroundColor: brand,
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
             onDestinationSelected: _handleBottomNavSelection,
           ),
 
@@ -834,7 +869,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
           // Corps: header + PageView des questions
           body: Column(
             children: [
-              _header(context, title, _currentIndex, q.length),
+              _header(context, title, _currentIndex, q.length, brand, onBrand),
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
@@ -844,7 +879,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                       : const BouncingScrollPhysics(),
                   onPageChanged: (i) => setState(() => _currentIndex = i),
                   itemCount: q.length,
-                  itemBuilder: (_, i) => _questionArea(q[i], i),
+                  itemBuilder: (_, i) => _questionArea(q[i], i, brand, onBrand),
                 ),
               ),
             ],
@@ -864,6 +899,7 @@ class _OptionPill extends StatelessWidget {
   final VoidCallback? onTap; // callback au tap
   final double fontSize;  // taille du texte
   final Color brand;      // couleur de marque
+  final Color onBrand;    // couleur du texte sur marque
   final Color onSurface;  // couleur du texte standard
 
   const _OptionPill({
@@ -872,6 +908,7 @@ class _OptionPill extends StatelessWidget {
     required this.onTap,
     required this.fontSize,
     required this.brand,
+    required this.onBrand,
     required this.onSurface,
   });
 
@@ -881,7 +918,7 @@ class _OptionPill extends StatelessWidget {
     final Color unselectedBg = dark ? const Color(0xFF222329) : Colors.white; // fond non sélectionné
     final Color unselectedBorder = const Color(0xFFE0E0E6);                   // bord fin
     final Color bg = selected ? brand : unselectedBg;                          // fond si sélectionné
-    final Color fg = selected ? Colors.white : onSurface.withOpacity(.9);      // texte
+    final Color fg = selected ? onBrand : onSurface.withOpacity(.9);      // texte
 
     return Semantics(
       button: true,

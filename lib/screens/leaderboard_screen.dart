@@ -1,11 +1,17 @@
 // lib/screens/leaderboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../models/design_config.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/competition_service.dart';
+import '../services/design_bus.dart';
 import '../utils/arcade_level_utils.dart';
 import '../utils/rank_display_helper.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 import '../widgets/play_themed_scaffold.dart';
+import 'play_screen.dart';
 
 enum _Period { weekly, allTime }
 
@@ -16,8 +22,6 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  static const Color _brand = Color(0xFF5336C6);
-
   List<LeaderboardEntry> _entries = const [];
   String _query = '';
   _Period _period = _Period.allTime;
@@ -61,91 +65,121 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     final filtered = _filtered;
 
-    return PlayThemedScaffold(
-      safeAreaTop: true,
-      bodyMode: PlayThemedScaffoldBodyMode.panel,
-      // on laisse l'appbar du PlayThemedScaffold pour l'intégration globale
-      appBar: AppBar(
-        backgroundColor: _brand,
-        elevation: 0,
-        title: const Text('Classement'),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-        ],
-      ),
-      // padding interne: on met notre header custom, donc padding simple
-      bodyPadding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ==== Segmented control Hebdo / Tout temps ====
-          _SegmentedPeriod(
-            value: _period,
-            onChanged: (_Period p) => setState(() => _period = p),
-            brand: _brand,
-          ),
-          const SizedBox(height: 16),
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final palette = playIconColors(cfg.bgPaletteName);
+        final Color brand = palette.first;
+        final Brightness brandBrightness =
+            ThemeData.estimateBrightnessForColor(brand);
+        final Color onBrand =
+            brandBrightness == Brightness.dark ? Colors.white : Colors.black;
+        final Color accent = complementaryColor(cfg.bgPaletteName);
+        final bool isDark = Theme.of(context).brightness == Brightness.dark;
+        final Color navHighlight = accent.withOpacity(isDark ? 0.32 : 0.20);
 
-          // ==== Barre de recherche ====
-          TextField(
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              hintText: 'Chercher (nom / matière / chapitre)',
-              filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF1F1F22)
-                  : Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.black.withOpacity(0.06)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.black.withOpacity(0.06)),
-              ),
+        return PlayThemedScaffold(
+          safeAreaTop: true,
+          bodyMode: PlayThemedScaffoldBodyMode.panel,
+          appBar: AppBar(
+            backgroundColor: brand,
+            foregroundColor: onBrand,
+            elevation: 0,
+            title: const Text('Classement'),
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: brand,
+              statusBarIconBrightness:
+                  brandBrightness == Brightness.dark ? Brightness.light : Brightness.dark,
+              statusBarBrightness:
+                  brandBrightness == Brightness.dark ? Brightness.dark : Brightness.light,
             ),
-            onChanged: (v) => setState(() => _query = v),
+            actions: [
+              IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+            ],
           ),
-          const SizedBox(height: 16),
+          bodyPadding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _SegmentedPeriod(
+                value: _period,
+                onChanged: (_Period p) => setState(() => _period = p),
+                brand: brand,
+                onBrand: onBrand,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: InputDecoration(
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: 'Chercher (nom / matière / chapitre)',
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1F1F22)
+                      : Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.black.withOpacity(0.06)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.black.withOpacity(0.06)),
+                  ),
+                ),
+                onChanged: (v) => setState(() => _query = v),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: filtered.isEmpty
+                    ? const _EmptyState()
+                    : ListView.separated(
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        padding: const EdgeInsets.only(bottom: 24),
+                        itemBuilder: (context, i) {
+                          final e = filtered[i];
+                          final rank = i + 1;
+                          final isFirst = rank == 1;
+                          final badgeLabel = normalizeArcadeLevel(e.arcadeLevel);
 
-          // ==== Liste ====
-          Expanded(
-            child: filtered.isEmpty
-                ? const _EmptyState()
-                : ListView.separated(
-              itemCount: filtered.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              padding: const EdgeInsets.only(bottom: 24),
-              itemBuilder: (context, i) {
-                final e = filtered[i];
-                final rank = i + 1;
-                final isFirst = rank == 1;
-                final badgeLabel = normalizeArcadeLevel(e.arcadeLevel);
-
-                return _LeaderboardCard(
-                  rank: rank,
-                  name: e.name,
-                  subtitle:
-                  'Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}'
-                      '${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}',
-                  rightTopText: '${e.percent.toStringAsFixed(1)} %',
-                  rightBottomText:
-                  '${e.correct}/${e.total} • ${_fmtDuration(e.durationSec)}',
-                  // Avatar “initiale”
-                  avatarText: _initials(e.name),
-                  crown: isFirst,
-                  badge: badgeLabel,
-                  brand: _brand,
-                );
-              },
-            ),
+                          return _LeaderboardCard(
+                            rank: rank,
+                            name: e.name,
+                            subtitle:
+                                'Compétition • ${e.subject.isEmpty ? 'Général' : e.subject}'
+                                '${e.chapter.isEmpty ? '' : ' / ${e.chapter}'}',
+                            rightTopText: '${e.percent.toStringAsFixed(1)} %',
+                            rightBottomText:
+                                '${e.correct}/${e.total} • ${_fmtDuration(e.durationSec)}',
+                            avatarText: _initials(e.name),
+                            crown: isFirst,
+                            badge: badgeLabel,
+                            brand: brand,
+                            onBrand: onBrand,
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+          bottomNavigationBar: PlayBottomNavBar(
+            destinations: playNavDestinations,
+            selectedIndex: 2,
+            backgroundColor: brand,
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
+            onDestinationSelected: (index) {
+              if (index == 2) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
+              );
+            },
+          ),
+        );
+      },
     );
   }
-
   String _fmtDuration(int s) {
     final m = s ~/ 60;
     final r = s % 60;
@@ -169,21 +203,31 @@ class _SegmentedPeriod extends StatelessWidget {
   final _Period value;
   final ValueChanged<_Period> onChanged;
   final Color brand;
+  final Color onBrand;
 
   const _SegmentedPeriod({
     required this.value,
     required this.onChanged,
     required this.brand,
+    required this.onBrand,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool brandIsDark = ThemeData.estimateBrightnessForColor(brand) == Brightness.dark;
+    final Color trackColor = brand.withOpacity(isDark ? 0.30 : 0.25);
+    final Color selectedBackground =
+        brandIsDark ? onBrand : brand.withOpacity(isDark ? 0.65 : 0.85);
+    final Color selectedTextColor = brandIsDark ? brand : onBrand;
+    final Color unselectedTextColor =
+        onBrand.withOpacity(brandIsDark ? 0.9 : 0.75);
+    final Color rippleColor = brand.withOpacity(0.16);
 
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: brand.withOpacity(isDark ? 0.30 : 0.25),
+        color: trackColor,
         borderRadius: BorderRadius.circular(22),
       ),
       child: LayoutBuilder(
@@ -203,7 +247,10 @@ class _SegmentedPeriod extends StatelessWidget {
                         label: 'Hebdo',
                         selected: value == _Period.weekly,
                         onTap: () => onChanged(_Period.weekly),
-                        brand: brand,
+                        selectedBackground: selectedBackground,
+                        selectedTextColor: selectedTextColor,
+                        unselectedTextColor: unselectedTextColor,
+                        rippleColor: rippleColor,
                       ),
                       const SizedBox(width: 4),
                       _SegmentButton(
@@ -211,7 +258,10 @@ class _SegmentedPeriod extends StatelessWidget {
                         label: 'Tout temps',
                         selected: value == _Period.allTime,
                         onTap: () => onChanged(_Period.allTime),
-                        brand: brand,
+                        selectedBackground: selectedBackground,
+                        selectedTextColor: selectedTextColor,
+                        unselectedTextColor: unselectedTextColor,
+                        rippleColor: rippleColor,
                       ),
                     ],
                   ),
@@ -230,14 +280,20 @@ class _SegmentButton extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final Color brand;
+  final Color selectedBackground;
+  final Color selectedTextColor;
+  final Color unselectedTextColor;
+  final Color rippleColor;
 
   const _SegmentButton({
     required this.width,
     required this.label,
     required this.selected,
     required this.onTap,
-    required this.brand,
+    required this.selectedBackground,
+    required this.selectedTextColor,
+    required this.unselectedTextColor,
+    required this.rippleColor,
   });
 
   @override
@@ -247,7 +303,7 @@ class _SegmentButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.white.withOpacity(0.0),
+          color: selected ? selectedBackground : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
           boxShadow: selected
               ? [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 8, offset: const Offset(0, 3))]
@@ -258,6 +314,7 @@ class _SegmentButton extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: onTap,
+            splashColor: rippleColor,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -265,7 +322,7 @@ class _SegmentButton extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: selected ? brand : Colors.white,
+                    color: selected ? selectedTextColor : unselectedTextColor,
                   ),
                 ),
               ),
@@ -287,6 +344,7 @@ class _LeaderboardCard extends StatelessWidget {
   final bool crown;
   final String badge;
   final Color brand;
+  final Color onBrand;
 
   const _LeaderboardCard({
     required this.rank,
@@ -298,6 +356,7 @@ class _LeaderboardCard extends StatelessWidget {
     required this.crown,
     required this.badge,
     required this.brand,
+    required this.onBrand,
   });
 
   @override
@@ -326,7 +385,7 @@ class _LeaderboardCard extends StatelessWidget {
             backgroundColor: brand,
             child: Text(
               avatarText,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              style: TextStyle(color: onBrand, fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 12),
