@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../official_intro_screen.dart';
+import '../official_intro_screen.dart' show OfficialIntroScreen;
 import '../subject_list_screen.dart';
 import 'category_definitions.dart';
 import 'category_helpers.dart';
