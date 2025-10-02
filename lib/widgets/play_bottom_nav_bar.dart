@@ -43,17 +43,14 @@ class PlayBottomNavBar extends StatelessWidget {
     required this.destinations,
     required this.selectedIndex,
     required this.onDestinationSelected,
+    required this.backgroundColor,
+    required this.highlightColor,
     this.notchShape = const CircularNotchedRectangle(),
     this.notchMargin = 8,
     this.addCenterFabSpacing = true,
     this.fabSpacingWidth = 68,
-    this.backgroundColor = defaultBackgroundColor,
-    this.highlightColor = defaultHighlightColor,
     this.foregroundColor,
   });
-
-  static const Color defaultBackgroundColor = Color(0xFF6C4DFF);
-  static const Color defaultHighlightColor = Color(0x29FFFFFF);
 
   final List<PlayNavDestination> destinations;
   final int selectedIndex;
@@ -129,7 +126,8 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color baseForeground = foregroundColor ?? Colors.white;
+    final Color baseForeground =
+        foregroundColor ?? Theme.of(context).colorScheme.onPrimary;
     final Color iconColor =
         isSelected ? baseForeground : baseForeground.withOpacity(0.72);
 

@@ -1,5 +1,4 @@
 // lib/screens/exam_full_screen.dart
-
 // =======================
 // IMPORTS
 // =======================
@@ -544,7 +543,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
       height: 180 + mq.padding.top, // hauteur header + hauteur encoche
       child: Stack(
         children: [
-          // Fond violet arrondi en bas
+          // Fond arrondi en bas
           Positioned.fill(
             child: Container(
               padding: EdgeInsets.only(top: mq.padding.top), // laisse l’encoche
@@ -566,20 +565,22 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               children: [
                 // Flèche retour (confirme si non soumis)
                 IconButton(
-                  onPressed: _submitted ? () => _leaveExam(_lastResult) : () async {
-                    final ok = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Quitter ?'),
-                        content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-                          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
-                        ],
-                      ),
-                    );
-                    if (ok == true) _leaveExam(null);
-                  },
+                  onPressed: _submitted
+                      ? () => _leaveExam(_lastResult)
+                      : () async {
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Quitter ?'),
+                              content: const Text('Quitter l’épreuve mettra fin à l’examen en cours.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+                                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+                              ],
+                            ),
+                          );
+                          if (ok == true) _leaveExam(null);
+                        },
                   icon: Icon(Icons.arrow_back, color: onBrand),
                 ),
                 // Titre centré
@@ -684,7 +685,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
 
     // Taille des choix
     final double optionFontSize =
-    scaledFontSize(base: 18, scale: scale, textScaler: textScaler, min: 16, max: 22);
+        scaledFontSize(base: 18, scale: scale, textScaler: textScaler, min: 16, max: 22);
 
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
@@ -718,19 +719,19 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
                               Text(
                                 'QUESTION ${index + 1} SUR ${widget.questions.length}',
                                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  letterSpacing: 0.8,
-                                  color: onSurface.withOpacity(.55),
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                      letterSpacing: 0.8,
+                                      color: onSurface.withOpacity(.55),
+                                      fontWeight: FontWeight.w700,
+                                    ),
                               ),
                               const SizedBox(height: 8),
                               // Énoncé
                               Text(
                                 _cleanQuestion(q.question),
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: questionTitleSize,
-                                ),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: questionTitleSize,
+                                    ),
                               ),
                               const SizedBox(height: 12),
                               // Choix (A, B, C, D…)
@@ -813,21 +814,23 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final q = widget.questions;               // questions
     final title = widget.title ?? 'Examen';   // titre fallback
+
+    // Couleurs & contrastes
     final Color brand = _brandColor(context);
-    final Brightness brandBrightness =
-        ThemeData.estimateBrightnessForColor(brand);
-    final Color onBrand =
-        brandBrightness == Brightness.dark ? Colors.white : Colors.black;
+    final Brightness brandBrightness = ThemeData.estimateBrightnessForColor(brand);
+    final Color onBrand = brandBrightness == Brightness.dark ? Colors.white : Colors.black;
     final Color accent = _accentColor();
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color navHighlight = accent.withOpacity(isDark ? 0.32 : 0.20);
+
+    // Status bar (icônes/texte) au-dessus du header
     final Brightness overlayIconBrightness =
         brandBrightness == Brightness.dark ? Brightness.light : Brightness.dark;
     final Brightness overlayStatusBrightness =
         brandBrightness == Brightness.dark ? Brightness.dark : Brightness.light;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      // Teinte des icônes de la status bar au-dessus du header violet
+      // Teinte des icônes de la status bar au-dessus du header coloré
       value: SystemUiOverlayStyle(
         statusBarColor: brand,
         statusBarIconBrightness: overlayIconBrightness,
@@ -849,13 +852,13 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
           bottomNavigationBar: widget.competitionMode
               ? null
               : PlayBottomNavBar(
-            destinations: playNavDestinations,
-            selectedIndex: 2,          // onglet courant
-            backgroundColor: brand,
-            highlightColor: navHighlight,
-            foregroundColor: onBrand,
-            onDestinationSelected: _handleBottomNavSelection,
-          ),
+                  destinations: playNavDestinations,
+                  selectedIndex: 2,          // onglet courant
+                  backgroundColor: brand,
+                  highlightColor: navHighlight,
+                  foregroundColor: onBrand,
+                  onDestinationSelected: _handleBottomNavSelection,
+                ),
 
           // AppBar technique (hauteur 0) pour avoir un edge-to-edge propre
           appBar: AppBar(
@@ -918,7 +921,7 @@ class _OptionPill extends StatelessWidget {
     final Color unselectedBg = dark ? const Color(0xFF222329) : Colors.white; // fond non sélectionné
     final Color unselectedBorder = const Color(0xFFE0E0E6);                   // bord fin
     final Color bg = selected ? brand : unselectedBg;                          // fond si sélectionné
-    final Color fg = selected ? onBrand : onSurface.withOpacity(.9);      // texte
+    final Color fg = selected ? onBrand : onSurface.withOpacity(.9);           // texte
 
     return Semantics(
       button: true,
