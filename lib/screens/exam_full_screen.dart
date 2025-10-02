@@ -793,12 +793,26 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     final q = widget.questions;               // questions
     final title = widget.title ?? 'Examen';   // titre fallback
 
+    final Color brand = _brand;
+    final Color onBrand = ThemeData.estimateBrightnessForColor(brand) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
+    final Color navHighlight =
+        Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Teinte des icônes de la status bar au-dessus du header violet
       value: SystemUiOverlayStyle(
-        statusBarColor: _brand,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: brand,
+        statusBarIconBrightness:
+            ThemeData.estimateBrightnessForColor(brand) == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
+        statusBarBrightness:
+            ThemeData.estimateBrightnessForColor(brand) == Brightness.dark
+                ? Brightness.dark
+                : Brightness.light,
       ),
       child: SelectionContainer.disabled(
         child: Scaffold(
@@ -818,7 +832,9 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
               : PlayBottomNavBar(
             destinations: playNavDestinations,
             selectedIndex: 2,          // onglet courant
-            backgroundColor: _brand,   // teinte violette
+            backgroundColor: brand,   // teinte violette
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
             onDestinationSelected: _handleBottomNavSelection,
           ),
 

@@ -209,8 +209,6 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  static const Color _fabForeground = Color(0xFF6C4DFF);
-
   late int _selectedNavIndex;
   late final List<PlayNavDestination> _navItems;
 
@@ -618,6 +616,27 @@ class _HomeShellState extends State<HomeShell> {
         final bgColor =
             pastelColors(cfg.bgPaletteName, darkMode: cfg.darkMode).first;
 
+        final brandPalette = playIconColors(cfg.bgPaletteName);
+        final Color brand =
+            brandPalette.isNotEmpty ? brandPalette.last : const Color(0xFF6C4DFF);
+        final Color brandVariant =
+            brandPalette.length > 1 ? brandPalette.first : brand;
+        final Color accent = complementaryColor(cfg.bgPaletteName);
+        final Color onBrand = ThemeData.estimateBrightnessForColor(brand) ==
+                Brightness.dark
+            ? Colors.white
+            : Colors.black;
+        final Color onAccent = ThemeData.estimateBrightnessForColor(accent) ==
+                Brightness.dark
+            ? Colors.white
+            : Colors.black;
+        final Color navHighlight =
+            Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+        final Color brandOverlay =
+            Color.alphaBlend(onBrand.withOpacity(0.12), brand);
+        final Color accentOverlay =
+            Color.alphaBlend(onAccent.withOpacity(0.12), accent);
+
         final mq = MediaQuery.of(context);
         final scale = computeScaleFactor(mq);
         final textScaler = MediaQuery.textScalerOf(context);
@@ -663,13 +682,18 @@ class _HomeShellState extends State<HomeShell> {
               toolbarHeight: 0,
             ),
             floatingActionButton:
-                _selectedNavIndex == 0 ? _buildMainFab() : null,
+                _selectedNavIndex == 0
+                    ? _buildMainFab(brand: brand, onBrand: onBrand)
+                    : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             bottomNavigationBar: PlayBottomNavBar(
               destinations: _navItems,
               selectedIndex: _selectedNavIndex,
               onDestinationSelected: _onNavItemSelected,
+              backgroundColor: brand,
+              highlightColor: navHighlight,
+              foregroundColor: onBrand,
             ),
             body: _buildShellBody(
               backgroundColor: bgColor,
@@ -683,6 +707,12 @@ class _HomeShellState extends State<HomeShell> {
               sections: sections,
               scale: scale,
               panelHeightFactor: UI.panelHeightFactor,
+              brand: brand,
+              onBrand: onBrand,
+              accent: accent,
+              brandOverlay: brandOverlay,
+              accentOverlay: accentOverlay,
+              brandVariant: brandVariant,
             ),
           ),
         );
@@ -702,6 +732,11 @@ class _HomeShellState extends State<HomeShell> {
     required List<CategoryDefinition> sections,
     required double scale,
     required double panelHeightFactor,
+    required Color brand,
+    required Color accent,
+    required Color brandOverlay,
+    required Color accentOverlay,
+    required Color brandVariant,
   }) {
     final tabChildren = <Widget>[
       KeyedSubtree(
@@ -717,6 +752,12 @@ class _HomeShellState extends State<HomeShell> {
           sections: sections,
           scale: scale,
           panelHeightFactor: panelHeightFactor,
+          brand: brand,
+          onBrand: onBrand,
+          accent: accent,
+          brandOverlay: brandOverlay,
+          accentOverlay: accentOverlay,
+          brandVariant: brandVariant,
         ),
       ),
       _buildSurfaceTab(
@@ -773,6 +814,12 @@ class _HomeShellState extends State<HomeShell> {
     required List<CategoryDefinition> sections,
     required double scale,
     required double panelHeightFactor,
+    required Color brand,
+    required Color onBrand,
+    required Color accent,
+    required Color brandOverlay,
+    required Color accentOverlay,
+    required Color brandVariant,
   }) {
     return Stack(
       fit: StackFit.expand,
@@ -792,11 +839,18 @@ class _HomeShellState extends State<HomeShell> {
           nameFontSize: nameFontSize,
           arcadeProgress: _arcadeProgress,
           arcadeProgressLoading: _arcadeProgressLoading,
+          brand: brand,
+          onBrand: onBrand,
         ),
         _buildSections(
           sections: sections,
           scale: scale,
           panelHeightFactor: panelHeightFactor,
+          brand: brand,
+          accent: accent,
+          brandOverlay: brandOverlay,
+          accentOverlay: accentOverlay,
+          brandVariant: brandVariant,
         ),
       ],
     );
@@ -816,11 +870,11 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
-  Widget _buildMainFab() {
+  Widget _buildMainFab({required Color brand, required Color onBrand}) {
     return FloatingActionButton(
       heroTag: 'play_screen_fab',
-      backgroundColor: Colors.white,
-      foregroundColor: _fabForeground,
+      backgroundColor: brand,
+      foregroundColor: onBrand,
       elevation: 8,
       onPressed: _handleCreateQuickQuiz,
       tooltip: 'Nouveau quiz',
@@ -838,6 +892,8 @@ class _HomeShellState extends State<HomeShell> {
     required double nameFontSize,
     required ArcadeProgressData? arcadeProgress,
     required bool arcadeProgressLoading,
+    required Color brand,
+    required Color onBrand,
   }) {
     final trimmedProfileNickname = profileNickname?.trim();
     final entryName = _currentUserEntry?.name.trim();
@@ -866,14 +922,18 @@ class _HomeShellState extends State<HomeShell> {
         final RankDisplayStyle? rankStyle =
             rank != null ? rankDisplayStyleFor(rank) : null;
 
+        final Color subduedOnBrand = onBrand.withOpacity(0.75);
+        final Color overlayColor =
+            Color.alphaBlend(onBrand.withOpacity(0.16), brand);
+
         return Align(
           alignment: Alignment.topCenter,
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF6C4DFF),
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: brand,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
               ),
@@ -889,12 +949,12 @@ class _HomeShellState extends State<HomeShell> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(icon, size: 16, color: Colors.white),
+                          Icon(icon, size: 16, color: onBrand),
                           const SizedBox(width: 6),
                           Text(
                             formattedDate,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: onBrand,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               height: 1.2,
@@ -906,7 +966,7 @@ class _HomeShellState extends State<HomeShell> {
                       Text(
                         greeting,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.75),
+                          color: subduedOnBrand,
                           fontSize: welcomeFontSize,
                           fontWeight: FontWeight.w600,
                           height: 1.1,
@@ -917,7 +977,7 @@ class _HomeShellState extends State<HomeShell> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           if (arcadeProgressLoading)
-                            const SizedBox(
+                            SizedBox(
                               height: 28,
                               width: 28,
                               child: Padding(
@@ -925,7 +985,7 @@ class _HomeShellState extends State<HomeShell> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
                                   valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                      AlwaysStoppedAnimation<Color>(onBrand),
                                 ),
                               ),
                             )
@@ -941,7 +1001,7 @@ class _HomeShellState extends State<HomeShell> {
                             child: Text(
                               displayName,
                               style: TextStyle(
-                                color: Colors.white,
+                                color: onBrand,
                                 fontSize: nameFontSize,
                                 fontWeight: FontWeight.w800,
                                 height: 1.1,
@@ -956,7 +1016,7 @@ class _HomeShellState extends State<HomeShell> {
                 ),
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundColor: overlayColor,
                   child: CircleAvatar(
                     radius: 24,
                     backgroundColor:
@@ -987,8 +1047,8 @@ class _HomeShellState extends State<HomeShell> {
                           : Text(
                               avatarLabel,
                               key: const ValueKey('initial'),
-                              style: const TextStyle(
-                                color: Color(0xFF6C4DFF),
+                              style: TextStyle(
+                                color: brand,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 20,
                               ),
@@ -1009,34 +1069,50 @@ class _HomeShellState extends State<HomeShell> {
     required List<CategoryDefinition> sections,
     required double scale,
     required double panelHeightFactor,
+    required Color brand,
+    required Color onBrand,
+    required Color accent,
+    required Color brandOverlay,
+    required Color accentOverlay,
+    required Color brandVariant,
   }) {
     final liveQuizItems = <_LiveQuizItem>[
       _LiveQuizItem(
         icon: Icons.flash_on_rounded,
-        iconColor: const Color(0xFF7C4DFF),
+        iconColor: brand,
+        iconBackground: brandOverlay,
         title: 'Quiz rapide',
         subtitle: 'Démarre un entraînement instantané',
+        brand: brand,
         onTap: _handleCreateQuickQuiz,
       ),
       _LiveQuizItem(
         icon: Icons.videogame_asset_rounded,
-        iconColor: const Color(0xFF4E8FFF),
+        iconColor: brandVariant,
+        iconBackground: brandVariant.withOpacity(0.12),
         title: 'Mode arcade',
         subtitle: 'Grimpe les paliers de difficulté',
+        brand: brand,
         onTap: _handleLaunchArcade,
       ),
       _LiveQuizItem(
         icon: Icons.people_alt_rounded,
-        iconColor: const Color(0xFF5336C6),
+        iconColor: accent,
+        iconBackground: accentOverlay,
         title: 'Défi compétition',
         subtitle: '60 questions pour grimper au classement',
+        brand: brand,
         onTap: _handleLaunchCompetition,
       ),
       _LiveQuizItem(
         icon: Icons.workspace_premium_rounded,
-        iconColor: const Color(0xFF9C6BFF),
+        iconColor:
+            Color.lerp(brand, accent, 0.45) ?? brand,
+        iconBackground:
+            Color.lerp(brandOverlay, accentOverlay, 0.5) ?? brandOverlay,
         title: 'Simulation officielle',
         subtitle: 'Sujet d’entraînement en conditions réelles',
+        brand: brand,
         onTap: _handleLaunchOfficialQuiz,
       ),
     ];
@@ -1719,7 +1795,7 @@ class _LiveQuizListState extends State<_LiveQuizList> {
               height: 48,
               width: 48,
               decoration: BoxDecoration(
-                color: item.iconColor.withOpacity(0.12),
+                color: item.iconBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(item.icon, color: item.iconColor, size: 26),
@@ -1745,9 +1821,9 @@ class _LiveQuizListState extends State<_LiveQuizList> {
                       valueColor: AlwaysStoppedAnimation<Color>(item.iconColor),
                     ),
                   )
-                : const Icon(
+                : Icon(
                     Icons.chevron_right_rounded,
-                    color: Color(0xFF7C4DFF),
+                    color: item.brand,
                   ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -1913,15 +1989,19 @@ class _LiveQuizItem {
   const _LiveQuizItem({
     required this.icon,
     required this.iconColor,
+    required this.iconBackground,
     required this.title,
     required this.subtitle,
+    required this.brand,
     this.onTap,
   });
 
   final IconData icon;
   final Color iconColor;
+  final Color iconBackground;
   final String title;
   final String subtitle;
+  final Color brand;
   final Future<void> Function()? onTap;
 }
 

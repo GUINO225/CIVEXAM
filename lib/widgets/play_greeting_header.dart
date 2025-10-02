@@ -22,6 +22,8 @@ class PlayGreetingHeader extends StatelessWidget {
     required this.rank,
     required this.now,
     required this.calendarConfig,
+    required this.brand,
+    required this.onBrand,
   });
 
   static const double _baseHeight = 150;
@@ -40,6 +42,8 @@ class PlayGreetingHeader extends StatelessWidget {
   final int? rank;
   final DateTime now;
   final CalendarOverlayConfig calendarConfig;
+  final Color brand;
+  final Color onBrand;
 
   @override
   Widget build(BuildContext context) {
@@ -66,14 +70,17 @@ class PlayGreetingHeader extends StatelessWidget {
     final RankDisplayStyle? rankStyle =
         rank != null ? rankDisplayStyleFor(rank!) : null;
 
+    final Color subduedOnBrand = onBrand.withOpacity(0.75);
+    final Color overlayColor = Color.alphaBlend(onBrand.withOpacity(0.16), brand);
+
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF6C4DFF),
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: brand,
+          borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
           ),
@@ -89,12 +96,12 @@ class PlayGreetingHeader extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(icon, size: 16, color: Colors.white),
+                      Icon(icon, size: 16, color: onBrand),
                       const SizedBox(width: 6),
                       Text(
                         formattedDate,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: onBrand,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           height: 1.2,
@@ -106,7 +113,7 @@ class PlayGreetingHeader extends StatelessWidget {
                   Text(
                     greeting,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
+                      color: subduedOnBrand,
                       fontSize: welcomeFontSize,
                       fontWeight: FontWeight.w600,
                       height: 1.1,
@@ -117,7 +124,7 @@ class PlayGreetingHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (arcadeProgressLoading)
-                        const SizedBox(
+                        SizedBox(
                           height: 28,
                           width: 28,
                           child: Padding(
@@ -125,7 +132,7 @@ class PlayGreetingHeader extends StatelessWidget {
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
                               valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                                  AlwaysStoppedAnimation<Color>(onBrand),
                             ),
                           ),
                         )
@@ -137,14 +144,14 @@ class PlayGreetingHeader extends StatelessWidget {
                             compact: true,
                           ),
                         ),
-                      Flexible(
-                        child: Text(
-                          displayName,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: nameFontSize,
-                            fontWeight: FontWeight.w800,
-                            height: 1.1,
+                          Flexible(
+                            child: Text(
+                              displayName,
+                              style: TextStyle(
+                                color: onBrand,
+                                fontSize: nameFontSize,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -156,7 +163,7 @@ class PlayGreetingHeader extends StatelessWidget {
             ),
             CircleAvatar(
               radius: 28,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: overlayColor,
               child: CircleAvatar(
                 radius: 24,
                 backgroundColor: rankStyle?.backgroundColor ?? Colors.white,
@@ -171,8 +178,8 @@ class PlayGreetingHeader extends StatelessWidget {
                       )
                     : Text(
                         avatarLabel,
-                        style: const TextStyle(
-                          color: Color(0xFF6C4DFF),
+                        style: TextStyle(
+                          color: brand,
                           fontWeight: FontWeight.w700,
                           fontSize: 20,
                         ),

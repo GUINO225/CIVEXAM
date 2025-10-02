@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/design_config.dart';
 import '../models/question.dart';
 import '../services/scoring.dart';
 import '../services/question_loader.dart';
@@ -12,6 +13,7 @@ import '../services/question_randomizer.dart';
 import '../services/question_history_store.dart';
 import '../services/exam_blueprint.dart';
 import '../data/ena_taxonomy.dart';
+import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/play_bottom_nav_bar.dart';
 import '../widgets/play_themed_scaffold.dart';
@@ -430,194 +432,227 @@ class _MultiExamFlowScreenState extends State<MultiExamFlowScreen> {
     final scheme = Theme.of(context).colorScheme;
     final bool isDark = scheme.brightness == Brightness.dark;
 
-    // === Marque globale ===
-    final Color brand = PlayBottomNavBar.defaultBackgroundColor;
-    final Color pageBg = isDark ? const Color(0xFF111318) : const Color(0xFFF7F8FA);
-    final Color onPage = isDark ? Colors.white.withOpacity(0.92) : const Color(0xFF1B1B1F);
-    final Color cardColor = isDark ? const Color(0xFF1F1F22) : Colors.white;
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final palette = playIconColors(cfg.bgPaletteName);
+        final Color brand =
+            palette.isNotEmpty ? palette.last : const Color(0xFF6C4DFF);
+        final Color onBrand = ThemeData.estimateBrightnessForColor(brand) ==
+                Brightness.dark
+            ? Colors.white
+            : Colors.black;
+        final Color navHighlight =
+            Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+        final Color brandOverlay =
+            Color.alphaBlend(onBrand.withOpacity(0.16), brand);
+        final Color pageBg =
+            isDark ? const Color(0xFF111318) : const Color(0xFFF7F8FA);
+        final Color onPage = isDark
+            ? Colors.white.withOpacity(0.92)
+            : const Color(0xFF1B1B1F);
+        final Color cardColor =
+            isDark ? const Color(0xFF1F1F22) : Colors.white;
 
-    final perQ = secondsPerQuestion(_difficulty);
+        final perQ = secondsPerQuestion(_difficulty);
 
-    final Widget content = loading
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
-            children: [
-              // ===== HERO CARD =====
-              Container(
-                decoration: BoxDecoration(
-                  color: brand,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Puce
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Text(
-                        'Parcours multi-épreuves',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Concours ENA — Simulation complète',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 22,
-                        color: Colors.white,
-                        letterSpacing: .2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.timer, size: 18, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          perQ == null
-                              ? 'Mode Normal — timings officiels'
-                              : 'Mode ${difficultyLabel(_difficulty)} — ~${perQ}s/question',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.92),
-                            fontWeight: FontWeight.w600,
-                          ),
+        final Widget content = loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+                children: [
+                  // ===== HERO CARD =====
+                  Container(
+                    decoration: BoxDecoration(
+                      color: brand,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    _difficultyPicker(context),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              // ===== Rappel important =====
-              Text(
-                'Rappel important',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: onPage,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _InfoBadgeCard(
-                icon: Icons.rule,
-                primary: 'Barème',
-                secondary: '+1 bonne · 0 blanc · −1 mauvaise',
-                brand: brand,
-                onPage: onPage,
-                cardColor: cardColor,
-              ),
-              const SizedBox(height: 10),
-              _InfoBadgeCard(
-                icon: Icons.calculate,
-                primary: 'Coefficient',
-                secondary: '×2 par épreuve',
-                brand: brand,
-                onPage: onPage,
-                cardColor: cardColor,
-              ),
-
-              const SizedBox(height: 22),
-
-              // ===== Liste des épreuves =====
-              Text(
-                'Épreuves',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: onPage,
-                ),
-              ),
-              const SizedBox(height: 12),
-              for (final s in sections) ...[
-                _SectionTile(
-                  icon: _iconForSection(s.title),
-                  title: s.title,
-                  subtitle:
-                      'Questions visées : ${s.targetCount} · Barème ${s.scoring.toStringShort()}',
-                  rightLabel: perQ == null
-                      ? _formatShort(s.duration)
-                      : _formatShort(Duration(seconds: (perQ * s.targetCount))),
-                  cardColor: cardColor,
-                  brand: brand,
-                  onPage: onPage,
-                ),
-                const SizedBox(height: 10),
-              ],
-
-              const SizedBox(height: 8),
-              // ===== CTA =====
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _startFlow,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Démarrer le parcours'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brand,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: brandOverlay,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            'Parcours multi-épreuves',
+                            style: TextStyle(
+                              color: onBrand,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Concours ENA — Simulation complète',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            color: onBrand,
+                            letterSpacing: .2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.timer, size: 18, color: onBrand),
+                            const SizedBox(width: 8),
+                            Text(
+                              perQ == null
+                                  ? 'Mode Normal — timings officiels'
+                                  : 'Mode ${difficultyLabel(_difficulty)} — ~${perQ}s/question',
+                              style: TextStyle(
+                                color: onBrand.withOpacity(0.92),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _difficultyPicker(context),
+                      ],
                     ),
                   ),
-                ),
-              ),
-            ],
-          );
 
-    return PlayThemedScaffold(
-      extendBodyBehindAppBar: false,
-      appBar: AppBar(
-        leading: const BackButton(),
-        title: const Text('Parcours multi-épreuves'),
-        backgroundColor: brand,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: brand,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-      ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(color: pageBg),
-        child: content,
-      ),
-      bottomNavigationBar: PlayBottomNavBar(
-        destinations: playNavDestinations,
-        selectedIndex: 2,
-        backgroundColor: brand,
-        onDestinationSelected: (index) {
-          if (index == 2) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
-          );
-        },
-      ),
+                  const SizedBox(height: 22),
+
+                  // ===== Rappel important =====
+                  Text(
+                    'Rappel important',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: onPage,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _InfoBadgeCard(
+                    icon: Icons.rule,
+                    primary: 'Barème',
+                    secondary: '+1 bonne · 0 blanc · −1 mauvaise',
+                    brand: brand,
+                    onPage: onPage,
+                    cardColor: cardColor,
+                  ),
+                  const SizedBox(height: 10),
+                  _InfoBadgeCard(
+                    icon: Icons.calculate,
+                    primary: 'Coefficient',
+                    secondary: '×2 par épreuve',
+                    brand: brand,
+                    onPage: onPage,
+                    cardColor: cardColor,
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  // ===== Liste des épreuves =====
+                  Text(
+                    'Épreuves',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: onPage,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  for (final s in sections) ...[
+                    _SectionTile(
+                      icon: _iconForSection(s.title),
+                      title: s.title,
+                      subtitle:
+                          'Questions visées : ${s.targetCount} · Barème ${s.scoring.toStringShort()}',
+                      rightLabel: perQ == null
+                          ? _formatShort(s.duration)
+                          : _formatShort(
+                              Duration(seconds: (perQ * s.targetCount))),
+                      cardColor: cardColor,
+                      brand: brand,
+                      onPage: onPage,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  const SizedBox(height: 8),
+                  // ===== CTA =====
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _startFlow,
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Démarrer le parcours'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brand,
+                        foregroundColor: onBrand,
+                        minimumSize: const Size.fromHeight(56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+
+        return PlayThemedScaffold(
+          extendBodyBehindAppBar: false,
+          appBar: AppBar(
+            leading: const BackButton(),
+            title: const Text('Parcours multi-épreuves'),
+            backgroundColor: brand,
+            foregroundColor: onBrand,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: brand,
+              statusBarIconBrightness:
+                  ThemeData.estimateBrightnessForColor(brand) ==
+                          Brightness.dark
+                      ? Brightness.light
+                      : Brightness.dark,
+              statusBarBrightness:
+                  ThemeData.estimateBrightnessForColor(brand) ==
+                          Brightness.dark
+                      ? Brightness.dark
+                      : Brightness.light,
+            ),
+          ),
+          body: DecoratedBox(
+            decoration: BoxDecoration(color: pageBg),
+            child: content,
+          ),
+          bottomNavigationBar: PlayBottomNavBar(
+            destinations: playNavDestinations,
+            selectedIndex: 2,
+            backgroundColor: brand,
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
+            onDestinationSelected: (index) {
+              if (index == 2) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => PlayScreen(initialIndex: index)),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
