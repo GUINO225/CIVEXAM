@@ -2,11 +2,18 @@
 
 ## Lancer
 ```bash
+dart run tool/ensure_lfs_assets.dart
 flutter pub get
 # Générer plateformes si nécessaire
 flutter create .
 flutter run
 ```
+
+La commande `ensure_lfs_assets` configure Git LFS et télécharge les PNG
+hébergés côté serveur. Elle vérifie aussi que les binaires clés (logo de
+splash, etc.) ne sont pas de simples « pointeurs » de quelques octets.
+Ainsi, plus besoin de re-commiter les assets ou de diagnostiquer un échec
+`flutter run` : les bonnes images sont toujours présentes après un clone.
 
 ## Signature Android
 Pour les builds de production, les mots de passe du keystore ne sont plus inclus dans le dépôt.
