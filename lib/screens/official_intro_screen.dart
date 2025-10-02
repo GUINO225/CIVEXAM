@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
+import '../utils/palette_utils.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/play_bottom_nav_bar.dart';
 import 'multi_exam_flow.dart';
@@ -61,7 +62,17 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
         final textScaler = MediaQuery.textScalerOf(context);
 
         // Palette / surfaces
-        final Color brand = PlayBottomNavBar.defaultBackgroundColor; // ton violet
+        final iconPalette = playIconColors(cfg.bgPaletteName);
+        final Color brand = iconPalette.first;
+        final Color accent = complementaryColor(cfg.bgPaletteName);
+        final Brightness brandBrightness =
+            ThemeData.estimateBrightnessForColor(brand);
+        final Brightness overlayIconBrightness =
+            brandBrightness == Brightness.dark ? Brightness.light : Brightness.dark;
+        final Brightness overlayStatusBrightness =
+            brandBrightness == Brightness.dark ? Brightness.dark : Brightness.light;
+        final Color onBrand =
+            brandBrightness == Brightness.dark ? Colors.white : Colors.black;
         final Color pageBg = scheme.brightness == Brightness.dark
             ? const Color(0xFF111318)
             : const Color(0xFFF7F8FA);
@@ -110,14 +121,18 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
             automaticallyImplyLeading: false,
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: brand,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
+              statusBarIconBrightness: overlayIconBrightness,
+              statusBarBrightness: overlayStatusBrightness,
             ),
           ),
 
           bottomNavigationBar: PlayBottomNavBar(
             destinations: playNavDestinations,
             selectedIndex: 2,
+            backgroundColor: brand,
+            highlightColor:
+                accent.withOpacity(scheme.brightness == Brightness.dark ? 0.32 : 0.20),
+            foregroundColor: onBrand,
             onDestinationSelected: (index) {
               if (index == 2) return;
               Navigator.pushReplacement(
@@ -144,13 +159,15 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                     // ===== HERO CARD (inspirée "Top Picks") =====
                     _HeroIntroCard(
                       brand: brand,
+                      onBrand: onBrand,
+                      accent: accent,
                       titleStyle: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: introTitleSize,
-                        color: Colors.white,
+                        color: onBrand,
                         letterSpacing: .2,
                       ),
-                      bodyStyle: bodyTextStyle.copyWith(color: Colors.white.withOpacity(0.92)),
+                      bodyStyle: bodyTextStyle.copyWith(color: onBrand.withOpacity(0.92)),
                     ),
 
                     const SizedBox(height: 20),
@@ -243,7 +260,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                           value: _accepted,
                           onChanged: (v) => setState(() => _accepted = v ?? false),
                           activeColor: brand,
-                          checkColor: Colors.white,
+                          checkColor: onBrand,
                           side: BorderSide(color: onPage.withOpacity(0.5)),
                           fillColor: MaterialStateProperty.resolveWith((states) {
                             if (states.contains(MaterialState.selected)) return brand;
@@ -266,7 +283,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                         onPressed: _accepted && !_starting ? _startCountdown : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brand,
-                          foregroundColor: Colors.white,
+                          foregroundColor: onBrand,
                           minimumSize: const Size.fromHeight(56),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
@@ -312,10 +329,14 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
 
 class _HeroIntroCard extends StatelessWidget {
   final Color brand;
+  final Color onBrand;
+  final Color accent;
   final TextStyle titleStyle;
   final TextStyle bodyStyle;
   const _HeroIntroCard({
     required this.brand,
+    required this.onBrand,
+    required this.accent,
     required this.titleStyle,
     required this.bodyStyle,
   });
@@ -336,17 +357,20 @@ class _HeroIntroCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: onBrand.withOpacity(0.16),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Prépa officielle', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: Text(
+              'Prépa officielle',
+              style: TextStyle(color: onBrand, fontWeight: FontWeight.w700),
+            ),
           ),
           const SizedBox(height: 12),
           Text('Concours officiel — Consignes', style: titleStyle),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.add_circle, size: 18, color: Colors.white),
+              Icon(Icons.add_circle, size: 18, color: accent),
               const SizedBox(width: 8),
               Text('4 épreuves • ENA Côte d’Ivoire', style: bodyStyle),
             ],
