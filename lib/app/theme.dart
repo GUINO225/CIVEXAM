@@ -11,11 +11,18 @@ ThemeData buildAppTheme(DesignConfig cfg) {
   final textColor =
       textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
 
+  final seededScheme = ColorScheme.fromSeed(
+    seedColor: accent,
+    brightness: brightness,
+  );
+
+  final colorScheme = seededScheme.copyWith(
+    primary: accent,
+    onPrimary: onColor(accent),
+  );
+
   final base = ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: accent,
-      brightness: brightness,
-    ),
+    colorScheme: colorScheme,
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
   );
@@ -36,6 +43,7 @@ ThemeData buildAppTheme(DesignConfig cfg) {
       );
 
   return base.copyWith(
+    colorScheme: colorScheme,
     textTheme: textTheme,
     iconTheme: IconThemeData(
       color: iconColors.last,
