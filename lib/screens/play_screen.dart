@@ -1191,6 +1191,9 @@ class _HomeShellState extends State<HomeShell> {
                               final bool showQuickQuiz =
                                   summary != null || lastExam == null;
                               return _RecentQuizCard(
+                                brand: brand,
+                                brandVariant: brandVariant,
+                                onBrand: onBrand,
                                 ongoingState: ongoing,
                                 lastSummary: summary,
                                 lastExamEntry: lastExam,
@@ -1220,6 +1223,9 @@ class _HomeShellState extends State<HomeShell> {
                             isLoading: _topEntriesLoading,
                             error: _topEntriesError,
                             onSeeAll: _openLeaderboard,
+                            brand: brand,
+                            brandVariant: brandVariant,
+                            onBrand: onBrand,
                           ),
                         ),
                       ),
@@ -1356,6 +1362,9 @@ class _HomeShellState extends State<HomeShell> {
 
 class _RecentQuizCard extends StatelessWidget {
   const _RecentQuizCard({
+    required this.brand,
+    required this.brandVariant,
+    required this.onBrand,
     required this.ongoingState,
     required this.lastSummary,
     required this.lastExamEntry,
@@ -1365,6 +1374,9 @@ class _RecentQuizCard extends StatelessWidget {
     required this.isBusy,
   });
 
+  final Color brand;
+  final Color brandVariant;
+  final Color onBrand;
   final OngoingQuickQuizState? ongoingState;
   final QuickQuizSummary? lastSummary;
   final ExamHistoryEntry? lastExamEntry;
@@ -1439,19 +1451,28 @@ class _RecentQuizCard extends StatelessWidget {
     final mainAxisAlignment =
         showButton ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start;
 
+    final theme = Theme.of(context);
+    final Color gradientStart =
+        Color.alphaBlend(onBrand.withOpacity(0.08), brandVariant);
+    final Color gradientEnd = brand;
+    final Color subduedOnBrand = onBrand.withOpacity(0.75);
+    final Color progressBackground = onBrand.withOpacity(0.25);
+    final Color buttonBackground =
+        Color.alphaBlend(onBrand.withOpacity(0.12), brand);
+
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8856FF), Color(0xFF6C3BFF)],
+          colors: [gradientStart, gradientEnd],
         ),
         borderRadius: BorderRadius.circular(26),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x22000000),
+            color: brand.withOpacity(0.28),
             blurRadius: 14,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -1461,16 +1482,16 @@ class _RecentQuizCard extends StatelessWidget {
         children: [
           Text(
             titleText,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
+            style: theme.textTheme.titleLarge?.copyWith(
+                  color: onBrand,
                   fontWeight: FontWeight.w800,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white70,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                  color: subduedOnBrand,
                   fontWeight: FontWeight.w600,
                 ),
           ),
@@ -1480,8 +1501,8 @@ class _RecentQuizCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: clampedProgress,
               minHeight: 14,
-              backgroundColor: Colors.white.withOpacity(0.2),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD740)),
+              backgroundColor: progressBackground,
+              valueColor: AlwaysStoppedAnimation<Color>(onBrand),
             ),
           ),
           const SizedBox(height: 12),
@@ -1492,8 +1513,8 @@ class _RecentQuizCard extends StatelessWidget {
                 child: Text(
                   progressLabel,
                   softWrap: true,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                        color: onBrand,
                         fontWeight: FontWeight.w700,
                       ),
                 ),
@@ -1503,8 +1524,8 @@ class _RecentQuizCard extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 12),
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF4315C5),
-                      backgroundColor: Colors.white,
+                      foregroundColor: onBrand,
+                      backgroundColor: buttonBackground,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
                         vertical: 10,
@@ -1517,14 +1538,26 @@ class _RecentQuizCard extends StatelessWidget {
                         ? (enableResume ? onContinue : null)
                         : launchHandler,
                     child: showResume && isBusy
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(onBrand),
+                            ),
                           )
                         : Text(
                             buttonLabel,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            style:
+                                theme.textTheme.labelLarge?.copyWith(
+                                      color: onBrand,
+                                      fontWeight: FontWeight.w700,
+                                    ) ??
+                                    TextStyle(
+                                      color: onBrand,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                           ),
                   ),
                 ),
@@ -1542,27 +1575,40 @@ class _LeaderboardHighlightCard extends StatelessWidget {
     required this.isLoading,
     required this.error,
     required this.onSeeAll,
+    required this.brand,
+    required this.brandVariant,
+    required this.onBrand,
   });
 
   final List<LeaderboardEntry> entries;
   final bool isLoading;
   final String? error;
   final VoidCallback onSeeAll;
+  final Color brand;
+  final Color brandVariant;
+  final Color onBrand;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final Color cardBackground =
+        Color.alphaBlend(brand.withOpacity(0.08), Colors.white);
+    final Color iconBackground =
+        Color.alphaBlend(onBrand.withOpacity(0.12), brand);
+    final Color titleColor = Color.lerp(onBrand, brand, 0.15) ?? onBrand;
+    final Color bodyColor = Color.lerp(onBrand, brand, 0.35) ?? onBrand;
 
     Widget body;
     if (isLoading) {
       body = Row(
         children: [
-          const SizedBox(
+          SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+              backgroundColor: onBrand.withOpacity(0.16),
+              valueColor: AlwaysStoppedAnimation<Color>(brand),
             ),
           ),
           const SizedBox(width: 12),
@@ -1570,7 +1616,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             child: Text(
               'Chargement du classement...',
               style: theme.textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF5F5A78),
+                    color: bodyColor,
                   ),
             ),
           ),
@@ -1580,14 +1626,14 @@ class _LeaderboardHighlightCard extends StatelessWidget {
       body = Text(
         error!,
         style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF5F5A78),
+              color: bodyColor,
             ),
       );
     } else if (entries.isEmpty) {
       body = Text(
         'Aucun score pour le moment. Sois le premier à entrer dans le classement !',
         style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF5F5A78),
+              color: bodyColor,
             ),
       );
     } else {
@@ -1595,7 +1641,13 @@ class _LeaderboardHighlightCard extends StatelessWidget {
         children: [
           for (int i = 0; i < entries.length; i++) ...[
             if (i > 0) const SizedBox(height: 8),
-            _LeaderboardEntryRow(entry: entries[i], rank: i + 1),
+            _LeaderboardEntryRow(
+              entry: entries[i],
+              rank: i + 1,
+              brand: brand,
+              brandVariant: brandVariant,
+              onBrand: onBrand,
+            ),
           ],
         ],
       );
@@ -1603,7 +1655,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F0FF),
+        color: cardBackground,
         borderRadius: BorderRadius.circular(26),
       ),
       padding: const EdgeInsets.all(24),
@@ -1612,13 +1664,13 @@ class _LeaderboardHighlightCard extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF7C4DFF),
+              color: iconBackground,
               borderRadius: BorderRadius.circular(22),
             ),
             padding: const EdgeInsets.all(16),
-            child: const Icon(
+            child: Icon(
               Icons.emoji_events_rounded,
-              color: Colors.white,
+              color: onBrand,
               size: 34,
             ),
           ),
@@ -1630,7 +1682,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                 Text(
                   'Top du classement',
                   style: theme.textTheme.titleLarge?.copyWith(
-                        color: const Color(0xFF2D1B5E),
+                        color: titleColor,
                         fontWeight: FontWeight.w800,
                       ),
                 ),
@@ -1641,8 +1693,8 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: const Color(0xFF7C4DFF),
+                      foregroundColor: onBrand,
+                      backgroundColor: brand,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 12,
@@ -1652,9 +1704,16 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                       ),
                     ),
                     onPressed: onSeeAll,
-                    child: const Text(
+                    child: Text(
                       'Voir tout le classement',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                            color: onBrand,
+                            fontWeight: FontWeight.w700,
+                          ) ??
+                          TextStyle(
+                            color: onBrand,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ),
                 ),
@@ -1668,10 +1727,19 @@ class _LeaderboardHighlightCard extends StatelessWidget {
 }
 
 class _LeaderboardEntryRow extends StatelessWidget {
-  const _LeaderboardEntryRow({required this.entry, required this.rank});
+  const _LeaderboardEntryRow({
+    required this.entry,
+    required this.rank,
+    required this.brand,
+    required this.brandVariant,
+    required this.onBrand,
+  });
 
   final LeaderboardEntry entry;
   final int rank;
+  final Color brand;
+  final Color brandVariant;
+  final Color onBrand;
 
   @override
   Widget build(BuildContext context) {
@@ -1679,6 +1747,10 @@ class _LeaderboardEntryRow extends StatelessWidget {
     final displayName = entry.name.trim().isEmpty ? 'Anonyme' : entry.name.trim();
     final percentText = _formatPercent(entry.percent);
     final durationText = _formatDuration(entry.durationSec);
+    final Color rankColor = Color.lerp(onBrand, brand, 0.2) ?? onBrand;
+    final Color nameColor = Color.lerp(onBrand, brand, 0.25) ?? onBrand;
+    final Color percentColor = Color.lerp(onBrand, brandVariant, 0.1) ?? onBrand;
+    final Color durationColor = Color.lerp(onBrand, brand, 0.45) ?? onBrand;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -1686,7 +1758,7 @@ class _LeaderboardEntryRow extends StatelessWidget {
         Text(
           '$rank.',
           style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF2D1B5E),
+                color: rankColor,
                 fontWeight: FontWeight.w800,
               ),
         ),
@@ -1697,7 +1769,7 @@ class _LeaderboardEntryRow extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF2D1B5E),
+                  color: nameColor,
                   fontWeight: FontWeight.w700,
                 ),
           ),
@@ -1709,7 +1781,7 @@ class _LeaderboardEntryRow extends StatelessWidget {
             '$percentText%',
             textAlign: TextAlign.right,
             style: theme.textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF4315C5),
+                  color: percentColor,
                   fontWeight: FontWeight.w800,
                 ),
           ),
@@ -1721,7 +1793,7 @@ class _LeaderboardEntryRow extends StatelessWidget {
             durationText,
             textAlign: TextAlign.right,
             style: theme.textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF5F5A78),
+                  color: durationColor,
                   fontWeight: FontWeight.w600,
                 ),
           ),
