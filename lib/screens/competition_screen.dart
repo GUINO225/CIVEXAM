@@ -1,3 +1,4 @@
+// lib/screens/competition_screen.dart
 import 'dart:ui' show clampDouble; // pour clampDouble
 import 'package:flutter/material.dart';
 
@@ -82,6 +83,16 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     );
   }
 
+  String _optionBadgeLabel(int index) {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (index < letters.length) {
+      return letters[index];
+    }
+    final prefix = letters[index % letters.length];
+    final suffix = (index ~/ letters.length) + 1;
+    return '$prefix$suffix';
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -104,7 +115,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
 
     final double chipMinHeight =
         (resolvedChipTextStyle.fontSize ?? 16) *
-            (resolvedChipTextStyle.height ?? 1.0) +
+                (resolvedChipTextStyle.height ?? 1.0) +
             16;
 
     final double topCardHeight = clampDouble(
@@ -119,14 +130,13 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     final Color subjectBg = subjectFg.withOpacity(0.10);
     final IconData subjectIcon = _iconForSubject(_currentQuestion.subject);
 
-    final String appBarTitle = (_currentQuestion.subject.isEmpty)
-        ? 'Quiz'
-        : '${_currentQuestion.subject} Quiz';
+    final String appBarTitle =
+        (_currentQuestion.subject.isEmpty) ? 'Quiz' : '${_currentQuestion.subject} Quiz';
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
 
-      // ---------- AppBar violette ----------
+      // ---------- AppBar ----------
       appBar: AppBar(
         backgroundColor: theme.appBarBackgroundColor,
         foregroundColor: theme.appBarForegroundColor,
@@ -192,13 +202,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Compte à rebours (en violet 6C5CE7)
+                            // Compte à rebours
                             Center(
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: theme.timerColor
-                                      .withOpacity(0.08), // “partie grise” -> violet
+                                  color: theme.timerColor.withOpacity(0.08),
                                   borderRadius: BorderRadius.circular(
                                       theme.timerContainerRadius),
                                   boxShadow: theme.timerContainerShadow,
@@ -212,16 +221,15 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                       child: CircularProgressIndicator(
                                         value: _controller.value,
                                         strokeWidth: theme.timerStrokeWidth,
-                                        color: theme.timerColor, // couleur du timer
-                                        backgroundColor: theme.timerColor
-                                            .withOpacity(0.18), // anneau de fond
+                                        color: theme.timerColor,
+                                        backgroundColor:
+                                            theme.timerColor.withOpacity(0.18),
                                       ),
                                     ),
                                     Text(
                                       '$_remainingSeconds',
                                       style: theme.timerTextStyle.copyWith(
                                         color: theme.timerColor,
-                                        // texte du timer en violet
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
@@ -236,7 +244,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                             ),
                             const SizedBox(height: 6),
 
-                            // Rubrique + icône matière (fond violet doux)
+                            // Rubrique + icône matière
                             Row(
                               children: [
                                 Container(
@@ -246,8 +254,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                     color: subjectBg,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child:
-                                      Icon(subjectIcon, color: subjectFg, size: 18),
+                                  child: Icon(
+                                    subjectIcon,
+                                    color: subjectFg,
+                                    size: 18,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Flexible(
@@ -283,11 +294,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                       height: chipMinHeight,
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 250),
-                        // courbes sans overshoot
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
                         transitionBuilder: (child, animation) {
-                          // pas de CurvedAnimation supplémentaire ici
                           return FadeTransition(
                             opacity: animation,
                             child: SlideTransition(
@@ -311,7 +320,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                 curve: Curves.easeOutCubic,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 16),
+                                    vertical: 8,
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: theme.selectedChipBackgroundColor
                                         .withOpacity(0.10),
@@ -364,7 +375,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                               child: Container(
                                 width: double.infinity,
                                 constraints:
-                                    const BoxConstraints(maxWidth: 400),
+                                    const BoxConstraints(maxWidth: 460),
                                 child: AnimatedScale(
                                   scale: isHighlighted ? 0.97 : 1.0,
                                   duration:
@@ -398,7 +409,9 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                         curve: Curves.easeOut,
                                         width: double.infinity,
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
+                                          vertical: 16,
+                                          horizontal: 20,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: resolvedColor,
                                           borderRadius: borderRadius,
@@ -417,7 +430,8 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                           textAlign: TextAlign.center,
                                           style: theme.optionTextStyle
                                               .copyWith(
-                                                  fontSize: optionFontSize),
+                                            fontSize: optionFontSize,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -432,7 +446,10 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                   ],
                 ),
               ),
+
               const SizedBox(height: 16),
+
+              // ---------- Bouton "Next" ----------
               SafeArea(
                 top: false,
                 child: SizedBox(
