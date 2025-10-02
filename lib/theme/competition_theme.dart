@@ -22,6 +22,14 @@ class CompetitionTheme {
   final double optionCardRadius;
   final List<BoxShadow> optionCardShadow;
   final Color optionSelectedBorderColor;
+  final Color optionSelectedBackgroundColor;
+  final Color optionSelectedTextColor;
+  final Color optionBadgeBackgroundColor;
+  final Color optionBadgeForegroundColor;
+  final Color optionBadgeSelectedBackgroundColor;
+  final Color optionBadgeSelectedForegroundColor;
+  final double optionBadgeRadius;
+  final double optionBadgeSize;
 
   /// Color of the progress bar displayed under the question.
   final Color progressBarColor;
@@ -63,11 +71,19 @@ class CompetitionTheme {
       BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
     ],
     this.optionCardColor = Colors.white,
-    this.optionCardRadius = 24.0,
+    this.optionCardRadius = 999.0,
     this.optionCardShadow = const [
       BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
     ],
     this.optionSelectedBorderColor = Colors.pinkAccent,
+    this.optionSelectedBackgroundColor = Colors.pinkAccent,
+    this.optionSelectedTextColor = Colors.white,
+    this.optionBadgeBackgroundColor = const Color(0xFFEDE7FF),
+    this.optionBadgeForegroundColor = Colors.pinkAccent,
+    this.optionBadgeSelectedBackgroundColor = const Color(0x33FFFFFF),
+    this.optionBadgeSelectedForegroundColor = Colors.white,
+    this.optionBadgeRadius = 999.0,
+    this.optionBadgeSize = 36.0,
     this.progressBarColor = Colors.pinkAccent,
     this.appBarBackgroundColor = const Color(0xFF6C5CE7),
     this.appBarForegroundColor = Colors.white,
@@ -121,6 +137,12 @@ class CompetitionTheme {
       questionCardColor: theme.cardColor,
       optionCardColor: theme.cardColor,
       optionSelectedBorderColor: scheme.primary,
+      optionSelectedBackgroundColor: scheme.primary,
+      optionSelectedTextColor: scheme.onPrimary,
+      optionBadgeBackgroundColor: scheme.primary.withOpacity(0.08),
+      optionBadgeForegroundColor: scheme.primary,
+      optionBadgeSelectedBackgroundColor: scheme.onPrimary.withOpacity(0.20),
+      optionBadgeSelectedForegroundColor: scheme.onPrimary,
       progressBarColor: scheme.primary,
       appBarBackgroundColor: scheme.primary,
       appBarForegroundColor: scheme.onPrimary,
@@ -177,8 +199,20 @@ class CompetitionTheme {
       optionCardRadius: scaledDimension(
         base: optionCardRadius,
         scale: scale,
+        min: 24,
+        max: 999,
+      ),
+      optionBadgeRadius: scaledDimension(
+        base: optionBadgeRadius,
+        scale: scale,
         min: 16,
-        max: 32,
+        max: 999,
+      ),
+      optionBadgeSize: scaledDimension(
+        base: optionBadgeSize,
+        scale: scale,
+        min: 28,
+        max: 44,
       ),
       timerSize: scaledDimension(
         base: timerSize,
@@ -222,6 +256,14 @@ class CompetitionTheme {
     double? optionCardRadius,
     List<BoxShadow>? optionCardShadow,
     Color? optionSelectedBorderColor,
+    Color? optionSelectedBackgroundColor,
+    Color? optionSelectedTextColor,
+    Color? optionBadgeBackgroundColor,
+    Color? optionBadgeForegroundColor,
+    Color? optionBadgeSelectedBackgroundColor,
+    Color? optionBadgeSelectedForegroundColor,
+    double? optionBadgeRadius,
+    double? optionBadgeSize,
     Color? progressBarColor,
     Color? appBarBackgroundColor,
     Color? appBarForegroundColor,
@@ -253,6 +295,20 @@ class CompetitionTheme {
       optionCardShadow: optionCardShadow ?? this.optionCardShadow,
       optionSelectedBorderColor:
           optionSelectedBorderColor ?? this.optionSelectedBorderColor,
+      optionSelectedBackgroundColor:
+          optionSelectedBackgroundColor ?? this.optionSelectedBackgroundColor,
+      optionSelectedTextColor:
+          optionSelectedTextColor ?? this.optionSelectedTextColor,
+      optionBadgeBackgroundColor:
+          optionBadgeBackgroundColor ?? this.optionBadgeBackgroundColor,
+      optionBadgeForegroundColor:
+          optionBadgeForegroundColor ?? this.optionBadgeForegroundColor,
+      optionBadgeSelectedBackgroundColor: optionBadgeSelectedBackgroundColor ??
+          this.optionBadgeSelectedBackgroundColor,
+      optionBadgeSelectedForegroundColor: optionBadgeSelectedForegroundColor ??
+          this.optionBadgeSelectedForegroundColor,
+      optionBadgeRadius: optionBadgeRadius ?? this.optionBadgeRadius,
+      optionBadgeSize: optionBadgeSize ?? this.optionBadgeSize,
       progressBarColor: progressBarColor ?? this.progressBarColor,
       appBarBackgroundColor:
           appBarBackgroundColor ?? this.appBarBackgroundColor,

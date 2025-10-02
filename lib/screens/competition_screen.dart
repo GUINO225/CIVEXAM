@@ -75,6 +75,16 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     );
   }
 
+  String _optionBadgeLabel(int index) {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (index < letters.length) {
+      return letters[index];
+    }
+    final prefix = letters[index % letters.length];
+    final suffix = (index ~/ letters.length) + 1;
+    return '$prefix$suffix';
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -325,23 +335,38 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                     final bool isSelected = _selected == i;
                     final bool isHighlighted = _highlighted == i;
                     final borderRadius =
-                    BorderRadius.circular(theme.optionCardRadius);
+                        BorderRadius.circular(theme.optionCardRadius);
                     final Color baseColor = theme.optionCardColor;
-                    final Color highlightOverlay =
-                        theme.selectedChipBackgroundColor.withOpacity(0.06);
-                    final Color selectedOverlay =
-                        theme.selectedChipBackgroundColor.withOpacity(0.12);
-                    final Color resolvedColor = isSelected
-                        ? Color.alphaBlend(selectedOverlay, baseColor)
+                    final Color hoverOverlay =
+                        theme.optionSelectedBackgroundColor.withOpacity(0.06);
+                    final Color resolvedBackground = isSelected
+                        ? theme.optionSelectedBackgroundColor
                         : isHighlighted
-                            ? Color.alphaBlend(highlightOverlay, baseColor)
+                            ? Color.alphaBlend(hoverOverlay, baseColor)
                             : baseColor;
+                    final TextStyle resolvedTextStyle = theme.optionTextStyle
+                        .copyWith(
+                      fontSize: optionFontSize,
+                      color: isSelected
+                          ? theme.optionSelectedTextColor
+                          : theme.optionTextStyle.color,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : theme.optionTextStyle.fontWeight,
+                    );
+                    final Color badgeBackground = isSelected
+                        ? theme.optionBadgeSelectedBackgroundColor
+                        : theme.optionBadgeBackgroundColor;
+                    final Color badgeForeground = isSelected
+                        ? theme.optionBadgeSelectedForegroundColor
+                        : theme.optionBadgeForegroundColor;
+                    final double badgeSize = theme.optionBadgeSize;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Container(
                         width: double.infinity,
-                        constraints: const BoxConstraints(maxWidth: 400),
+                        constraints: const BoxConstraints(maxWidth: 460),
                         child: AnimatedScale(
                           scale: isHighlighted ? 0.97 : 1.0,
                           duration: const Duration(milliseconds: 140),
@@ -351,10 +376,11 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                             borderRadius: borderRadius,
                             child: InkWell(
                               borderRadius: borderRadius,
-                              splashColor:
-                                  theme.selectedChipBackgroundColor.withOpacity(0.08),
+                              splashColor: theme.optionSelectedBackgroundColor
+                                  .withOpacity(0.08),
                               highlightColor:
-                                  theme.selectedChipBackgroundColor.withOpacity(0.04),
+                                  theme.optionSelectedBackgroundColor
+                                      .withOpacity(0.04),
                               onHighlightChanged: (value) {
                                 if (_selected >= 0 || _advanced) return;
                                 setState(() {
@@ -368,10 +394,12 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                 duration: const Duration(milliseconds: 200),
                                 curve: Curves.easeOut,
                                 width: double.infinity,
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                  horizontal: 20,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: resolvedColor,
+                                  color: resolvedBackground,
                                   borderRadius: borderRadius,
                                   boxShadow: theme.optionCardShadow,
                                   border: Border.all(
@@ -381,11 +409,35 @@ class _CompetitionScreenState extends State<CompetitionScreen>
                                     width: 2,
                                   ),
                                 ),
-                                child: Text(
-                                  _currentQuestion.choices[i],
-                                  textAlign: TextAlign.center,
-                                  style: theme.optionTextStyle
-                                      .copyWith(fontSize: optionFontSize),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: badgeSize,
+                                      height: badgeSize,
+                                      decoration: BoxDecoration(
+                                        color: badgeBackground,
+                                        borderRadius: BorderRadius.circular(
+                                            theme.optionBadgeRadius),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        _optionBadgeLabel(i),
+                                        style: theme.optionTextStyle.copyWith(
+                                          fontSize: optionFontSize * 0.9,
+                                          fontWeight: FontWeight.bold,
+                                          color: badgeForeground,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        _currentQuestion.choices[i],
+                                        style: resolvedTextStyle,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
