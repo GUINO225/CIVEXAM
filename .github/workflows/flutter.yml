@@ -30,6 +30,9 @@ jobs:
           channel: 'stable'
           cache: true                # accélère les runs suivants
 
+      - name: Ensure Git LFS assets
+        run: dart run tool/ensure_lfs_assets.dart
+
       - name: Flutter pub get
         run: flutter pub get
 
