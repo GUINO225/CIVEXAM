@@ -28,11 +28,13 @@ class DesignBackground extends StatelessWidget {
                   )
                 : null,
             color: cfg.bgGradient ? null : baseColors.first,
-            image: const DecorationImage(
-              image:
-                  AssetImage('assets/images/background_playscreen.png'),
-              fit: BoxFit.cover,
-            ),
+            image: cfg.bgGradient
+                ? null
+                : const DecorationImage(
+                    image:
+                        AssetImage('assets/images/background_playscreen.png'),
+                    fit: BoxFit.cover,
+                  ),
           ),
           child: Stack(
             children: [

@@ -14,10 +14,19 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
+        if (macos.apiKey.isEmpty || macos.appId.isEmpty || macos.projectId.isEmpty) {
+          throw UnsupportedError('Firebase not configured for macOS platform.');
+        }
         return macos;
       case TargetPlatform.windows:
+        if (windows.apiKey.isEmpty || windows.appId.isEmpty || windows.projectId.isEmpty) {
+          throw UnsupportedError('Firebase not configured for Windows platform.');
+        }
         return windows;
       case TargetPlatform.linux:
+        if (linux.apiKey.isEmpty || linux.appId.isEmpty || linux.projectId.isEmpty) {
+          throw UnsupportedError('Firebase not configured for Linux platform.');
+        }
         return linux;
       default:
         throw UnsupportedError(

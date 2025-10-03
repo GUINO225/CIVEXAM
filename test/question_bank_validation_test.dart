@@ -1,31 +1,49 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:civexam_pro/data/ena_taxonomy.dart';
 import 'package:civexam_pro/services/question_loader.dart';
 
 void main() {
   test('all questions have valid subject/chapter and no duplicates', () async {
     await QuestionLoader.loadENA();
-    // Prefer the full bank, but fall back to the sample when absent.
-    final candidates = [
-      'assets/questions/civexam_questions_ena_core.json',
-      'assets/questions/ena_sample.json',
-    ];
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
 
-    File? file;
-    for (final path in candidates) {
-      final f = File(path);
-      if (await f.exists()) {
-        file = f;
-        break;
-      }
+    String? loaded;
+    // Try rootBundle first (usual flutter test path)
+    try {
+      loaded = await rootBundle
+          .loadString('assets/questions/civexam_questions_ena_core.json');
+    } catch (_) {}
+    // Fallback to sample
+    if (loaded == null) {
+      try {
+        loaded =
+            await rootBundle.loadString('assets/questions/ena_sample.json');
+      } catch (_) {}
     }
+    // Final fallback: filesystem (e.g., when tests run outside flutter).
+    loaded ??= await () async {
+      final candidates = [
+        'assets/questions/civexam_questions_ena_core.json',
+        'assets/questions/ena_sample.json',
+      ];
+      for (final path in candidates) {
+        final f = File(path);
+        if (await f.exists()) {
+          return await f.readAsString();
+        }
+      }
+      return '';
+    }();
 
-    expect(file, isNotNull, reason: 'No question bank JSON found');
+    expect(loaded.isNotEmpty, isTrue,
+        reason: 'No question bank JSON found via assets or filesystem');
 
-    final raw = await file!.readAsString();
+    final raw = loaded;
     final data = json.decode(raw);
     expect(data, isA<List>(), reason: 'JSON root should be a list');
 
