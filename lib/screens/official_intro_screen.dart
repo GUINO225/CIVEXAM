@@ -407,7 +407,11 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            const SizedBox(height: 16),
+                            _buildDifficultySelector(theme, brand),
+                            const SizedBox(height: 28),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -424,6 +428,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                                 ),
                               ],
                             ),
+                            // --- Conflit résolu ici : on garde l'appel avec rulesDurationText
                             const SizedBox(height: 32),
                             _buildRulesCard(
                               theme,
@@ -435,7 +440,6 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                             const SizedBox(height: 24),
                             _buildAgreementCard(theme, brand),
                             const SizedBox(height: 24),
-                            _buildDifficultySelector(theme, brand),
                             if (_errorMessage != null) ...[
                               const SizedBox(height: 16),
                               Text(
@@ -563,6 +567,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
         Wrap(
           spacing: 12,
           runSpacing: 12,
+          alignment: WrapAlignment.start,
           children: [
             _buildDifficultyChip(
               theme,
