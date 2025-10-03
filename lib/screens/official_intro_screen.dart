@@ -747,53 +747,91 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     }
     final String subtitle = lines.join('\n');
 
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [bubbleStart, bubbleEnd],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 14),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double baseDiameter = 120;
+        final double textScale = MediaQuery.textScaleFactorOf(context);
+        final double desiredDiameter =
+            baseDiameter * textScale.clamp(1.0, 1.6).toDouble();
+
+        double maxDiameter = baseDiameter * 1.8;
+        if (constraints.hasBoundedWidth && constraints.maxWidth.isFinite) {
+          maxDiameter = math.min(maxDiameter, constraints.maxWidth);
+        }
+        if (constraints.hasBoundedHeight && constraints.maxHeight.isFinite) {
+          maxDiameter = math.min(maxDiameter, constraints.maxHeight);
+        }
+
+        final double screenLimit = MediaQuery.sizeOf(context).width * 0.45;
+        if (screenLimit.isFinite && screenLimit > 0) {
+          maxDiameter = math.min(maxDiameter, screenLimit);
+        }
+
+        double minDiameter = baseDiameter * 0.9;
+        if (maxDiameter < minDiameter) {
+          minDiameter = maxDiameter;
+        }
+
+        final double bubbleSize =
+            desiredDiameter.clamp(minDiameter, maxDiameter).toDouble();
+
+        return SizedBox.square(
+          dimension: bubbleSize,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [bubbleStart, bubbleEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: shadowColor,
+                  blurRadius: 20,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
+                    const SizedBox(height: 8),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: textColor.withOpacity(0.75),
+                        height: 1.2,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: textColor.withOpacity(0.75),
-                height: 1.2,
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
