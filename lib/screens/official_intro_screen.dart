@@ -5,7 +5,13 @@
 import 'dart:async'; // Pour Timer.periodic (le compte à rebours)
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, debugPrint, debugPrintStack, defaultTargetPlatform, kIsWeb; // Utilitaires de plateforme & debug
+    show
+        TargetPlatform,
+        ValueListenable,
+        debugPrint,
+        debugPrintStack,
+        defaultTargetPlatform,
+        kIsWeb; // Utilitaires de plateforme & debug
 import 'package:flutter/material.dart'; // Widgets de base
 import 'package:flutter/services.dart'; // Haptics + gestion barre système
 import 'package:wakelock_plus/wakelock_plus.dart'; // Empêcher la mise en veille en mode compétition
@@ -14,9 +20,11 @@ import 'package:device_info_plus/device_info_plus.dart'; // Détecter si l’app
 
 import '../models/question.dart'; // Modèle Question
 import '../models/design_config.dart';
+import '../models/exam_history_entry.dart';
 import '../services/scoring.dart'; // Calcul de score
 import '../services/question_loader.dart';
 import '../services/question_history_store.dart';
+import '../services/history_store.dart';
 import '../services/question_randomizer.dart';
 import '../services/exam_blueprint.dart';
 import '../app/theme.dart'; // Optionnel (ex: thèmes globaux)
@@ -27,6 +35,7 @@ import '../utils/responsive_utils.dart'; // Helpers pour tailles de texte respon
 // Ces deux imports sont pour ton bottom nav existant :
 import '../widgets/play_bottom_nav_bar.dart'; // Bottom nav custom de ton app
 import 'play_screen.dart'; // Écran parent pour faire un pushReplacement quand on quitte l’exam
+import 'exam_history_screen.dart';
 
 // =======================
 // DATA: Résultat d’examen
@@ -93,6 +102,19 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
   Timer? _countdownTimer;
   String? _errorMessage;
   ExamDifficulty _selectedDifficulty = ExamDifficulty.normal;
+  late final ValueListenable<ExamHistoryEntry?> _latestHistoryEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    _latestHistoryEntry = HistoryStore.latestEntryNotifier();
+    unawaited(
+      HistoryStore.load().catchError((Object error, StackTrace stackTrace) {
+        debugPrint('OfficialIntroScreen: failed to load exam history: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      }),
+    );
+  }
 
   @override
   void dispose() {
@@ -432,21 +454,55 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                             const SizedBox(height: 16),
                             _buildDifficultySelector(theme, brand),
                             const SizedBox(height: 28),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildRecentQuizBubble(theme, brand),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildFeaturedCard(
-                                    theme,
-                                    brand,
-                                    totalQuestions,
-                                    totalDurationLabel,
-                                    perQuestionBadgeLabel,
-                                  ),
-                                ),
-                              ],
+                            ValueListenableBuilder<ExamHistoryEntry?>(
+                              valueListenable: _latestHistoryEntry,
+                              builder: (context, entry, _) {
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        _buildRecentQuizBubble(
+                                          context,
+                                          theme,
+                                          brand,
+                                          entry,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        TextButton(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: brand,
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: const Size(0, 0),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ExamHistoryScreen(),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Voir l’historique'),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _buildFeaturedCard(
+                                        theme,
+                                        brand,
+                                        totalQuestions,
+                                        totalDurationLabel,
+                                        perQuestionBadgeLabel,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                             // --- Conflit résolu ici : on garde l'appel avec rulesDurationText
                             const SizedBox(height: 32),
@@ -654,7 +710,12 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     );
   }
 
-  Widget _buildRecentQuizBubble(ThemeData theme, Color brand) {
+  Widget _buildRecentQuizBubble(
+    BuildContext context,
+    ThemeData theme,
+    Color brand,
+    ExamHistoryEntry? entry,
+  ) {
     final bool dark = theme.brightness == Brightness.dark;
     final Color bubbleStart =
         dark ? brand.withOpacity(0.35) : Colors.white.withOpacity(0.96);
@@ -664,6 +725,27 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     final Color shadowColor = dark
         ? Colors.black.withOpacity(0.4)
         : Colors.black.withOpacity(0.12);
+    final ExamHistoryEntry? historyEntry = entry;
+    final materialLocalizations = MaterialLocalizations.of(context);
+    final String title;
+    if (historyEntry != null) {
+      title = materialLocalizations.formatMediumDate(historyEntry.date);
+    } else {
+      title = 'Aucune simulation enregistrée';
+    }
+    final double? ratio = historyEntry?.overallSuccessRatio();
+    final String? ratioLabel =
+        ratio != null ? '${(ratio * 100).toStringAsFixed(0)} % de réussite' : null;
+    final List<String> lines = <String>[];
+    if (historyEntry != null) {
+      lines.add('Score pondéré : ${historyEntry.totalPondere}');
+      if (ratioLabel != null) {
+        lines.add(ratioLabel);
+      }
+    } else {
+      lines.add('Lancez une simulation pour voir vos résultats ici.');
+    }
+    final String subtitle = lines.join('\n');
 
     return Container(
       width: 120,
@@ -691,7 +773,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
             Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
             const SizedBox(height: 8),
             Text(
-              'Recent Quiz',
+              title,
               textAlign: TextAlign.center,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: textColor,
@@ -700,12 +782,14 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Reprenez votre progression',
+              subtitle,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: textColor.withOpacity(0.75),
                 height: 1.2,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
