@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../models/design_config.dart';
+import '../models/question.dart';
+import '../models/training_history_entry.dart';
+import '../services/design_bus.dart';
+import '../services/question_history_store.dart';
 import '../services/question_loader.dart';
 import '../services/question_randomizer.dart';
-import '../services/question_history_store.dart';
-import '../models/question.dart';
 import '../services/scoring.dart';
-import '../models/training_history_entry.dart';
 import '../services/training_history_store.dart';
-import 'exam_full_screen.dart';
+import '../utils/palette_utils.dart';
 import '../widgets/chip_selector.dart';
+import 'exam_full_screen.dart';
 
 class ChapterListScreen extends StatefulWidget {
   final String subjectName;
@@ -193,68 +196,124 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      appBar: AppBar(title: Text('S’entraîner — ${widget.subjectName}')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Module : ${widget.chapterName}',
-                    style: textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Temps par question', style: textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          ChipSelector<int>(
-                            options: _secondOptions,
-                            selected: _perQuestionSeconds,
-                            onSelected: (s) => setState(() => _perQuestionSeconds = s),
-                            spacing: 8,
-                            runSpacing: 8,
-                            labelBuilder: (s) => '${s}s',
-                          ),
-                          const SizedBox(height: 16),
-                          Text('Nombre de questions', style: textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          ChipSelector<int>(
-                            options: _countOptions,
-                            selected: _questionCount,
-                            onSelected: (n) => setState(() => _questionCount = n),
-                            spacing: 8,
-                            labelBuilder: (n) => '$n',
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Questions dispo pour ce module : ${_pool.length}',
-                            style: textTheme.bodyLarge,
-                          ),
-                        ],
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final baseTheme = Theme.of(context);
+        final paletteName = cfg.bgPaletteName;
+        final gradientColors = pastelColors(paletteName, darkMode: cfg.darkMode);
+        final primary = accentColor(paletteName);
+        final onPrimary = onColor(primary);
+        final buttonColor = complementaryColor(paletteName);
+        final onButtonColor = onColor(buttonColor);
+        final textColor = textColorForPalette(paletteName, darkMode: cfg.darkMode);
+        final themed = baseTheme.copyWith(
+          scaffoldBackgroundColor: Colors.transparent,
+          textTheme: baseTheme.textTheme.apply(
+            bodyColor: textColor,
+            displayColor: textColor,
+          ),
+          appBarTheme: baseTheme.appBarTheme.copyWith(
+            backgroundColor: Colors.transparent,
+            foregroundColor: textColor,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+          ),
+          colorScheme: baseTheme.colorScheme.copyWith(
+            primary: primary,
+            onPrimary: onPrimary,
+            surface: baseTheme.colorScheme.surface,
+            background: baseTheme.colorScheme.background,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: buttonColor,
+              foregroundColor: onButtonColor,
+              minimumSize: const Size.fromHeight(56),
+            ),
+          ),
+        );
+        final textTheme = themed.textTheme;
+
+        return Theme(
+          data: themed,
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(title: Text('S’entraîner — ${widget.subjectName}')),
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: gradientColors,
+                ),
+              ),
+              child: SafeArea(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Module : ${widget.chapterName}',
+                              style: textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 12),
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Temps par question', style: textTheme.titleMedium),
+                                    const SizedBox(height: 8),
+                                    ChipSelector<int>(
+                                      options: _secondOptions,
+                                      selected: _perQuestionSeconds,
+                                      onSelected: (s) => setState(() => _perQuestionSeconds = s),
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      labelBuilder: (s) => '${s}s',
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text('Nombre de questions', style: textTheme.titleMedium),
+                                    const SizedBox(height: 8),
+                                    ChipSelector<int>(
+                                      options: _countOptions,
+                                      selected: _questionCount,
+                                      onSelected: (n) => setState(() => _questionCount = n),
+                                      spacing: 8,
+                                      labelBuilder: (n) => '$n',
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Questions dispo pour ce module : ${_pool.length}',
+                                      style: textTheme.bodyLarge,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _start,
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Commencer l’entraînement'),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _start,
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Commencer l’entraînement'),
-                    ),
-                  ),
-                ],
               ),
             ),
+          ),
+        );
+      },
     );
   }
 }
