@@ -3,6 +3,7 @@
 // IMPORTS
 // =======================
 import 'dart:async'; // Pour Timer.periodic (le compte à rebours)
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, debugPrintStack, defaultTargetPlatform, kIsWeb; // Utilitaires de plateforme & debug
 import 'package:flutter/material.dart'; // Widgets de base
@@ -54,7 +55,7 @@ class ExamFullScreen extends StatefulWidget {
   final bool showLocalSummary;    // Afficher le résumé local en fin d’épreuve ou non
 
   /// Si défini (>0), remplace la durée totale par: (sec/par question) × nbQuestions
-  /// (clamp entre 5..10 s par question) — utile pour des modes "speed".
+  /// (avec une borne basse de 5 s par question) — utile pour des modes "speed".
   final int? overridePerQuestionSeconds;
 
   final bool competitionMode; // Active verrouillage, orientation, etc.
@@ -174,7 +175,7 @@ class _ExamFullScreenState extends State<ExamFullScreen> with WidgetsBindingObse
     // --- Durée initiale ---
     remaining = widget.duration.inSeconds;
     if (widget.overridePerQuestionSeconds != null && widget.overridePerQuestionSeconds! > 0) {
-      final perQ = widget.overridePerQuestionSeconds!.clamp(5, 10); // borne 5..10
+      final perQ = math.max(5, widget.overridePerQuestionSeconds!); // borne basse 5 s
       remaining = perQ * widget.questions.length; // recalcule durée totale
     }
     if (widget.initialRemainingSeconds != null && widget.initialRemainingSeconds! > 0) {
