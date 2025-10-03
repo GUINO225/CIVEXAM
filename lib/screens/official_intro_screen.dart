@@ -39,6 +39,13 @@ class _ExamSection {
   const _ExamSection(this.subject, this.questionCount);
 }
 
+enum ExamDifficulty {
+  easy,
+  normal,
+  hard,
+  expert,
+}
+
 const List<_ExamSection> _officialExamSections = <_ExamSection>[
   _ExamSection('Culture Générale', ExamBlueprint.cultureGenerale),
   _ExamSection('Droit Constitutionnel', ExamBlueprint.droitConstitutionnel),
@@ -65,6 +72,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
   int _countdown = _countdownStart;
   Timer? _countdownTimer;
   String? _errorMessage;
+  ExamDifficulty _selectedDifficulty = ExamDifficulty.normal;
 
   @override
   void dispose() {
@@ -126,6 +134,8 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
       final durationMinutes = _minutesPerSection * _officialExamSections.length;
       final duration = Duration(minutes: durationMinutes);
       const scoring = ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 2);
+      final int? overridePerQuestionSeconds =
+          _secondsPerQuestionForDifficulty(_selectedDifficulty);
 
       final sessionIds = questions.map((q) => q.id);
       unawaited(
@@ -144,6 +154,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
             title: 'Concours ENA — Simulation',
             competitionMode: true,
             showLocalSummary: true,
+            overridePerQuestionSeconds: overridePerQuestionSeconds,
           ),
         ),
       );
@@ -378,6 +389,8 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                             _buildDistributionCard(theme, brand),
                             const SizedBox(height: 24),
                             _buildAgreementCard(theme, brand),
+                            const SizedBox(height: 24),
+                            _buildDifficultySelector(theme, brand),
                             if (_errorMessage != null) ...[
                               const SizedBox(height: 16),
                               Text(
@@ -435,6 +448,103 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
           ),
         );
       },
+    );
+  }
+
+  int? _secondsPerQuestionForDifficulty(ExamDifficulty difficulty) {
+    switch (difficulty) {
+      case ExamDifficulty.easy:
+        return 90;
+      case ExamDifficulty.normal:
+        return null;
+      case ExamDifficulty.hard:
+        return 45;
+      case ExamDifficulty.expert:
+        return 30;
+    }
+  }
+
+  Widget _buildDifficultySelector(ThemeData theme, Color brand) {
+    final bool enabled = !_loading && !_countdownActive;
+    final Color chipSelectedColor = brand.withOpacity(0.12);
+    final TextStyle? labelStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Niveau de difficulté',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _buildDifficultyChip(
+              theme,
+              label: 'Facile',
+              difficulty: ExamDifficulty.easy,
+              enabled: enabled,
+              selectedColor: chipSelectedColor,
+              labelStyle: labelStyle,
+            ),
+            _buildDifficultyChip(
+              theme,
+              label: 'Normal',
+              difficulty: ExamDifficulty.normal,
+              enabled: enabled,
+              selectedColor: chipSelectedColor,
+              labelStyle: labelStyle,
+            ),
+            _buildDifficultyChip(
+              theme,
+              label: 'Difficile',
+              difficulty: ExamDifficulty.hard,
+              enabled: enabled,
+              selectedColor: chipSelectedColor,
+              labelStyle: labelStyle,
+            ),
+            _buildDifficultyChip(
+              theme,
+              label: 'Expert',
+              difficulty: ExamDifficulty.expert,
+              enabled: enabled,
+              selectedColor: chipSelectedColor,
+              labelStyle: labelStyle,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDifficultyChip(
+    ThemeData theme, {
+    required String label,
+    required ExamDifficulty difficulty,
+    required bool enabled,
+    required Color selectedColor,
+    TextStyle? labelStyle,
+  }) {
+    final bool selected = _selectedDifficulty == difficulty;
+    return ChoiceChip(
+      label: Text(label, style: labelStyle),
+      selected: selected,
+      onSelected: enabled
+          ? (value) {
+              if (value) {
+                setState(() => _selectedDifficulty = difficulty);
+              }
+            }
+          : null,
+      selectedColor: selectedColor,
+      disabledColor: theme.disabledColor.withOpacity(0.08),
+      backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(0.18),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      showCheckmark: false,
     );
   }
 
