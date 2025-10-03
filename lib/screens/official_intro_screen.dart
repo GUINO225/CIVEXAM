@@ -244,6 +244,29 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
       0,
       (sum, section) => sum + section.questionCount,
     );
+    final int? overrideSeconds =
+        _secondsPerQuestionForDifficulty(_selectedDifficulty);
+    final Duration totalDuration = overrideSeconds != null
+        ? Duration(seconds: overrideSeconds * totalQuestions)
+        : Duration(minutes: _minutesPerSection * _officialExamSections.length);
+    final String totalDurationLabel = _formatDurationLabel(totalDuration);
+    final String heroBadgeLabel =
+        '$totalDurationLabel • $totalQuestions questions';
+    final String? perQuestionDurationLabel = overrideSeconds != null
+        ? _formatDurationLabel(Duration(seconds: overrideSeconds))
+        : null;
+    final String? perQuestionBadgeLabel = perQuestionDurationLabel != null
+        ? 'Temps par question : $perQuestionDurationLabel'
+        : null;
+    final String? perQuestionInfoText = perQuestionDurationLabel != null
+        ? 'Temps par question : $perQuestionDurationLabel.'
+        : null;
+    final String durationInfoText = overrideSeconds == null
+        ? 'Durée totale : $totalDurationLabel (${_officialExamSections.length} épreuves de $_minutesPerSection min).'
+        : 'Durée totale : $totalDurationLabel (mode ${_difficultyLabel(_selectedDifficulty)}).';
+    final String rulesDurationText = perQuestionInfoText != null
+        ? '$durationInfoText\n$perQuestionInfoText'
+        : durationInfoText;
 
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
@@ -350,12 +373,28 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                                   color: onBrand.withOpacity(0.14),
                                   borderRadius: BorderRadius.circular(30),
                                 ),
-                                child: Text(
-                                  '${_minutesPerSection * _officialExamSections.length} minutes • $totalQuestions questions',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: onBrand,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      heroBadgeLabel,
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        color: onBrand,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    if (perQuestionBadgeLabel != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        perQuestionBadgeLabel,
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: onBrand.withOpacity(0.85),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                             ],
@@ -383,12 +422,19 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                                     theme,
                                     brand,
                                     totalQuestions,
+                                    totalDurationLabel,
+                                    perQuestionBadgeLabel,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 28),
-                            _buildRulesCard(theme, brand),
+                            // --- Conflit résolu ici : on garde l'appel avec rulesDurationText
+                            const SizedBox(height: 32),
+                            _buildRulesCard(
+                              theme,
+                              brand,
+                              rulesDurationText,
+                            ),
                             const SizedBox(height: 24),
                             _buildDistributionCard(theme, brand),
                             const SizedBox(height: 24),
@@ -465,6 +511,42 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
       case ExamDifficulty.expert:
         return 30;
     }
+  }
+
+  String _difficultyLabel(ExamDifficulty difficulty) {
+    switch (difficulty) {
+      case ExamDifficulty.easy:
+        return 'facile';
+      case ExamDifficulty.normal:
+        return 'normal';
+      case ExamDifficulty.hard:
+        return 'difficile';
+      case ExamDifficulty.expert:
+        return 'expert';
+    }
+  }
+
+  String _formatDurationLabel(Duration duration) {
+    if (duration.inSeconds <= 0) {
+      return '0 s';
+    }
+    final int hours = duration.inHours;
+    final int minutes = duration.inMinutes.remainder(60);
+    final int seconds = duration.inSeconds.remainder(60);
+    final List<String> parts = <String>[];
+    if (hours > 0) {
+      parts.add('$hours h');
+    }
+    if (minutes > 0) {
+      parts.add('$minutes min');
+    }
+    if (seconds > 0 && hours == 0) {
+      parts.add('$seconds s');
+    }
+    if (parts.isEmpty) {
+      parts.add('0 s');
+    }
+    return parts.join(' ');
   }
 
   Widget _buildDifficultySelector(ThemeData theme, Color brand) {
@@ -615,6 +697,8 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     ThemeData theme,
     Color brand,
     int totalQuestions,
+    String totalDurationLabel,
+    String? perQuestionLabel,
   ) {
     final Color featuredBackground = theme.brightness == Brightness.dark
         ? const Color(0xFF1F1F22)
@@ -661,7 +745,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '6 sections chronométrées, $totalQuestions questions et un barème officiel pour simuler le grand jour.',
+            '${_officialExamSections.length} sections chronométrées, $totalQuestions questions et un barème officiel pour simuler le grand jour.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: bodyColor.withOpacity(0.85),
               height: 1.3,
@@ -673,17 +757,33 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
               Icon(Icons.timer, color: brand, size: 20),
               const SizedBox(width: 8),
               Text(
-                '${_minutesPerSection * _officialExamSections.length} min de concentration',
+                '$totalDurationLabel de concentration',
                 style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
+          if (perQuestionLabel != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.speed_rounded, color: brand, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  perQuestionLabel,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: bodyColor.withOpacity(0.85),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildRulesCard(ThemeData theme, Color brand) {
+  Widget _buildRulesCard(ThemeData theme, Color brand, String durationText) {
     final TextStyle? bodyStyle = theme.textTheme.bodyMedium;
     return _buildElevatedCard(
       theme,
@@ -699,8 +799,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
           const SizedBox(height: 12),
           _infoRow(
             icon: Icons.schedule_rounded,
-            text:
-                'Durée totale : ${_minutesPerSection * _officialExamSections.length} minutes (6 épreuves de 60 min).',
+            text: durationText,
             style: bodyStyle,
             brand: brand,
           ),
