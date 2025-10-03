@@ -13,6 +13,7 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart'; // Flag sécu
 import 'package:device_info_plus/device_info_plus.dart'; // Détecter si l’appareil est un émulateur
 
 import '../models/question.dart'; // Modèle Question
+import '../models/design_config.dart';
 import '../services/scoring.dart'; // Calcul de score
 import '../services/question_loader.dart';
 import '../services/question_history_store.dart';
@@ -233,96 +234,521 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
       (sum, section) => sum + section.questionCount,
     );
 
-    final body = ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      children: [
-        Text(
-          'Simulation officielle ENA',
-          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Durée : ${_minutesPerSection * _officialExamSections.length} minutes (6 épreuves de 60 min).',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Barème : +1 bonne réponse, 0 sans réponse, −1 mauvaise réponse (coef 2).',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Répartition des questions :',
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        ..._officialExamSections.map(
-          (section) => ListTile(
-            leading: const Icon(Icons.book_outlined),
-            title: Text(section.subject),
-            subtitle: Text('${section.questionCount} questions'),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Total : $totalQuestions questions. Préparez votre matériel et installez-vous dans un environnement calme. '
-          'Les sorties de l’application déclenchent des avertissements puis des pénalités.',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 24),
-        CheckboxListTile(
-          value: _acceptedRules,
-          onChanged: (_loading || _countdownActive)
-              ? null
-              : (value) => setState(() => _acceptedRules = value ?? false),
-          title: const Text('Je m’engage à respecter le règlement du concours et à ne pas quitter l’app.'),
-        ),
-        if (_errorMessage != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            _errorMessage!,
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
-          ),
-        ],
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: (_loading || _countdownActive) ? null : _handleStartPressed,
-          icon: const Icon(Icons.flag),
-          label: Text(_loading ? 'Préparation…' : 'Commencer l’épreuve'),
-        ),
-        if (_loading) ...[
-          const SizedBox(height: 16),
-          const Center(child: CircularProgressIndicator()),
-        ],
-      ],
-    );
+    return ValueListenableBuilder<DesignConfig>(
+      valueListenable: DesignBus.notifier,
+      builder: (context, cfg, _) {
+        final palette = playIconColors(cfg.bgPaletteName);
+        final Color brand = palette.isNotEmpty
+            ? palette.first
+            : theme.colorScheme.primary;
+        final Brightness brandBrightness =
+            ThemeData.estimateBrightnessForColor(brand);
+        final Color onBrand =
+            brandBrightness == Brightness.dark ? Colors.white : Colors.black;
+        final Color accent = complementaryColor(cfg.bgPaletteName);
+        final bool isDark = theme.brightness == Brightness.dark;
+        final Color navHighlight = accent.withOpacity(isDark ? 0.32 : 0.20);
+        final Color backgroundColor =
+            isDark ? const Color(0xFF111318) : const Color(0xFFF6F6FB);
+        final Color gradientStart = _shiftLightness(brand, 0.08);
+        final Color gradientEnd = _shiftLightness(brand, -0.08);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Concours ENA — Introduction')),
-      body: Stack(
-        children: [
-          body,
-          if (_countdownActive)
-            Positioned.fill(
-              child: Container(
-                color: theme.colorScheme.scrim.withOpacity(0.65),
-                alignment: Alignment.center,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: Text(
-                    '$_countdown',
-                    key: ValueKey<int>(_countdown),
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+        return Scaffold(
+          extendBody: true,
+          backgroundColor: backgroundColor,
+          bottomNavigationBar: PlayBottomNavBar(
+            destinations: playNavDestinations,
+            selectedIndex: 2,
+            backgroundColor: brand,
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
+            onDestinationSelected: (index) {
+              if (index == 2) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PlayScreen(initialIndex: index),
+                ),
+              );
+            },
+          ),
+          body: Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 48),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [gradientStart, gradientEnd],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                      ),
+                      child: SafeArea(
+                        bottom: false,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 110),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () => Navigator.of(context).maybePop(),
+                                    icon: Icon(
+                                      Icons.arrow_back_rounded,
+                                      color: onBrand,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.shield_moon,
+                                    color: onBrand.withOpacity(0.8),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'Simulation officielle ENA',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: onBrand,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Bienvenue dans le mode concours. Assurez-vous d’être prêt avant de lancer l’épreuve.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: onBrand.withOpacity(0.85),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: onBrand.withOpacity(0.14),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  '${_minutesPerSection * _officialExamSections.length} minutes • $totalQuestions questions',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: onBrand,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0, -64),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildRecentQuizBubble(theme, brand),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildFeaturedCard(
+                                    theme,
+                                    brand,
+                                    totalQuestions,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            _buildRulesCard(theme, brand),
+                            const SizedBox(height: 24),
+                            _buildDistributionCard(theme, brand),
+                            const SizedBox(height: 24),
+                            _buildAgreementCard(theme, brand),
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                _errorMessage!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            FilledButton.icon(
+                              onPressed:
+                                  (_loading || _countdownActive) ? null : _handleStartPressed,
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(58),
+                                backgroundColor: brand,
+                                foregroundColor: onBrand,
+                                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              icon: const Icon(Icons.flag_rounded),
+                              label: Text(_loading ? 'Préparation…' : 'Commencer l’épreuve'),
+                            ),
+                            if (_loading) ...[
+                              const SizedBox(height: 20),
+                              const Center(child: CircularProgressIndicator()),
+                            ],
+                            const SizedBox(height: 64),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_countdownActive)
+                Positioned.fill(
+                  child: Container(
+                    color: theme.colorScheme.scrim.withOpacity(0.65),
+                    alignment: Alignment.center,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: Text(
+                        '$_countdown',
+                        key: ValueKey<int>(_countdown),
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecentQuizBubble(ThemeData theme, Color brand) {
+    final bool dark = theme.brightness == Brightness.dark;
+    final Color bubbleStart =
+        dark ? brand.withOpacity(0.35) : Colors.white.withOpacity(0.96);
+    final Color bubbleEnd =
+        dark ? brand.withOpacity(0.20) : Colors.white.withOpacity(0.82);
+    final Color textColor = dark ? Colors.white : Colors.black87;
+    final Color shadowColor = dark
+        ? Colors.black.withOpacity(0.4)
+        : Colors.black.withOpacity(0.12);
+
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [bubbleStart, bubbleEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 20,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              'Recent Quiz',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w700,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Reprenez votre progression',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: textColor.withOpacity(0.75),
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeaturedCard(
+    ThemeData theme,
+    Color brand,
+    int totalQuestions,
+  ) {
+    final Color featuredBackground = theme.brightness == Brightness.dark
+        ? const Color(0xFF1F1F22)
+        : Colors.white;
+    final Color bodyColor =
+        theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: featuredBackground,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: brand.withOpacity(0.16),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              'Featured',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: brand,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Concours intégral',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '6 sections chronométrées, $totalQuestions questions et un barème officiel pour simuler le grand jour.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: bodyColor.withOpacity(0.85),
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.timer, color: brand, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '${_minutesPerSection * _officialExamSections.length} min de concentration',
+                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildRulesCard(ThemeData theme, Color brand) {
+    final TextStyle? bodyStyle = theme.textTheme.bodyMedium;
+    return _buildElevatedCard(
+      theme,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Règlement & modalités',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _infoRow(
+            icon: Icons.schedule_rounded,
+            text:
+                'Durée totale : ${_minutesPerSection * _officialExamSections.length} minutes (6 épreuves de 60 min).',
+            style: bodyStyle,
+            brand: brand,
+          ),
+          const SizedBox(height: 10),
+          _infoRow(
+            icon: Icons.leaderboard_rounded,
+            text: 'Barème : +1 bonne réponse, 0 sans réponse, −1 mauvaise réponse (coef 2).',
+            style: bodyStyle,
+            brand: brand,
+          ),
+          const SizedBox(height: 10),
+          _infoRow(
+            icon: Icons.security_update_warning_rounded,
+            text:
+                'Restez concentré : quitter l’app déclenche des avertissements puis des pénalités.',
+            style: bodyStyle,
+            brand: brand,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDistributionCard(ThemeData theme, Color brand) {
+    return _buildElevatedCard(
+      theme,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Répartition des sections',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          ..._officialExamSections.map(
+            (section) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    height: 46,
+                    width: 46,
+                    decoration: BoxDecoration(
+                      color: brand.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(Icons.book_outlined, color: brand),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          section.subject,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${section.questionCount} questions',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgreementCard(ThemeData theme, Color brand) {
+    return _buildElevatedCard(
+      theme,
+      child: CheckboxListTile(
+        value: _acceptedRules,
+        onChanged: (_loading || _countdownActive)
+            ? null
+            : (value) => setState(() => _acceptedRules = value ?? false),
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        activeColor: brand,
+        checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        title: Text(
+          'Je m’engage à respecter le règlement du concours et à ne pas quitter l’app.',
+          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          'Cette case est obligatoire pour lancer la simulation officielle.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildElevatedCard(ThemeData theme, {required Widget child}) {
+    final Color cardColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF1F1F22)
+        : Colors.white;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 22,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _infoRow({
+    required IconData icon,
+    required String text,
+    required TextStyle? style,
+    required Color brand,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 32,
+          width: 32,
+          decoration: BoxDecoration(
+            color: brand.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: brand),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: style?.copyWith(height: 1.35),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _shiftLightness(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    final double lightness =
+        (hsl.lightness + amount).clamp(0.0, 1.0).toDouble();
+    return hsl.withLightness(lightness).toColor();
   }
 }
 
