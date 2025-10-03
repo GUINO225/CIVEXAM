@@ -55,6 +55,26 @@ const List<_ExamSection> _officialExamSections = <_ExamSection>[
   _ExamSection('Organisation & Logique', ExamBlueprint.organisationLogique),
 ];
 
+IconData _iconForSubject(String subject) {
+  final canonical = QuestionLoader.canon(subject);
+  switch (canonical) {
+    case 'culture generale':
+      return Icons.public;
+    case 'droit constitutionnel':
+      return Icons.gavel;
+    case 'problemes economiques & sociaux':
+      return Icons.groups;
+    case 'aptitude numerique':
+      return Icons.calculate;
+    case 'aptitude verbale':
+      return Icons.record_voice_over;
+    case 'organisation & logique':
+      return Icons.psychology;
+    default:
+      return Icons.menu_book_rounded;
+  }
+}
+
 class OfficialIntroScreen extends StatefulWidget {
   const OfficialIntroScreen({super.key});
 
@@ -436,7 +456,7 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                               rulesDurationText,
                             ),
                             const SizedBox(height: 24),
-                            _buildDistributionCard(theme, brand),
+                            _buildDistributionCard(context, theme, brand),
                             const SizedBox(height: 24),
                             _buildAgreementCard(theme, brand),
                             const SizedBox(height: 24),
@@ -823,7 +843,55 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     );
   }
 
-  Widget _buildDistributionCard(ThemeData theme, Color brand) {
+  Widget _buildDistributionCard(BuildContext context, ThemeData theme, Color brand) {
+    final mediaQuery = MediaQuery.of(context);
+    final double scale = computeScaleFactor(
+      mediaQuery,
+      minScale: 0.85,
+      maxScale: 1.1,
+    );
+    final double iconBoxSize = scaledDimension(
+      base: 44,
+      scale: scale,
+      min: 36,
+      max: 52,
+    );
+    final double iconSize = scaledDimension(
+      base: 24,
+      scale: scale,
+      min: 20,
+      max: 28,
+    );
+    final double horizontalGap = scaledDimension(
+      base: 14,
+      scale: scale,
+      min: 10,
+      max: 18,
+    );
+    final double verticalPadding = scaledDimension(
+      base: 10,
+      scale: scale,
+      min: 8,
+      max: 14,
+    );
+    final double cornerRadius = scaledDimension(
+      base: 14,
+      scale: scale,
+      min: 12,
+      max: 18,
+    );
+    final double textSpacing = scaledDimension(
+      base: 4,
+      scale: scale,
+      min: 3,
+      max: 6,
+    );
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color badgeColor = Color.alphaBlend(
+      brand.withOpacity(isDark ? 0.22 : 0.12),
+      theme.colorScheme.surfaceVariant.withOpacity(isDark ? 0.55 : 0.85),
+    );
+
     return _buildElevatedCard(
       theme,
       child: Column(
@@ -837,43 +905,53 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
           ),
           const SizedBox(height: 14),
           ..._officialExamSections.map(
-            (section) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    height: 46,
-                    width: 46,
-                    decoration: BoxDecoration(
-                      color: brand.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(Icons.book_outlined, color: brand),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          section.subject,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+            (section) {
+              final IconData icon = _iconForSubject(section.subject);
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: verticalPadding),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: iconBoxSize,
+                      width: iconBoxSize,
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        borderRadius: BorderRadius.circular(cornerRadius),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          icon,
+                          size: iconSize,
+                          color: brand,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${section.questionCount} questions',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    SizedBox(width: horizontalGap),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            section.subject,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: textSpacing),
+                          Text(
+                            '${section.questionCount} questions',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
