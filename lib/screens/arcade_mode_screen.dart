@@ -768,6 +768,11 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                           level: entry.level,
                           isCompleted: entry.isCompleted,
                           isCurrent: entry.isCurrent,
+                          onTap: entry.isCurrent
+                              ? (_preparing || _loadingProgress
+                                  ? null
+                                  : _startArcade)
+                              : null,
                         );
                       },
                       separatorBuilder: (_, __) => Divider(
@@ -1059,11 +1064,13 @@ class _LevelListTile extends StatelessWidget {
   final _ArcadeLevel level;
   final bool isCompleted;
   final bool isCurrent;
+  final VoidCallback? onTap;
 
   const _LevelListTile({
     required this.level,
     required this.isCompleted,
     required this.isCurrent,
+    this.onTap,
   });
 
   @override
@@ -1092,7 +1099,7 @@ class _LevelListTile extends StatelessWidget {
         highlightCurrent ? scheme.onPrimary : scheme.onSurfaceVariant;
 
     return InkWell(
-      onTap: null, // aperçu non cliquable (la session démarre via les CTA)
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
