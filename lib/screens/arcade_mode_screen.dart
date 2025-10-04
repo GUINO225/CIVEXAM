@@ -1107,8 +1107,11 @@ class _LevelListTile extends StatelessWidget {
                             icon: Icons.check_circle_rounded, label: 'Validé')
                       else if (isCurrent)
                         const _StatusPill(
-                            icon: Icons.play_circle_fill_rounded,
-                            label: 'À venir'),
+                          icon: Icons.play_circle_fill_rounded,
+                          label: 'À venir',
+                          labelColor: Colors.black,
+                          avatarColor: Colors.black,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -1132,20 +1135,29 @@ class _LevelListTile extends StatelessWidget {
 class _StatusPill extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _StatusPill({required this.icon, required this.label});
+  final Color? labelColor;
+  final Color? avatarColor;
+  const _StatusPill({
+    required this.icon,
+    required this.label,
+    this.labelColor,
+    this.avatarColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final effectiveAvatarColor = avatarColor ?? scheme.primary;
+    final effectiveLabelColor = labelColor ?? scheme.onPrimaryContainer;
     return Chip(
-      avatar: Icon(icon, size: 18, color: scheme.primary),
+      avatar: Icon(icon, size: 18, color: effectiveAvatarColor),
       label: Text(label),
       backgroundColor: scheme.primaryContainer,
       side: BorderSide(color: scheme.outline),
       shape: const StadiumBorder(),
       labelStyle: tt.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600, color: scheme.onPrimaryContainer),
+          fontWeight: FontWeight.w600, color: effectiveLabelColor),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
