@@ -230,7 +230,7 @@ class _ArcadePalette {
 
 class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   static const ExamScoring _scoring =
-  ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
+      ExamScoring(correct: 3, wrong: -1, blank: 0, coefficient: 1);
 
   bool _preparing = false;
   String? _error;
@@ -387,7 +387,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           title: const Text('Session arcade terminée'),
           content: Text(
             'Bravo ! Vous avez répondu correctement à ${summary.correct} '
-                'questions sur ${summary.totalQuestions}.',
+            'questions sur ${summary.totalQuestions}.',
           ),
           actions: [
             TextButton(
@@ -436,8 +436,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         MaterialPageRoute(
           builder: (_) => ExamFullScreen(
             questions: questions,
-            duration: Duration(
-                seconds: level.questionCount * level.perQuestionSeconds),
+            duration:
+                Duration(seconds: level.questionCount * level.perQuestionSeconds),
             scoring: _scoring,
             title: level.title,
             showLocalSummary: true,
@@ -464,7 +464,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           title: Text('Palier non validé — ${level.title}'),
           content: Text(
             'Vous avez répondu correctement à ${result.correctCount} '
-                'question(s). Il en fallait ${level.requiredCorrect} pour avancer.',
+            'question(s). Il en fallait ${level.requiredCorrect} pour avancer.',
           ),
           actions: [
             TextButton(
@@ -540,7 +540,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         title: const Text('Banque de questions insuffisante'),
         content: const Text(
           'Il n\'y a plus assez de questions inédites pour continuer. '
-              'Souhaitez-vous réinitialiser l\'historique des questions ?',
+          'Souhaitez-vous réinitialiser l\'historique des questions ?',
         ),
         actions: [
           TextButton(
@@ -630,8 +630,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                 }
                 return null;
               }),
-              minimumSize:
-                  const MaterialStatePropertyAll(Size.fromHeight(56)),
+              minimumSize: const MaterialStatePropertyAll(Size.fromHeight(56)),
               shape: const MaterialStatePropertyAll(StadiumBorder()),
               elevation: const MaterialStatePropertyAll(0),
             ),
@@ -665,8 +664,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
           ),
           chipTheme: base.chipTheme.copyWith(
             shape: const StadiumBorder(),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             labelStyle: base.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: palette.onPrimaryContainer,
@@ -696,13 +694,27 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             appBar: AppBar(
               title: const Text('Mode Arcade'),
               actions: [
-                _AvatarDot(initial: 'M'),
-                const SizedBox(width: 12),
+                if (_loadingProgress)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Chip(
+                      label: Text(_progressData?.levelLabel ?? 'Niveau 1'),
+                    ),
+                  ),
               ],
             ),
             body: SafeArea(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 children: [
                   // Bloc violet Featured avec CTA "Lancer la session"
                   _FeaturedCard(
@@ -715,8 +727,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                         : _loadingProgress
                             ? 'Chargement…'
                             : 'Lancer la session',
-                    onTap:
-                        _preparing || _loadingProgress ? null : _startArcade,
+                    onTap: _preparing || _loadingProgress ? null : _startArcade,
                   ),
                   const SizedBox(height: 16),
 
@@ -725,8 +736,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Aperçu des niveaux',
-                          style: themed.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800)),
+                          style: themed.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800)),
                       Text('Voir tout',
                           style: themed.textTheme.bodyMedium?.copyWith(
                               color: themed.colorScheme.onSurfaceVariant)),
@@ -739,8 +750,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                     decoration: BoxDecoration(
                       color: themed.cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: themed.colorScheme.outline),
+                      border: Border.all(color: themed.colorScheme.outline),
                     ),
                     child: ListView.separated(
                       shrinkWrap: true,
@@ -766,9 +776,8 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                     const SizedBox(height: 24),
                     Text(
                       _error!,
-                      style: themed.textTheme.bodyMedium?.copyWith(
-                        color: themed.colorScheme.error,
-                      ),
+                      style: themed.textTheme.bodyMedium
+                          ?.copyWith(color: themed.colorScheme.error),
                     ),
                   ],
 
@@ -806,7 +815,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
               ),
             ),
 
-            // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
+            // BottomNav CIVEXAM
             bottomNavigationBar: PlayBottomNavBar(
               destinations: playNavDestinations,
               selectedIndex: 2,
@@ -901,11 +910,11 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   }
 
   _ArcadeLevel? _levelForIndex(
-      int levelIndex, {
-        required int maxDifficulty,
-        required Map<int, int> totalByDifficulty,
-        required Map<int, int> consumedByDifficulty,
-      }) {
+    int levelIndex, {
+    required int maxDifficulty,
+    required Map<int, int> totalByDifficulty,
+    required Map<int, int> consumedByDifficulty,
+  }) {
     final difficulty = _difficultyForLevel(levelIndex, maxDifficulty);
     final available = (totalByDifficulty[difficulty] ?? 0) -
         (consumedByDifficulty[difficulty] ?? 0);
@@ -924,7 +933,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
     }
 
     final requiredCorrect =
-    _requiredCorrectForLevel(levelIndex, questionCount);
+        _requiredCorrectForLevel(levelIndex, questionCount);
     final perQuestionSeconds = _perQuestionSecondsForLevel(levelIndex);
 
     return _ArcadeLevel(
@@ -1010,8 +1019,8 @@ class _FeaturedCard extends StatelessWidget {
                   letterSpacing: .6)),
           const SizedBox(height: 6),
           Text(title,
-              style: tt.titleMedium?.copyWith(
-                  color: palette.onPrimary, fontWeight: FontWeight.w800)),
+              style: tt.titleMedium
+                  ?.copyWith(color: palette.onPrimary, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(subtitle,
               style: tt.bodyMedium
@@ -1024,13 +1033,13 @@ class _FeaturedCard extends StatelessWidget {
               style: TextButton.styleFrom(
                 backgroundColor: palette.ctaBackground,
                 foregroundColor: palette.ctaForeground,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 shape: const StadiumBorder(),
                 overlayColor: palette.primary.withOpacity(0.12),
               ),
-              label: Text(ctaLabel,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              label: const Text('Lancer la session',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
               icon: const Icon(Icons.play_arrow),
             ),
           ),
@@ -1055,13 +1064,35 @@ class _LevelListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final highlightCurrent = isCurrent;
+    final brightness = Theme.of(context).brightness;
+
+    final Color tileBackground = highlightCurrent
+        ? Color.alphaBlend(
+            scheme.primary
+                .withOpacity(brightness == Brightness.dark ? 0.26 : 0.14),
+            scheme.surface,
+          )
+        : Colors.transparent;
+    final Color leftContainerColor =
+        highlightCurrent ? scheme.primary : scheme.primaryContainer;
+    final Color leftIconColor =
+        highlightCurrent ? scheme.onPrimary : scheme.primary;
+    final Color detailTextColor = highlightCurrent
+        ? scheme.onPrimary
+            .withOpacity(brightness == Brightness.dark ? 0.92 : 0.88)
+        : scheme.onSurfaceVariant;
+    final Color trailingIconColor =
+        highlightCurrent ? scheme.onPrimary : scheme.onSurfaceVariant;
 
     return InkWell(
       onTap: null, // aperçu non cliquable (la session démarre via les CTA)
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: tileBackground,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
             // Bloc icône gauche (carré violet)
@@ -1069,10 +1100,10 @@ class _LevelListTile extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: scheme.primaryContainer,
+                color: leftContainerColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.flag_rounded, color: scheme.primary),
+              child: Icon(Icons.flag_rounded, color: leftIconColor),
             ),
             const SizedBox(width: 12),
 
@@ -1086,11 +1117,10 @@ class _LevelListTile extends StatelessWidget {
                       ArcadeBadgeChip(label: level.title, compact: true),
                       const SizedBox(width: 8),
                       if (isCompleted)
-                        _StatusPill(
-                            icon: Icons.check_circle_rounded,
-                            label: 'Validé')
+                        const _StatusPill(
+                            icon: Icons.check_circle_rounded, label: 'Validé')
                       else if (isCurrent)
-                        _StatusPill(
+                        const _StatusPill(
                             icon: Icons.play_circle_fill_rounded,
                             label: 'À venir'),
                     ],
@@ -1098,15 +1128,14 @@ class _LevelListTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Dif. ${level.difficulty} · ${level.questionCount} Q · '
-                        '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
-                    style: tt.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
+                    '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
+                    style: tt.bodySmall?.copyWith(color: detailTextColor),
                   ),
                 ],
               ),
             ),
 
-            Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+            Icon(Icons.chevron_right, color: trailingIconColor),
           ],
         ),
       ),
@@ -1129,8 +1158,8 @@ class _StatusPill extends StatelessWidget {
       backgroundColor: scheme.primaryContainer,
       side: BorderSide(color: scheme.outline),
       shape: const StadiumBorder(),
-      labelStyle:
-          tt.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: scheme.onPrimaryContainer),
+      labelStyle: tt.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600, color: scheme.onPrimaryContainer),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
@@ -1161,8 +1190,7 @@ class _SummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Dernière performance',
-              style: tt.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800)),
+              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
           Text(
             '${summary.correct}/${summary.totalQuestions} bonnes réponses (${percent}%).',
@@ -1170,12 +1198,12 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text('Niveaux complétés : ${summary.levelsCompleted}',
-              style: tt.bodyMedium
-                  ?.copyWith(color: scheme.onSurfaceVariant)),
+              style:
+                  tt.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           Text('Temps total : ${_formatDuration(summary.durationSec)}',
-              style: tt.bodyMedium
-                  ?.copyWith(color: scheme.onSurfaceVariant)),
+              style:
+                  tt.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -1186,26 +1214,5 @@ class _SummaryCard extends StatelessWidget {
     final remainder = seconds % 60;
     if (minutes == 0) return '${remainder}s';
     return '${minutes}m ${remainder.toString().padLeft(2, '0')}s';
-  }
-}
-
-class _AvatarDot extends StatelessWidget {
-  final String initial;
-  const _AvatarDot({required this.initial});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor: scheme.primaryContainer,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: scheme.primary,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
   }
 }
