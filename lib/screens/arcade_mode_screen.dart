@@ -710,7 +710,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             ),
             body: SafeArea(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 children: [
                   // Bloc violet Featured avec CTA "Lancer la session"
                   _FeaturedCard(
@@ -787,35 +787,6 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
                 ],
               ),
             ),
-
-            // Gros bouton centré (comme le “+” de la maquette)
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: ElevatedButton.icon(
-                onPressed:
-                    _preparing || _loadingProgress ? null : _startArcade,
-                icon: _preparing
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: themed.colorScheme.onPrimary,
-                        ),
-                      )
-                    : const Icon(Icons.play_arrow),
-                label: Text(_preparing
-                    ? 'Préparation…'
-                    : _loadingProgress
-                        ? 'Chargement…'
-                        : 'Commencer maintenant'),
-              ),
-            ),
-
-            // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
-            bottomNavigationBar: const SizedBox(height: 12),
           ),
         );
       },
