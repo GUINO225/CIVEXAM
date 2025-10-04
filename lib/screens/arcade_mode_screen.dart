@@ -846,12 +846,12 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
       );
     }
 
-    entries.add(
-      _PreviewLevelEntry(
-        level: _previewLevelAt(safeIndex),
-        isCurrent: true,
-      ),
+    final currentEntry = _PreviewLevelEntry(
+      level: _previewLevelAt(safeIndex),
+      isCurrent: true,
     );
+
+    entries.insert(0, currentEntry);
 
     return entries;
   }
