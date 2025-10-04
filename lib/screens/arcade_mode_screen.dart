@@ -690,8 +690,22 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             appBar: AppBar(
               title: const Text('Mode Arcade'),
               actions: [
-                _AvatarDot(initial: 'M'),
-                const SizedBox(width: 12),
+                if (_loadingProgress)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Chip(
+                      label: Text(_progressData?.levelLabel ?? 'Niveau 1'),
+                    ),
+                  ),
               ],
             ),
             body: SafeArea(
@@ -1168,23 +1182,3 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _AvatarDot extends StatelessWidget {
-  final String initial;
-  const _AvatarDot({required this.initial});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor: scheme.primaryContainer,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: scheme.primary,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
