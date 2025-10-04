@@ -457,48 +457,44 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
                             ValueListenableBuilder<ExamHistoryEntry?>(
                               valueListenable: _latestHistoryEntry,
                               builder: (context, entry, _) {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        _buildRecentQuizBubble(
-                                          context,
-                                          theme,
-                                          brand,
-                                          entry,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        TextButton(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: brand,
-                                            padding: EdgeInsets.zero,
-                                            minimumSize: const Size(0, 0),
-                                            tapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
-                                          ),
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const ExamHistoryScreen(),
-                                              ),
-                                            );
-                                          },
-                                          child: const Text('Voir l’historique'),
-                                        ),
-                                      ],
+                                    _buildLatestResultCard(
+                                      context,
+                                      theme,
+                                      brand,
+                                      entry,
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildFeaturedCard(
-                                        theme,
-                                        brand,
-                                        totalQuestions,
-                                        totalDurationLabel,
-                                        perQuestionBadgeLabel,
+                                    const SizedBox(height: 8),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: brand,
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: const Size(0, 0),
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const ExamHistoryScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Voir l’historique'),
                                       ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    _buildFeaturedCard(
+                                      theme,
+                                      brand,
+                                      totalQuestions,
+                                      totalDurationLabel,
+                                      perQuestionBadgeLabel,
                                     ),
                                   ],
                                 );
@@ -713,16 +709,16 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     );
   }
 
-  Widget _buildRecentQuizBubble(
+  Widget _buildLatestResultCard(
     BuildContext context,
     ThemeData theme,
     Color brand,
     ExamHistoryEntry? entry,
   ) {
     final bool dark = theme.brightness == Brightness.dark;
-    final Color bubbleStart =
+    final Color startColor =
         dark ? brand.withOpacity(0.35) : Colors.white.withOpacity(0.96);
-    final Color bubbleEnd =
+    final Color endColor =
         dark ? brand.withOpacity(0.20) : Colors.white.withOpacity(0.82);
     final Color textColor = dark ? Colors.white : Colors.black87;
     final Color shadowColor = dark
@@ -750,91 +746,53 @@ class _OfficialIntroScreenState extends State<OfficialIntroScreen> {
     }
     final String subtitle = lines.join('\n');
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const double baseDiameter = 120;
-        final double textScale = MediaQuery.textScaleFactorOf(context);
-        final double desiredDiameter =
-            baseDiameter * textScale.clamp(1.0, 1.6).toDouble();
-
-        double maxDiameter = baseDiameter * 1.8;
-        if (constraints.hasBoundedWidth && constraints.maxWidth.isFinite) {
-          maxDiameter = math.min(maxDiameter, constraints.maxWidth);
-        }
-        if (constraints.hasBoundedHeight && constraints.maxHeight.isFinite) {
-          maxDiameter = math.min(maxDiameter, constraints.maxHeight);
-        }
-
-        final double screenLimit = MediaQuery.sizeOf(context).width * 0.45;
-        if (screenLimit.isFinite && screenLimit > 0) {
-          maxDiameter = math.min(maxDiameter, screenLimit);
-        }
-
-        double minDiameter = baseDiameter * 0.9;
-        if (maxDiameter < minDiameter) {
-          minDiameter = maxDiameter;
-        }
-
-        final double bubbleSize =
-            desiredDiameter.clamp(minDiameter, maxDiameter).toDouble();
-
-        return SizedBox.square(
-          dimension: bubbleSize,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [bubbleStart, bubbleEnd],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: shadowColor,
-                  blurRadius: 20,
-                  offset: const Offset(0, 14),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
-                    const SizedBox(height: 8),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: textColor.withOpacity(0.75),
-                        height: 1.2,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: true,
-                    ),
-                  ],
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: [startColor, endColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 20,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(Icons.history_toggle_off_rounded, color: brand, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: textColor.withOpacity(0.8),
+              height: 1.3,
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
