@@ -1079,49 +1079,61 @@ class _LevelListTile extends StatelessWidget {
           color: tileBackground,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
+        child: Stack(
           children: [
-            // Bloc icône gauche (carré violet)
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: leftContainerColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.flag_rounded, color: leftIconColor),
-            ),
-            const SizedBox(width: 12),
+            Row(
+              children: [
+                // Bloc icône gauche (carré violet)
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: leftContainerColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.flag_rounded, color: leftIconColor),
+                ),
+                const SizedBox(width: 12),
 
-            // Titre + sous-titre
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                // Titre + sous-titre
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ArcadeBadgeChip(label: level.title, compact: true),
-                      const SizedBox(width: 8),
-                      if (isCompleted)
-                        const _StatusPill(
-                            icon: Icons.check_circle_rounded, label: 'Validé')
-                      else if (isCurrent)
-                        const _StatusPill(
-                            icon: Icons.play_circle_fill_rounded,
-                            label: 'À venir'),
+                      Row(
+                        children: [
+                          ArcadeBadgeChip(label: level.title, compact: true),
+                          if (isCompleted) ...[
+                            const SizedBox(width: 8),
+                            const _StatusPill(
+                              icon: Icons.check_circle_rounded,
+                              label: 'Validé',
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dif. ${level.difficulty} · ${level.questionCount} Q · '
+                        '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
+                        style: tt.bodySmall?.copyWith(color: detailTextColor),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Dif. ${level.difficulty} · ${level.questionCount} Q · '
-                    '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
-                    style: tt.bodySmall?.copyWith(color: detailTextColor),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            Icon(Icons.chevron_right, color: trailingIconColor),
+                Icon(Icons.chevron_right, color: trailingIconColor),
+              ],
+            ),
+            if (isCurrent && !isCompleted)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: const _StatusPill(
+                  icon: Icons.play_circle_fill_rounded,
+                  label: 'À venir',
+                ),
+              ),
           ],
         ),
       ),
