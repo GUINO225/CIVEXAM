@@ -1034,13 +1034,35 @@ class _LevelListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final highlightCurrent = isCurrent;
+    final brightness = Theme.of(context).brightness;
+
+    final Color tileBackground = highlightCurrent
+        ? Color.alphaBlend(
+            scheme.primary
+                .withOpacity(brightness == Brightness.dark ? 0.26 : 0.14),
+            scheme.surface,
+          )
+        : Colors.transparent;
+    final Color leftContainerColor =
+        highlightCurrent ? scheme.primary : scheme.primaryContainer;
+    final Color leftIconColor =
+        highlightCurrent ? scheme.onPrimary : scheme.primary;
+    final Color detailTextColor = highlightCurrent
+        ? scheme.onPrimary.withOpacity(brightness == Brightness.dark ? 0.92 : 0.88)
+        : scheme.onSurfaceVariant;
+    final Color trailingIconColor =
+        highlightCurrent ? scheme.onPrimary : scheme.onSurfaceVariant;
 
     return InkWell(
       onTap: null, // aperçu non cliquable (la session démarre via les CTA)
       child: Container(
         padding:
         const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        color: Colors.transparent,
+        decoration: BoxDecoration(
+          color: tileBackground,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
             // Bloc icône gauche (carré violet)
@@ -1048,10 +1070,10 @@ class _LevelListTile extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: scheme.primaryContainer,
+                color: leftContainerColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.flag_rounded, color: scheme.primary),
+              child: Icon(Icons.flag_rounded, color: leftIconColor),
             ),
             const SizedBox(width: 12),
 
@@ -1079,13 +1101,13 @@ class _LevelListTile extends StatelessWidget {
                     'Dif. ${level.difficulty} · ${level.questionCount} Q · '
                         '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
                     style: tt.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
+                        ?.copyWith(color: detailTextColor),
                   ),
                 ],
               ),
             ),
 
-            Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+            Icon(Icons.chevron_right, color: trailingIconColor),
           ],
         ),
       ),
