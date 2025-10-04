@@ -969,7 +969,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   }
 }
 
-/// ---- Widgets réutilisables (nets des blocs retirés) ----
+/// ---- Widgets réutilisables ----
 
 class _FeaturedCard extends StatelessWidget {
   final _ArcadePalette palette;
@@ -1022,8 +1022,8 @@ class _FeaturedCard extends StatelessWidget {
                 shape: const StadiumBorder(),
                 overlayColor: palette.primary.withOpacity(0.12),
               ),
-              label: const Text('Lancer la session',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              label: Text(ctaLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
               icon: const Icon(Icons.play_arrow),
             ),
           ),
@@ -1065,8 +1065,9 @@ class _LevelListTile extends StatelessWidget {
     final Color leftIconColor =
         highlightCurrent ? scheme.onPrimary : scheme.primary;
     final Color detailTextColor = highlightCurrent
-        ? scheme.onPrimary
-            .withOpacity(brightness == Brightness.dark ? 0.92 : 0.88)
+        ? scheme.onPrimary.withOpacity(
+            brightness == Brightness.dark ? 0.92 : 0.88,
+          )
         : scheme.onSurfaceVariant;
     final Color trailingIconColor =
         highlightCurrent ? scheme.onPrimary : scheme.onSurfaceVariant;
@@ -1126,10 +1127,10 @@ class _LevelListTile extends StatelessWidget {
               ],
             ),
             if (isCurrent && !isCompleted)
-              Positioned(
+              const Positioned(
                 top: 0,
                 right: 0,
-                child: const _StatusPill(
+                child: _StatusPill(
                   icon: Icons.play_circle_fill_rounded,
                   label: 'À venir',
                 ),
@@ -1144,20 +1145,32 @@ class _LevelListTile extends StatelessWidget {
 class _StatusPill extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _StatusPill({required this.icon, required this.label});
+  final Color? labelColor;
+  final Color? avatarColor;
+
+  const _StatusPill({
+    required this.icon,
+    required this.label,
+    this.labelColor,
+    this.avatarColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final effectiveAvatarColor = avatarColor ?? scheme.primary;
+    final effectiveLabelColor = labelColor ?? scheme.onPrimaryContainer;
     return Chip(
-      avatar: Icon(icon, size: 18, color: scheme.primary),
+      avatar: Icon(icon, size: 18, color: effectiveAvatarColor),
       label: Text(label),
       backgroundColor: scheme.primaryContainer,
       side: BorderSide(color: scheme.outline),
       shape: const StadiumBorder(),
       labelStyle: tt.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600, color: scheme.onPrimaryContainer),
+        fontWeight: FontWeight.w600,
+        color: effectiveLabelColor,
+      ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
