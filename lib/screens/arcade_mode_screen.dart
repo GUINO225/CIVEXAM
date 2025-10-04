@@ -969,7 +969,7 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
   }
 }
 
-/// ---- Widgets réutilisables (nets des blocs retirés) ----
+/// ---- Widgets réutilisables ----
 
 class _FeaturedCard extends StatelessWidget {
   final _ArcadePalette palette;
@@ -1022,8 +1022,8 @@ class _FeaturedCard extends StatelessWidget {
                 shape: const StadiumBorder(),
                 overlayColor: palette.primary.withOpacity(0.12),
               ),
-              label: const Text('Lancer la session',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              label: Text(ctaLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
               icon: const Icon(Icons.play_arrow),
             ),
           ),
@@ -1065,8 +1065,9 @@ class _LevelListTile extends StatelessWidget {
     final Color leftIconColor =
         highlightCurrent ? scheme.onPrimary : scheme.primary;
     final Color detailTextColor = highlightCurrent
-        ? scheme.onPrimary
-            .withOpacity(brightness == Brightness.dark ? 0.92 : 0.88)
+        ? scheme.onPrimary.withOpacity(
+            brightness == Brightness.dark ? 0.92 : 0.88,
+          )
         : scheme.onSurfaceVariant;
     final Color trailingIconColor =
         highlightCurrent ? scheme.onPrimary : scheme.onSurfaceVariant;
@@ -1079,52 +1080,61 @@ class _LevelListTile extends StatelessWidget {
           color: tileBackground,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
+        child: Stack(
           children: [
-            // Bloc icône gauche (carré violet)
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: leftContainerColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.flag_rounded, color: leftIconColor),
-            ),
-            const SizedBox(width: 12),
+            Row(
+              children: [
+                // Bloc icône gauche (carré violet)
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: leftContainerColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.flag_rounded, color: leftIconColor),
+                ),
+                const SizedBox(width: 12),
 
-            // Titre + sous-titre
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                // Titre + sous-titre
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ArcadeBadgeChip(label: level.title, compact: true),
-                      const SizedBox(width: 8),
-                      if (isCompleted)
-                        const _StatusPill(
-                            icon: Icons.check_circle_rounded, label: 'Validé')
-                      else if (isCurrent)
-                        const _StatusPill(
-                          icon: Icons.play_circle_fill_rounded,
-                          label: 'À venir',
-                          labelColor: Colors.black,
-                          avatarColor: Colors.black,
-                        ),
+                      Row(
+                        children: [
+                          ArcadeBadgeChip(label: level.title, compact: true),
+                          if (isCompleted) ...[
+                            const SizedBox(width: 8),
+                            const _StatusPill(
+                              icon: Icons.check_circle_rounded,
+                              label: 'Validé',
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dif. ${level.difficulty} · ${level.questionCount} Q · '
+                        '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
+                        style: tt.bodySmall?.copyWith(color: detailTextColor),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Dif. ${level.difficulty} · ${level.questionCount} Q · '
-                    '${level.perQuestionSeconds}s/Q · ${level.requiredCorrect} bonnes requises',
-                    style: tt.bodySmall?.copyWith(color: detailTextColor),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            Icon(Icons.chevron_right, color: trailingIconColor),
+                Icon(Icons.chevron_right, color: trailingIconColor),
+              ],
+            ),
+            if (isCurrent && !isCompleted)
+              const Positioned(
+                top: 0,
+                right: 0,
+                child: _StatusPill(
+                  icon: Icons.play_circle_fill_rounded,
+                  label: 'À venir',
+                ),
+              ),
           ],
         ),
       ),
@@ -1137,6 +1147,7 @@ class _StatusPill extends StatelessWidget {
   final String label;
   final Color? labelColor;
   final Color? avatarColor;
+
   const _StatusPill({
     required this.icon,
     required this.label,
@@ -1157,7 +1168,9 @@ class _StatusPill extends StatelessWidget {
       side: BorderSide(color: scheme.outline),
       shape: const StadiumBorder(),
       labelStyle: tt.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600, color: effectiveLabelColor),
+        fontWeight: FontWeight.w600,
+        color: effectiveLabelColor,
+      ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
     );
