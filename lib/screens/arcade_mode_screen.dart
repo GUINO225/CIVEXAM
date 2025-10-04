@@ -15,7 +15,9 @@ import '../services/arcade_progress_store.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 import 'exam_full_screen.dart';
+import 'play_screen.dart';
 
 class ArcadeModeScreen extends StatefulWidget {
   static const String routeName = '/arcade';
@@ -683,10 +685,14 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
 
         final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
         final previewLevels = _buildPreviewLevels(resumeIndex);
+        final bool isDark = base.brightness == Brightness.dark;
+        final Color navHighlight =
+            palette.secondary.withOpacity(isDark ? 0.32 : 0.20);
 
         return Theme(
           data: themed,
           child: Scaffold(
+            extendBody: true,
             appBar: AppBar(
               title: const Text('Mode Arcade'),
               actions: [
@@ -801,7 +807,22 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             ),
 
             // Laisse de la place au CTA si tu as une BottomNav réelle ailleurs
-            bottomNavigationBar: const SizedBox(height: 12),
+            bottomNavigationBar: PlayBottomNavBar(
+              destinations: playNavDestinations,
+              selectedIndex: 2,
+              backgroundColor: palette.primary,
+              highlightColor: navHighlight,
+              foregroundColor: palette.onPrimary,
+              onDestinationSelected: (index) {
+                if (index == 2) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayScreen(initialIndex: index),
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
