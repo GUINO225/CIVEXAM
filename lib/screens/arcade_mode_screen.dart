@@ -684,6 +684,12 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
         final resumeIndex = math.max(0, _progressData?.resumeIndex ?? 0);
         final previewLevels = _buildPreviewLevels(resumeIndex);
         final bool isDark = base.brightness == Brightness.dark;
+        final Color navBackground = palette.primaryDark;
+        final Color navForeground =
+            ThemeData.estimateBrightnessForColor(navBackground) ==
+                    Brightness.dark
+                ? Colors.white
+                : Colors.black;
         final Color navHighlight =
             palette.secondary.withOpacity(isDark ? 0.32 : 0.20);
 
@@ -819,9 +825,9 @@ class _ArcadeModeScreenState extends State<ArcadeModeScreen> {
             bottomNavigationBar: PlayBottomNavBar(
               destinations: playNavDestinations,
               selectedIndex: 2,
-              backgroundColor: palette.primary,
+              backgroundColor: navBackground,
               highlightColor: navHighlight,
-              foregroundColor: palette.onPrimary,
+              foregroundColor: navForeground,
               onDestinationSelected: (index) {
                 if (index == 2) return;
                 Navigator.pushReplacement(
