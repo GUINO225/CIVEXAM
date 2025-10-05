@@ -143,7 +143,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                   crossAxisCount: 4,
                   mainAxisSpacing: 20,
                   crossAxisSpacing: 20,
-                  childAspectRatio: 1,
+                  childAspectRatio: 0.85,
                 ),
                 itemCount: _palettes.length,
                 itemBuilder: (context, index) => _paletteCircle(_palettes[index]),
@@ -189,10 +189,11 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     final accent = accentColor(name);
     final highlight = darkerAccentColor(name, 0.16);
     final selected = _cfg.bgPaletteName == name;
+    final label = _readablePalette(name);
     final textColor = onColor(accent);
 
     return Semantics(
-      label: 'Palette ${_readablePalette(name)}',
+      label: 'Palette $label',
       selected: selected,
       child: Material(
         type: MaterialType.transparency,
@@ -207,43 +208,60 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                 : _cfg.copyWith(bgPaletteName: name);
             _apply(updated);
           },
-          child: Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [accent, highlight],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: selected
-                      ? textColor.withOpacity(0.9)
-                      : Colors.transparent,
-                  width: 3,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: highlight.withOpacity(selected ? 0.35 : 0.14),
-                    blurRadius: selected ? 20 : 14,
-                    offset: const Offset(0, 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [accent, highlight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 180),
-                opacity: selected ? 1 : 0,
-                child: Icon(
-                  Icons.check_rounded,
-                  color: textColor,
-                  size: 24,
+                  border: Border.all(
+                    color: selected
+                        ? textColor.withOpacity(0.9)
+                        : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: highlight.withOpacity(selected ? 0.35 : 0.14),
+                      blurRadius: selected ? 20 : 14,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: selected ? 1 : 0,
+                  child: Icon(
+                    Icons.check_rounded,
+                    color: textColor,
+                    size: 24,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(selected ? 0.85 : 0.6),
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),
