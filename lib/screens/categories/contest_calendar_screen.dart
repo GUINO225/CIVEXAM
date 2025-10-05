@@ -492,6 +492,7 @@ class _ContestCalendarScreenState extends State<ContestCalendarScreen> {
               child: _selectedDate == null
                   ? const SizedBox.shrink()
                   : _SelectedDayDetailsCard(
+                      key: ValueKey<DateTime>(_selectedDate!),
                       date: _selectedDate!,
                       events: selectedEvents,
                       resolveColor: (ContestEventCategory category) =>
@@ -794,11 +795,12 @@ class _EventTile extends StatelessWidget {
 }
 
 class _SelectedDayDetailsCard extends StatelessWidget {
-  const _SelectedDayDetailsCard({
+  _SelectedDayDetailsCard({
+    super.key,
     required this.date,
     required this.events,
     required this.resolveColor,
-  }) : super(key: ValueKey<DateTime>(date));
+  });
 
   final DateTime date;
   final List<ContestEvent> events;
