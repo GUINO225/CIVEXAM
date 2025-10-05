@@ -1,4 +1,5 @@
 // lib/screens/competition_screen.dart
+import 'dart:async';
 import 'dart:ui' show clampDouble; // pour clampDouble
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,9 @@ import '../models/question.dart';
 import '../theme/competition_theme.dart';
 import '../services/leaderboard_hooks.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+
+import 'play_screen.dart';
 
 /// Competition quiz screen with a circular countdown and progress tracking.
 class CompetitionScreen extends StatefulWidget {
@@ -134,6 +138,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         (_currentQuestion.subject.isEmpty) ? 'Quiz' : '${_currentQuestion.subject} Quiz';
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: theme.backgroundColor,
 
       // ---------- AppBar ----------
@@ -178,6 +183,7 @@ class _CompetitionScreenState extends State<CompetitionScreen>
         ),
       ),
 
+      bottomNavigationBar: _buildCompetitionBottomNav(context, theme),
       body: SafeArea(
         top: false,
         child: Padding(
@@ -448,25 +454,6 @@ class _CompetitionScreenState extends State<CompetitionScreen>
               ),
 
               const SizedBox(height: 16),
-
-              // ---------- Bouton "Next" ----------
-              SafeArea(
-                top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        (_selected >= 0 && !_advanced) ? _onNextPressed : null,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text('Next'),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -479,16 +466,13 @@ class _CompetitionScreenState extends State<CompetitionScreen>
     setState(() {
       _selected = i;
       _highlighted = -1;
-    });
-  }
-
-  void _onNextPressed() {
-    if (_selected < 0 || _advanced) return;
-    setState(() {
       _advanced = true;
     });
     _controller.stop();
-    _goNext(_selected);
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (!mounted) return;
+      _goNext(i);
+    });
   }
 
   void _goNext([int? selected]) {
@@ -583,7 +567,9 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
   Widget build(BuildContext context) {
     final theme = widget.theme ?? CompetitionTheme.fromTheme(Theme.of(context));
     return Scaffold(
+      extendBody: true,
       backgroundColor: theme.backgroundColor,
+      bottomNavigationBar: _buildCompetitionBottomNav(context, theme),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -602,6 +588,34 @@ class _CompetitionResultScreenState extends State<CompetitionResultScreen> {
       ),
     );
   }
+}
+
+PlayBottomNavBar _buildCompetitionBottomNav(
+  BuildContext context,
+  CompetitionTheme theme,
+) {
+  final brightness =
+      ThemeData.estimateBrightnessForColor(theme.appBarBackgroundColor);
+  final double highlightOpacity = brightness == Brightness.dark ? 0.28 : 0.18;
+  final Color navHighlight =
+      theme.appBarForegroundColor.withOpacity(highlightOpacity);
+
+  return PlayBottomNavBar(
+    destinations: playNavDestinations,
+    selectedIndex: 2,
+    backgroundColor: theme.appBarBackgroundColor,
+    highlightColor: navHighlight,
+    foregroundColor: theme.appBarForegroundColor,
+    onDestinationSelected: (index) {
+      if (index == 2) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PlayScreen(initialIndex: index),
+        ),
+      );
+    },
+  );
 }
 
 /// ---------- Helpers: choix d’icône/couleur par matière ----------
