@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'category_definitions.dart';
 import 'category_helpers.dart';
 import 'widgets/category_menu_list.dart';
+import 'contest_calendar_screen.dart';
 
 class RessourcesOfficiellesScreen extends StatelessWidget {
   final CategoryDefinition definition;
@@ -19,7 +20,11 @@ class RessourcesOfficiellesScreen extends StatelessWidget {
       case 24:
         return showComingSoonDialog(context, 'Programme officiel (PDF)');
       case 25:
-        return showComingSoonDialog(context, 'Calendrier des concours');
+        return Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const ContestCalendarScreen(),
+          ),
+        );
       case 26:
         return showComingSoonDialog(context, 'Textes ENA / Arrêtés / Guides');
       default:
