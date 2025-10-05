@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../models/exam_history_entry.dart';
 import '../services/history_store.dart';
 import '../services/local_history_persistence.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+import 'play_screen.dart';
 
 /// Palette cohérente (violet + surface claire)
 class _Brand {
@@ -234,6 +236,31 @@ class _ExamHistoryScreenState extends State<ExamHistoryScreen> {
               );
             },
           ),
+        ),
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            final theme = Theme.of(context);
+            final Color brand = theme.colorScheme.primary;
+            final Color onBrand = theme.colorScheme.onPrimary;
+            final Color navHighlight =
+                Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+            return PlayBottomNavBar(
+              destinations: playNavDestinations,
+              selectedIndex: 3,
+              backgroundColor: brand,
+              highlightColor: navHighlight,
+              foregroundColor: onBrand,
+              onDestinationSelected: (index) {
+                if (index == 3) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayScreen(initialIndex: index),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );

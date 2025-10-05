@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../data/ena_taxonomy.dart';
 import '../services/question_loader.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 import 'chapter_list_screen.dart';
+import 'play_screen.dart';
 
 /// Palette cohérente (violet + surface claire)
 class _Brand {
@@ -185,6 +187,31 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
       child: Scaffold(
         appBar: AppBar(title: const Text('Choisir une matière')),
         body: _buildBody(),
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            final theme = Theme.of(context);
+            final Color brand = theme.colorScheme.primary;
+            final Color onBrand = theme.colorScheme.onPrimary;
+            final Color navHighlight =
+                Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+            return PlayBottomNavBar(
+              destinations: playNavDestinations,
+              selectedIndex: 2,
+              backgroundColor: brand,
+              highlightColor: navHighlight,
+              foregroundColor: onBrand,
+              onDestinationSelected: (index) {
+                if (index == 2) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayScreen(initialIndex: index),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

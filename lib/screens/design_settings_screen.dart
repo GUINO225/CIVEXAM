@@ -9,6 +9,8 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/design_prefs.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+import 'play_screen.dart';
 
 class DesignSettingsScreen extends StatefulWidget {
   const DesignSettingsScreen({super.key});
@@ -86,6 +88,8 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     final backgroundColor =
         Color.lerp(Colors.white, backgroundGradient.last, 0.9) ??
             backgroundGradient.last;
+    final Color navHighlight =
+        Color.alphaBlend(onAccent.withOpacity(0.14), accent);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -193,6 +197,22 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: PlayBottomNavBar(
+        destinations: playNavDestinations,
+        selectedIndex: 5,
+        backgroundColor: accent,
+        highlightColor: navHighlight,
+        foregroundColor: onAccent,
+        onDestinationSelected: (index) {
+          if (index == 5) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PlayScreen(initialIndex: index),
+            ),
+          );
+        },
       ),
     );
   }
