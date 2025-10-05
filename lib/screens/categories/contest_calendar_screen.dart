@@ -24,12 +24,13 @@ class ContestEvent {
   });
 }
 
-const DateTime _calendarFirstDay = DateTime(2024, 1, 1);
-const DateTime _calendarLastDay = DateTime(2025, 12, 31);
-const DateTime _calendarStartMonth = DateTime(2024, 1, 1);
-const DateTime _calendarEndMonth = DateTime(2025, 12, 1);
+final DateTime _calendarFirstDay = DateTime(2024, 1, 1);
+final DateTime _calendarLastDay = DateTime(2025, 12, 31);
+final DateTime _calendarStartMonth = DateTime(2024, 1, 1);
+final DateTime _calendarEndMonth = DateTime(2025, 12, 1);
 
-const List<ContestEvent> _contestEventList = <ContestEvent>[
+final List<ContestEvent> _contestEventList =
+    List<ContestEvent>.unmodifiable(<ContestEvent>[
   ContestEvent(
     date: DateTime(2024, 1, 15),
     title: 'Ouverture des inscriptions en ligne',
@@ -182,7 +183,7 @@ const List<ContestEvent> _contestEventList = <ContestEvent>[
         'Accueil des admis 2025 et lancement du programme de formation initiale à l’ENA.',
     category: ContestEventCategory.integration,
   ),
-];
+]);
 
 Map<DateTime, List<ContestEvent>> _buildEventIndex() {
   final Map<DateTime, List<ContestEvent>> grouped =
