@@ -33,6 +33,18 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     'calmPastels',
   ];
 
+  static const Map<String, String> _paletteLabels = {
+    'civFlag': 'Civique',
+    'navyCyanAmber': 'Marine',
+    'indigoPurpleSky': 'Indigo',
+    'emeraldTealMint': 'Émeraude',
+    'royalBlueGold': 'Royal',
+    'charcoalElectric': 'Électrique',
+    'forestSandTerracotta': 'Terracotta',
+    'cobaltLimeSlate': 'Cobalt',
+    'calmPastels': 'Pastel',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -537,6 +549,11 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
   }
 
   String _readablePalette(String name) {
+    final directLabel = _paletteLabels[name];
+    if (directLabel != null) {
+      return directLabel;
+    }
+
     final spaced = name
         .replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (m) => ' ')
         .replaceAll('_', ' ')
