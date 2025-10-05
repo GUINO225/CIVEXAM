@@ -127,15 +127,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
-              _buildPreviewHero(
-                accent: accent,
-                accentDarker: accentDarker,
-                onAccent: onAccent,
-                paletteLabel: _readablePalette(_cfg.bgPaletteName),
-                textTheme: textTheme,
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
                 'Palettes disponibles',
                 style: textTheme.titleMedium?.copyWith(
@@ -143,13 +135,26 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                   letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  for (final p in _palettes) _colorChoice(p),
-                ],
+              const SizedBox(height: 18),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: _palettes.length,
+                itemBuilder: (context, index) => _paletteCircle(_palettes[index]),
+              ),
+              const SizedBox(height: 32),
+              _buildPreviewHero(
+                accent: accent,
+                accentDarker: accentDarker,
+                onAccent: onAccent,
+                paletteLabel: _readablePalette(_cfg.bgPaletteName),
+                textTheme: textTheme,
               ),
               const SizedBox(height: 40),
               Center(
@@ -180,7 +185,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     );
   }
 
-  Widget _colorChoice(String name) {
+  Widget _paletteCircle(String name) {
     final accent = accentColor(name);
     final highlight = darkerAccentColor(name, 0.16);
     final selected = _cfg.bgPaletteName == name;
@@ -193,7 +198,7 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
+          customBorder: const CircleBorder(),
           onTap: () {
             final updated = _cfg.useMono
                 ? _cfg.copyWith(
@@ -203,65 +208,60 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
                 : _cfg.copyWith(bgPaletteName: name);
             _apply(updated);
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            width: 148,
-            height: 132,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [accent, highlight],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: selected ? Colors.white : Colors.transparent,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: highlight.withOpacity(selected ? 0.28 : 0.12),
-                  blurRadius: selected ? 30 : 18,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 180),
-                    opacity: selected ? 1 : 0,
-                    child: Icon(
-                      Icons.check_circle,
-                      color: textColor,
-                      size: 20,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [accent, highlight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: selected
+                        ? textColor.withOpacity(0.9)
+                        : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: highlight.withOpacity(selected ? 0.35 : 0.14),
+                      blurRadius: selected ? 20 : 14,
+                      offset: const Offset(0, 10),
                     ),
-                  ),
+                  ],
                 ),
-                const Spacer(),
-                Text(
-                  label,
-                  style: TextStyle(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: selected ? 1 : 0,
+                  child: Icon(
+                    Icons.check_rounded,
                     color: textColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Tap pour tester',
-                  style: TextStyle(
-                    color: textColor.withOpacity(0.75),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(selected ? 0.85 : 0.6),
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),
