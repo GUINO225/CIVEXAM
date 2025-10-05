@@ -18,7 +18,9 @@ import '../models/user_profile.dart';
 import 'profile_edit_screen.dart';
 import '../utils/arcade_level_utils.dart';
 import '../widgets/arcade_badge_chip.dart';
+import '../widgets/play_bottom_nav_bar.dart';
 import '../widgets/play_themed_scaffold.dart';
+import 'play_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -254,6 +256,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bodyMode: PlayThemedScaffoldBodyMode.panel,
       safeAreaTop: true,
       bodyPadding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 16, 16, 24),
+      bottomNavigationBar: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final Color brand = theme.colorScheme.primary;
+          final Color onBrand = theme.colorScheme.onPrimary;
+          final Color navHighlight =
+              Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+          return PlayBottomNavBar(
+            destinations: playNavDestinations,
+            selectedIndex: 1,
+            backgroundColor: brand,
+            highlightColor: navHighlight,
+            foregroundColor: onBrand,
+            onDestinationSelected: (index) {
+              if (index == 1) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PlayScreen(initialIndex: index),
+                ),
+              );
+            },
+          );
+        },
+      ),
       appBar: AppBar(
         title: const Text('Mon dashboard'),
         actions: [

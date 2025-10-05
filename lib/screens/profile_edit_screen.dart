@@ -17,6 +17,8 @@ import '../services/competition_service.dart';
 import '../services/private_scores_store.dart';
 import 'dashboard_screen.dart';
 import '../utils/arcade_level_utils.dart';
+import '../widgets/play_bottom_nav_bar.dart';
+import 'play_screen.dart';
 
 /// Palette cohérente (violet + surface claire)
 class _Brand {
@@ -517,6 +519,31 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
             ),
           ),
+        ),
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            final theme = Theme.of(context);
+            final Color brand = theme.colorScheme.primary;
+            final Color onBrand = theme.colorScheme.onPrimary;
+            final Color navHighlight =
+                Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+            return PlayBottomNavBar(
+              destinations: playNavDestinations,
+              selectedIndex: 4,
+              backgroundColor: brand,
+              highlightColor: navHighlight,
+              foregroundColor: onBrand,
+              onDestinationSelected: (index) {
+                if (index == 4) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayScreen(initialIndex: index),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
