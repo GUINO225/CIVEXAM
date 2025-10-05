@@ -3,9 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:civexam_pro/models/question.dart';
 import 'package:civexam_pro/screens/competition_screen.dart';
+import 'package:civexam_pro/widgets/play_bottom_nav_bar.dart';
 
 void main() {
-  testWidgets('CompetitionScreen navigates through all questions',
+  testWidgets('Selecting an option automatically advances to next question',
       (tester) async {
     final questions = List.generate(
       3,
@@ -29,21 +30,30 @@ void main() {
       ),
     ));
 
-    for (var i = 0; i < questions.length; i++) {
-      expect(
-        find.text('Question ${i + 1}/${questions.length}'),
-        findsOneWidget,
-      );
+    await tester.pump();
 
-      if (i < questions.length - 1) {
-        await tester.tap(find.text('A'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 500));
-      }
-    }
+    expect(find.text('Question 1/3'), findsOneWidget);
+
+    await tester.tap(find.text('A').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Question 2/3'), findsOneWidget);
+
+    await tester.tap(find.text('A').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Question 3/3'), findsOneWidget);
+
+    await tester.tap(find.text('A').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Résultat'), findsOneWidget);
   });
 
-  testWidgets('Selecting an option does not shift the answer list vertically',
+  testWidgets('Competition screen shows play bottom navigation without Next button',
       (tester) async {
     final questions = [
       Question(
@@ -66,17 +76,8 @@ void main() {
       ),
     ));
 
-    await tester.pumpAndSettle();
-
-    final Finder firstOptionFinder = find.text('Option 1').last;
-    final double initialTop = tester.getTopLeft(firstOptionFinder).dy;
-
-    await tester.tap(firstOptionFinder);
-    await tester.pumpAndSettle();
-
-    final double afterSelectionTop = tester.getTopLeft(firstOptionFinder).dy;
-
-    expect(afterSelectionTop, closeTo(initialTop, 0.1));
+    expect(find.byType(PlayBottomNavBar), findsOneWidget);
+    expect(find.text('Next'), findsNothing);
   });
 }
 

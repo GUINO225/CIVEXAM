@@ -1,7 +1,6 @@
 // lib/screens/design_settings_screen.dart
-// Page de personnalisation repensée avec une interface moderne et intuitive.
-// Propose un aperçu dynamique, un choix de couleurs épuré et des options
-// avancées masquées dans des sections extensibles.
+// Page de personnalisation inspirée du design violet illustré par le client.
+// Se concentre sur un aperçu immersif et la sélection de la palette de couleurs.
 
 import 'dart:async';
 
@@ -10,7 +9,6 @@ import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../services/design_prefs.dart';
 import '../utils/palette_utils.dart';
-import '../utils/responsive_utils.dart';
 
 class DesignSettingsScreen extends StatefulWidget {
   const DesignSettingsScreen({super.key});
@@ -66,206 +64,120 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final previewColors =
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final accent = accentColor(_cfg.bgPaletteName);
+    final accentDarker = darkerAccentColor(_cfg.bgPaletteName, 0.18);
+    final onAccent = onColor(accent);
+    final backgroundGradient =
         pastelColors(_cfg.bgPaletteName, darkMode: _cfg.darkMode);
-    final previewTextColor =
-        textColorForPalette(_cfg.bgPaletteName, darkMode: _cfg.darkMode);
-    final mediaQuery = MediaQuery.of(context);
-    final scale = computeScaleFactor(mediaQuery);
-    final textScaler = MediaQuery.textScalerOf(context);
-    final double previewFontSize = scaledFontSize(
-      base: 20,
-      scale: scale,
-      textScaler: textScaler,
-      min: 18,
-      max: 28,
-    );
-    final double sectionTitleSize = scaledFontSize(
-      base: 16,
-      scale: scale,
-      textScaler: textScaler,
-      min: 14,
-      max: 22,
-    );
+    final backgroundColor =
+        Color.lerp(Colors.white, backgroundGradient.last, 0.9) ??
+            backgroundGradient.last;
 
-    final titleStyle = Theme.of(context)
-        .textTheme
-        .headlineSmall
-        ?.copyWith(fontWeight: FontWeight.w700);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Personnalisation', style: titleStyle),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 32),
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: previewColors),
+                  IconButton(
+                    tooltip: 'Fermer',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: accent,
+                      padding: const EdgeInsets.all(12),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Aperçu',
-                      style: TextStyle(
-                        color: previewTextColor,
-                        fontSize: previewFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    onPressed: () => Navigator.maybePop(context),
                   ),
-                  const SizedBox(height: 24),
-                  _sectionTitle('Thème', sectionTitleSize),
-                  SwitchListTile(
-                    title: const Text('Mode sombre'),
-                    value: _cfg.darkMode,
-                    onChanged: (v) => _apply(_cfg.copyWith(darkMode: v)),
-                  ),
-                  SwitchListTile(
-                    title: const Text('Fond dégradé'),
-                    value: _cfg.bgGradient,
-                    onChanged: (v) => _apply(_cfg.copyWith(bgGradient: v)),
-                  ),
-                  const Divider(height: 32),
-                  _sectionTitle('Palette de couleurs', sectionTitleSize),
-                  SizedBox(
-                    height: 200,
-                    child: GridView.count(
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      physics: const NeverScrollableScrollPhysics(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final p in _palettes) _colorChoice(p),
+                        Text(
+                          'Personnalisation',
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Choisis la palette qui correspond à ton énergie du moment.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.65),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const Divider(height: 32),
-                  _sectionTitle('Options', sectionTitleSize),
-                  SwitchListTile(
-                    title: const Text('Effet "wave" (halo)'),
-                    value: _cfg.waveEnabled,
-                    onChanged: (v) => _apply(_cfg.copyWith(waveEnabled: v)),
-                  ),
-                  SwitchListTile(
-                    title: const Text('Icônes monochromes'),
-                    value: _cfg.useMono,
-                    onChanged: (v) => _apply(
-                      _cfg.copyWith(
-                        useMono: v,
-                        monoColor: v
-                            ? complementaryColor(_cfg.bgPaletteName)
-                            : _cfg.monoColor,
-                      ),
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: accent.withOpacity(0.18),
+                    child: Icon(
+                      Icons.color_lens_rounded,
+                      color: accent,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  ExpansionTile(
-                    title: const Text('Verre (glassmorphism)'),
-                    children: [
-                      _sliderTile(
-                        label: 'Blur',
-                        value: _cfg.glassBlur,
-                        min: 8,
-                        max: 28,
-                        divisions: 20,
-                        onChanged: (v) => _apply(_cfg.copyWith(glassBlur: v)),
-                      ),
-                      _sliderTile(
-                        label: 'Opacité fond',
-                        value: _cfg.glassBgOpacity,
-                        min: 0.08,
-                        max: 0.30,
-                        divisions: 22,
-                        onChanged: (v) =>
-                            _apply(_cfg.copyWith(glassBgOpacity: v)),
-                      ),
-                      _sliderTile(
-                        label: 'Opacité bordure',
-                        value: _cfg.glassBorderOpacity,
-                        min: 0.0,
-                        max: 0.5,
-                        divisions: 25,
-                        onChanged: (v) =>
-                            _apply(_cfg.copyWith(glassBorderOpacity: v)),
-                      ),
-                    ],
-                  ),
-                  ExpansionTile(
-                    title: const Text('Tuiles'),
-                    children: [
-                      _sliderTile(
-                        label: 'Taille icône (px)',
-                        value: _cfg.tileIconSize,
-                        min: 36,
-                        max: 100,
-                        divisions: 64,
-                        onChanged: (v) =>
-                            _apply(_cfg.copyWith(tileIconSize: v)),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Centrer icône + texte'),
-                        value: _cfg.tileCenter,
-                        onChanged: (v) =>
-                            _apply(_cfg.copyWith(tileCenter: v)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.save),
-                    label: const Text('Enregistrer et revenir'),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _colorChoice(String name) {
-    final color = accentColor(name);
-    final selected = _cfg.bgPaletteName == name;
-
-    return Semantics(
-      label: name,
-      selected: selected,
-      child: GestureDetector(
-        onTap: () {
-          final updated = _cfg.useMono
-              ? _cfg.copyWith(
-                  bgPaletteName: name,
-                  monoColor: complementaryColor(name),
-                )
-              : _cfg.copyWith(bgPaletteName: name);
-          _apply(updated);
-        },
-        child: Center(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected ? onColor(color) : Colors.transparent,
-                    width: 3,
-                  ),
+              const SizedBox(height: 24),
+              Text(
+                'Palettes disponibles',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
               ),
-              if (selected) Icon(Icons.check, color: onColor(color)),
+              const SizedBox(height: 18),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: _palettes.length,
+                itemBuilder: (context, index) => _paletteCircle(_palettes[index]),
+              ),
+              const SizedBox(height: 32),
+              _buildPreviewHero(
+                accent: accent,
+                accentDarker: accentDarker,
+                onAccent: onAccent,
+                paletteLabel: _readablePalette(_cfg.bgPaletteName),
+                textTheme: textTheme,
+              ),
+              const SizedBox(height: 40),
+              Center(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: onAccent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 16,
+                    ),
+                    textStyle: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                    shape: const StadiumBorder(),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.maybePop(context),
+                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  label: const Text('Appliquer et revenir'),
+                ),
+              ),
             ],
           ),
         ),
@@ -273,42 +185,366 @@ class _DesignSettingsScreenState extends State<DesignSettingsScreen> {
     );
   }
 
-  Widget _sliderTile({
-    required String label,
-    required double value,
-    required double min,
-    required double max,
-    int? divisions,
-    required ValueChanged<double> onChanged,
+  Widget _paletteCircle(String name) {
+    final accent = accentColor(name);
+    final highlight = darkerAccentColor(name, 0.16);
+    final selected = _cfg.bgPaletteName == name;
+    final label = _readablePalette(name);
+    final textColor = onColor(accent);
+
+    return Semantics(
+      label: 'Palette $label',
+      selected: selected,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () {
+            final updated = _cfg.useMono
+                ? _cfg.copyWith(
+                    bgPaletteName: name,
+                    monoColor: complementaryColor(name),
+                  )
+                : _cfg.copyWith(bgPaletteName: name);
+            _apply(updated);
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [accent, highlight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: selected
+                        ? textColor.withOpacity(0.9)
+                        : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: highlight.withOpacity(selected ? 0.35 : 0.14),
+                      blurRadius: selected ? 20 : 14,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: selected ? 1 : 0,
+                  child: Icon(
+                    Icons.check_rounded,
+                    color: textColor,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(selected ? 0.85 : 0.6),
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewHero({
+    required Color accent,
+    required Color accentDarker,
+    required Color onAccent,
+    required String paletteLabel,
+    required TextTheme textTheme,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    final overlay = Colors.white.withOpacity(0.16);
+    final highlight = Colors.white.withOpacity(0.22);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [accent, accentDarker],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: accentDarker.withOpacity(0.28),
+            blurRadius: 36,
+            offset: const Offset(0, 24),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$label: ${value.toStringAsFixed(2)}'),
-          Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            label: value.toStringAsFixed(2),
-            onChanged: onChanged,
+          Text(
+            'APERÇU EN DIRECT',
+            style: textTheme.labelLarge?.copyWith(
+              color: onAccent.withOpacity(0.75),
+              letterSpacing: 1.4,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            paletteLabel,
+            style: textTheme.headlineMedium?.copyWith(
+              color: onAccent,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Ton interface se met immédiatement aux couleurs sélectionnées.',
+            style: textTheme.bodyMedium?.copyWith(
+              color: onAccent.withOpacity(0.78),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            decoration: BoxDecoration(
+              color: overlay,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quiz récent',
+                            style: textTheme.titleMedium?.copyWith(
+                              color: onAccent,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Quiz Culture Générale',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: onAccent.withOpacity(0.78),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 72,
+                      width: 72,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: 0.65,
+                            strokeWidth: 6,
+                            valueColor: AlwaysStoppedAnimation<Color>(onAccent),
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                          ),
+                          Text(
+                            '65%',
+                            style: textTheme.titleMedium?.copyWith(
+                              color: onAccent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: highlight,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 52,
+                        width: 52,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.24),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.groups_rounded,
+                          color: onAccent,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Défis entre amis',
+                              style: textTheme.titleSmall?.copyWith(
+                                color: onAccent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Lance un challenge en quelques secondes.',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: onAccent.withOpacity(0.78),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: onAccent,
+                          foregroundColor: accent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 12,
+                          ),
+                          textStyle: textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {},
+                        child: const Text('Inviter'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Quiz en direct',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: onAccent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Column(
+                  children: [
+                    _previewListTile(
+                      icon: Icons.calculate_outlined,
+                      title: 'Statistiques Math Quiz',
+                      subtitle: '10 questions',
+                      onAccent: onAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    _previewListTile(
+                      icon: Icons.numbers_rounded,
+                      title: 'Quiz Aptitude Numérique',
+                      subtitle: '8 questions',
+                      onAccent: onAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    _previewListTile(
+                      icon: Icons.psychology_alt_outlined,
+                      title: 'Organisation & Logique',
+                      subtitle: '12 questions',
+                      onAccent: onAccent,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(String text, double fontSize) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
+  Widget _previewListTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color onAccent,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            height: 44,
+            width: 44,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.22),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: onAccent),
           ),
-        ),
-      );
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: onAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: onAccent.withOpacity(0.75),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: onAccent.withOpacity(0.7),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _readablePalette(String name) {
+    final spaced = name
+        .replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (m) => ' ')
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ');
+    final parts = spaced.split(' ').where((part) => part.isNotEmpty);
+    return parts
+        .map((part) => part[0].toUpperCase() + part.substring(1).toLowerCase())
+        .join(' ');
+  }
 }
 
