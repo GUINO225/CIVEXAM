@@ -796,7 +796,7 @@ class _EventTile extends StatelessWidget {
 }
 
 class _SelectedDayDetailsCard extends StatelessWidget {
-  _SelectedDayDetailsCard({
+  const _SelectedDayDetailsCard({
     super.key,
     required this.date,
     required this.events,

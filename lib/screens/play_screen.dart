@@ -44,6 +44,7 @@ import 'categories/prepa_ena_screen.dart';
 import 'categories/cours_ena_screen.dart';
 import 'categories/banque_sujets_screen.dart';
 import 'categories/ressources_officielles_screen.dart';
+import 'categories/contest_calendar_screen.dart';
 import 'categories/historique_suivi_screen.dart';
 import 'categories/defis_classement_screen.dart';
 import 'categories/aide_themes_screen.dart';
@@ -430,6 +431,12 @@ class _HomeShellState extends State<HomeShell> {
       return;
     }
     setState(() => _selectedNavIndex = index);
+  }
+
+  Future<void> _handleOpenContestCalendar() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ContestCalendarScreen()),
+    );
   }
 
   Future<void> _handleCreateQuickQuiz() async {
@@ -1087,6 +1094,10 @@ class _HomeShellState extends State<HomeShell> {
       return preferDark ?? const Color(0xFF1F1A3D);
     }
 
+    final calendarBase = lighten(accent, 0.08);
+    final calendarBadgeBackground = pastelize(calendarBase);
+    final calendarBorder = darken(calendarBase, 0.08);
+
     final quickBadgeBackground = pastelize(brand);
     final quickBorder = lighten(brand, 0.28);
 
@@ -1105,6 +1116,23 @@ class _HomeShellState extends State<HomeShell> {
     final officialBorder = lighten(officialBase, 0.3);
 
     final liveQuizItems = <_LiveQuizItem>[
+      _LiveQuizItem(
+        icon: Icons.event_available_rounded,
+        iconColor: contrastOn(
+          calendarBase,
+          preferLight: Colors.white,
+          preferDark: darken(calendarBase, 0.32),
+        ),
+        iconBackground: calendarBase,
+        iconBorderColor: calendarBorder,
+        badgeBackground: calendarBadgeBackground,
+        badgeBorderColor: lighten(calendarBase, 0.32),
+        badgeForeground: darken(calendarBase, 0.24),
+        title: 'Calendrier officiel',
+        subtitle: 'Consulte les dates clés du concours ENA',
+        brand: brand,
+        onTap: _handleOpenContestCalendar,
+      ),
       _LiveQuizItem(
         icon: Icons.flash_on_rounded,
         iconColor: contrastOn(
