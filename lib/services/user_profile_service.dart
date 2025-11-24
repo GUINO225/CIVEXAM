@@ -48,7 +48,9 @@ class UserProfileService {
       try {
         // Repli : on récupère uniquement les métadonnées des documents
         // pour limiter le volume transféré.
-        final snapshot = await _col.select([]).get();
+        final snapshot = await _col.get(
+          const GetOptions(source: Source.server),
+        );
         return snapshot.size;
       } catch (fallbackError, fallbackSt) {
         debugPrint('Fallback user count failed: $fallbackError\n$fallbackSt');
