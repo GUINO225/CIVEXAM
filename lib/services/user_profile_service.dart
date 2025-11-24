@@ -35,13 +35,25 @@ class UserProfileService {
   }
 
   /// Retourne le nombre total de profils utilisateur disponibles.
+  ///
+  /// Utilise la requête d'agrégation Firestore, puis revient à une
+  /// récupération minimale des documents si l'agrégation n'est pas
+  /// disponible (ex. émulateur ou environnement restreint).
   Future<int?> countUsers() async {
     try {
       final aggregate = await _col.count().get();
       return aggregate.count;
     } catch (e, st) {
       debugPrint('Error counting users: $e\n$st');
-      return null;
+      try {
+        // Repli : on récupère uniquement les métadonnées des documents
+        // pour limiter le volume transféré.
+        final snapshot = await _col.select([]).get();
+        return snapshot.size;
+      } catch (fallbackError, fallbackSt) {
+        debugPrint('Fallback user count failed: $fallbackError\n$fallbackSt');
+        return null;
+      }
     }
   }
 }
