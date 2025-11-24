@@ -33,4 +33,15 @@ class UserProfileService {
       throw Exception("Échec de l'enregistrement du profil: $e");
     }
   }
+
+  /// Retourne le nombre total de profils utilisateur disponibles.
+  Future<int?> countUsers() async {
+    try {
+      final aggregate = await _col.count().get();
+      return aggregate.count;
+    } catch (e, st) {
+      debugPrint('Error counting users: $e\n$st');
+      return null;
+    }
+  }
 }

@@ -221,6 +221,9 @@ class _HomeShellState extends State<HomeShell> {
   int? _currentUserRank;
   final UserProfileService _profileService = UserProfileService();
   String? _profileNickname;
+  int? _userCount;
+  bool _userCountLoading = true;
+  String? _userCountError;
 
   final ArcadeProgressStore _arcadeProgressStore = ArcadeProgressStore();
   ArcadeProgressData? _arcadeProgress;
@@ -274,6 +277,7 @@ class _HomeShellState extends State<HomeShell> {
     unawaited(_loadTopEntries());
     unawaited(_loadArcadeProgress());
     unawaited(_loadProfileNickname());
+    unawaited(_loadUserCount());
   }
 
   @override
@@ -329,6 +333,33 @@ class _HomeShellState extends State<HomeShell> {
       final trimmed = resolvedNickname?.trim();
       _profileNickname = (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
     });
+  }
+
+  Future<void> _loadUserCount() async {
+    setState(() {
+      _userCountLoading = true;
+      _userCountError = null;
+    });
+
+    try {
+      final count = await _profileService.countUsers();
+      if (!mounted) return;
+      setState(() {
+        _userCount = count;
+        _userCountLoading = false;
+        if (count == null) {
+          _userCountError = 'Nombre de comptes indisponible.';
+        }
+      });
+    } catch (e, st) {
+      debugPrint('Failed to load user count: $e\n$st');
+      if (!mounted) return;
+      setState(() {
+        _userCount = null;
+        _userCountLoading = false;
+        _userCountError = 'Impossible de récupérer le nombre de comptes.';
+      });
+    }
   }
 
   Future<void> _loadArcadeProgress() async {
@@ -832,6 +863,9 @@ class _HomeShellState extends State<HomeShell> {
           nameFontSize: nameFontSize,
           arcadeProgress: _arcadeProgress,
           arcadeProgressLoading: _arcadeProgressLoading,
+          userCount: _userCount,
+          userCountLoading: _userCountLoading,
+          userCountError: _userCountError,
           brand: brand,
           onBrand: onBrand,
         ),
@@ -884,6 +918,9 @@ class _HomeShellState extends State<HomeShell> {
     required double nameFontSize,
     required ArcadeProgressData? arcadeProgress,
     required bool arcadeProgressLoading,
+    required int? userCount,
+    required bool userCountLoading,
+    required String? userCountError,
     required Color brand,
     required Color onBrand,
   }) {
@@ -1002,6 +1039,13 @@ class _HomeShellState extends State<HomeShell> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      _UserCountRow(
+                        loading: userCountLoading,
+                        count: userCount,
+                        error: userCountError,
+                        onBrand: onBrand,
                       ),
                     ],
                   ),
@@ -1475,6 +1519,79 @@ class _HomeShellState extends State<HomeShell> {
         );
         break;
     }
+  }
+}
+
+class _UserCountRow extends StatelessWidget {
+  const _UserCountRow({
+    required this.loading,
+    required this.count,
+    required this.error,
+    required this.onBrand,
+  });
+
+  final bool loading;
+  final int? count;
+  final String? error;
+  final Color onBrand;
+
+  String _formatCount(int value) {
+    final str = value.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < str.length; i++) {
+      buffer.write(str[i]);
+      final remaining = str.length - i - 1;
+      if (remaining > 0 && remaining % 3 == 0) {
+        buffer.write(' ');
+      }
+    }
+    return buffer.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseStyle = TextStyle(
+      color: onBrand.withOpacity(0.9),
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+    );
+
+    if (loading) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(onBrand),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text('Chargement des comptes...', style: baseStyle.copyWith(fontWeight: FontWeight.w600)),
+        ],
+      );
+    }
+
+    final label = count != null
+        ? '${_formatCount(count!)} comptes créés'
+        : (error ?? 'Nombre de comptes indisponible');
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.people_alt_rounded, size: 18, color: onBrand),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            label,
+            style: baseStyle,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }
 
