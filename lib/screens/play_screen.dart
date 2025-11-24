@@ -18,6 +18,7 @@ import '../services/history_store.dart';
 import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
 import '../services/arcade_progress_store.dart';
+import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/rank_display_helper.dart';
@@ -37,6 +38,7 @@ import 'training_quick_start.dart';
 import 'exam_full_screen.dart';
 import 'leaderboard_screen.dart';
 import 'arcade_mode_screen.dart';
+import 'login_screen.dart';
 
 // --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
@@ -214,6 +216,7 @@ class _HomeShellState extends State<HomeShell> {
   late final List<PlayNavDestination> _navItems;
 
   final CompetitionService _competitionService = CompetitionService();
+  final AuthService _authService = AuthService();
   List<LeaderboardEntry> _topEntries = const [];
   bool _topEntriesLoading = true;
   String? _topEntriesError;
@@ -509,6 +512,26 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _handleLaunchCompetition() async {
     await CompetitionQuizLauncher.launch(context);
+  }
+
+  Future<void> _handleSignOut() async {
+    try {
+      await _authService.signOut();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Déconnexion impossible.')), 
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _openLeaderboard() async {
@@ -1067,47 +1090,58 @@ class _HomeShellState extends State<HomeShell> {
                     ],
                   ),
                 ),
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: overlayColor,
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundColor:
-                        rankStyle?.backgroundColor ?? Colors.white,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 350),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) {
-                        final fade =
-                            FadeTransition(opacity: animation, child: child);
-                        return RotationTransition(
-                          turns: animation
-                              .drive(Tween<double>(begin: 0.98, end: 1.0)),
-                          child: fade,
-                        );
-                      },
-                      child: rank != null && rankStyle != null
-                          ? Text(
-                              '$rank',
-                              key: const ValueKey('rank'),
-                              style: TextStyle(
-                                color: rankStyle.foregroundColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 20,
-                              ),
-                            )
-                          : Text(
-                              avatarLabel,
-                              key: const ValueKey('initial'),
-                              style: TextStyle(
-                                color: brand,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 20,
-                              ),
-                            ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Se déconnecter',
+                      icon: const Icon(Icons.logout),
+                      color: onBrand,
+                      onPressed: _handleSignOut,
                     ),
-                  ),
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: overlayColor,
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor:
+                            rankStyle?.backgroundColor ?? Colors.white,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          transitionBuilder: (child, animation) {
+                            final fade =
+                                FadeTransition(opacity: animation, child: child);
+                            return RotationTransition(
+                              turns: animation
+                                  .drive(Tween<double>(begin: 0.98, end: 1.0)),
+                              child: fade,
+                            );
+                          },
+                          child: rank != null && rankStyle != null
+                              ? Text(
+                                  '$rank',
+                                  key: const ValueKey('rank'),
+                                  style: TextStyle(
+                                    color: rankStyle.foregroundColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : Text(
+                                  avatarLabel,
+                                  key: const ValueKey('initial'),
+                                  style: TextStyle(
+                                    color: brand,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
