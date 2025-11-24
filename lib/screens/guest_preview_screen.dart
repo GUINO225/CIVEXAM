@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
+import '../widgets/primary_button.dart';
 import 'login_screen.dart';
 import 'training_quick_start.dart';
 
@@ -35,6 +36,7 @@ class GuestPreviewScreen extends StatelessWidget {
             .colorScheme
             .onSurface
             .withOpacity(cfg.darkMode ? 0.35 : 0.45);
+
         final features = <_GuestFeature>[
           const _GuestFeature(
             title: 'Quiz rapide',
@@ -68,6 +70,7 @@ class GuestPreviewScreen extends StatelessWidget {
             icon: Icons.person_rounded,
           ),
         ];
+
         return Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
@@ -127,7 +130,7 @@ class GuestPreviewScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Card(
-                    elevation: 1,
+                    elevation: 2,
                     color: Theme.of(context).cardColor.withOpacity(0.9),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -136,11 +139,13 @@ class GuestPreviewScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.info_outline_rounded, color: secondaryColor),
+                              Icon(Icons.info_outline_rounded,
+                                  color: secondaryColor),
                               const SizedBox(width: 8),
                               Text(
                                 'Envie de tout débloquer ?',
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style:
+                                    Theme.of(context).textTheme.titleMedium,
                               ),
                             ],
                           ),
@@ -151,7 +156,43 @@ class GuestPreviewScreen extends StatelessWidget {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
-                                ?.copyWith(color: textColor.withOpacity(0.9)),
+                                ?.copyWith(
+                                  color: textColor.withOpacity(0.9),
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Fonctionnalités complètes après connexion :',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 12),
+                          ...const [
+                            '• Dashboard et progression détaillée',
+                            '• Classements et défis',
+                            '• Historique des examens',
+                            '• Profil et préférences synchronisées',
+                          ].map(
+                            (item) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(item),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          PrimaryButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const TrainingQuickStartScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text('Lancer le quiz de test'),
                           ),
                           const SizedBox(height: 12),
                           OutlinedButton.icon(
@@ -159,11 +200,14 @@ class GuestPreviewScreen extends StatelessWidget {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const LoginScreen()),
+                                  builder: (_) => const LoginScreen(),
+                                ),
                               );
                             },
                             icon: Icon(Icons.lock_open, color: secondaryColor),
-                            label: const Text('Se connecter pour tout débloquer'),
+                            label: const Text(
+                              'Se connecter pour tout débloquer',
+                            ),
                           ),
                         ],
                       ),
@@ -265,14 +309,19 @@ class _FeatureCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: enabled
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
+                      ? Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.12)
                       : disabledColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   feature.icon,
                   size: 28,
-                  color: enabled ? Theme.of(context).colorScheme.primary : disabledColor,
+                  color: enabled
+                      ? Theme.of(context).colorScheme.primary
+                      : disabledColor,
                 ),
               ),
               const SizedBox(height: 12),
@@ -287,7 +336,9 @@ class _FeatureCard extends StatelessWidget {
               Text(
                 feature.description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: enabled ? textColor.withOpacity(0.9) : disabledColor,
+                      color: enabled
+                          ? textColor.withOpacity(0.9)
+                          : disabledColor,
                     ),
               ),
               if (enabled) ...[
@@ -296,10 +347,11 @@ class _FeatureCard extends StatelessWidget {
                   children: [
                     Text(
                       'Accéder',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
                     ),
                     const SizedBox(width: 6),
                     Icon(
@@ -331,7 +383,10 @@ class _LockedOverlay extends StatelessWidget {
           opacity: 0.9,
           child: ColorFiltered(
             colorFilter: ColorFilter.mode(
-              Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.45),
+              Theme.of(context)
+                  .colorScheme
+                  .surfaceVariant
+                  .withOpacity(0.45),
               BlendMode.srcATop,
             ),
             child: child,
