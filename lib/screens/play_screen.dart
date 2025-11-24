@@ -18,6 +18,7 @@ import '../services/history_store.dart';
 import '../services/competition_service.dart';
 import '../services/competition_quiz_launcher.dart';
 import '../services/arcade_progress_store.dart';
+import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
 import '../utils/palette_utils.dart';
 import '../utils/rank_display_helper.dart';
@@ -37,6 +38,7 @@ import 'training_quick_start.dart';
 import 'exam_full_screen.dart';
 import 'leaderboard_screen.dart';
 import 'arcade_mode_screen.dart';
+import 'login_screen.dart';
 
 // --- Catégories refactorisées (ENA CI) ---
 import 'categories/category_definitions.dart';
@@ -190,20 +192,22 @@ const CalendarOverlayConfig CAL = CalendarOverlayConfig();
 /// === ÉCRAN ==================================================================
 /// ============================================================================
 class PlayScreen extends StatelessWidget {
-  const PlayScreen({super.key, this.initialIndex = 0});
+  const PlayScreen({super.key, this.initialIndex = 0, this.guestMode = false});
 
   final int initialIndex;
+  final bool guestMode;
 
   @override
   Widget build(BuildContext context) {
-    return HomeShell(initialIndex: initialIndex);
+    return HomeShell(initialIndex: initialIndex, guestMode: guestMode);
   }
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.initialIndex = 0});
+  const HomeShell({super.key, this.initialIndex = 0, this.guestMode = false});
 
   final int initialIndex;
+  final bool guestMode;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -212,8 +216,10 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   late int _selectedNavIndex;
   late final List<PlayNavDestination> _navItems;
+  bool get guestMode => widget.guestMode;
 
   final CompetitionService _competitionService = CompetitionService();
+  final AuthService _authService = AuthService();
   List<LeaderboardEntry> _topEntries = const [];
   bool _topEntriesLoading = true;
   String? _topEntriesError;
@@ -272,12 +278,18 @@ class _HomeShellState extends State<HomeShell> {
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
     _startClock();
-    unawaited(OngoingQuickQuizStore.load());
-    unawaited(HistoryStore.load());
-    unawaited(_loadTopEntries());
-    unawaited(_loadArcadeProgress());
-    unawaited(_loadProfileNickname());
-    unawaited(_loadUserCount());
+    if (!guestMode) {
+      unawaited(OngoingQuickQuizStore.load());
+      unawaited(HistoryStore.load());
+      unawaited(_loadTopEntries());
+      unawaited(_loadArcadeProgress());
+      unawaited(_loadProfileNickname());
+      unawaited(_loadUserCount());
+    } else {
+      _topEntriesLoading = false;
+      _arcadeProgressLoading = false;
+      _userCountLoading = false;
+    }
   }
 
   @override
@@ -474,8 +486,21 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
+  void _showGuestLockedMessage([String? feature]) {
+    final label = feature == null
+        ? 'Connectez-vous pour débloquer cette fonctionnalité.'
+        : 'Connectez-vous pour accéder à $feature.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(label)),
+    );
+  }
+
   void _onNavItemSelected(int index) {
     if (_selectedNavIndex == index) {
+      return;
+    }
+    if (guestMode && index != 0) {
+      _showGuestLockedMessage('cette section');
       return;
     }
     setState(() => _selectedNavIndex = index);
@@ -509,6 +534,26 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _handleLaunchCompetition() async {
     await CompetitionQuizLauncher.launch(context);
+  }
+
+  Future<void> _handleSignOut() async {
+    try {
+      await _authService.signOut();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Déconnexion impossible.')), 
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _openLeaderboard() async {
@@ -1067,47 +1112,59 @@ class _HomeShellState extends State<HomeShell> {
                     ],
                   ),
                 ),
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: overlayColor,
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundColor:
-                        rankStyle?.backgroundColor ?? Colors.white,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 350),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) {
-                        final fade =
-                            FadeTransition(opacity: animation, child: child);
-                        return RotationTransition(
-                          turns: animation
-                              .drive(Tween<double>(begin: 0.98, end: 1.0)),
-                          child: fade,
-                        );
-                      },
-                      child: rank != null && rankStyle != null
-                          ? Text(
-                              '$rank',
-                              key: const ValueKey('rank'),
-                              style: TextStyle(
-                                color: rankStyle.foregroundColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 20,
-                              ),
-                            )
-                          : Text(
-                              avatarLabel,
-                              key: const ValueKey('initial'),
-                              style: TextStyle(
-                                color: brand,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 20,
-                              ),
-                            ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!guestMode)
+                      IconButton(
+                        tooltip: 'Se déconnecter',
+                        icon: const Icon(Icons.logout),
+                        color: onBrand,
+                        onPressed: _handleSignOut,
+                      ),
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: overlayColor,
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor:
+                            rankStyle?.backgroundColor ?? Colors.white,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          transitionBuilder: (child, animation) {
+                            final fade =
+                                FadeTransition(opacity: animation, child: child);
+                            return RotationTransition(
+                              turns: animation
+                                  .drive(Tween<double>(begin: 0.98, end: 1.0)),
+                              child: fade,
+                            );
+                          },
+                          child: rank != null && rankStyle != null
+                              ? Text(
+                                  '$rank',
+                                  key: const ValueKey('rank'),
+                                  style: TextStyle(
+                                    color: rankStyle.foregroundColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : Text(
+                                  avatarLabel,
+                                  key: const ValueKey('initial'),
+                                  style: TextStyle(
+                                    color: brand,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -1127,6 +1184,7 @@ class _HomeShellState extends State<HomeShell> {
     required Color accent,
     required Color brandVariant,
   }) {
+    final bool isGuest = guestMode;
     Color lighten(Color color, double amount) {
       final hsl = HSLColor.fromColor(color);
       final lightness = (hsl.lightness + amount).clamp(0.0, 1.0);
@@ -1192,7 +1250,9 @@ class _HomeShellState extends State<HomeShell> {
         title: 'Calendrier officiel',
         subtitle: 'Consulte les dates clés du concours ENA',
         brand: brand,
-        onTap: _handleOpenContestCalendar,
+        onTap: isGuest ? null : _handleOpenContestCalendar,
+        locked: isGuest,
+        onLockedTap: () => _showGuestLockedMessage('le calendrier officiel'),
       ),
       _LiveQuizItem(
         icon: Icons.flash_on_rounded,
@@ -1226,7 +1286,9 @@ class _HomeShellState extends State<HomeShell> {
         title: 'Mode arcade',
         subtitle: 'Grimpe les paliers de difficulté',
         brand: brand,
-        onTap: _handleLaunchArcade,
+        onTap: isGuest ? null : _handleLaunchArcade,
+        locked: isGuest,
+        onLockedTap: () => _showGuestLockedMessage('le mode arcade'),
       ),
       _LiveQuizItem(
         icon: Icons.people_alt_rounded,
@@ -1243,7 +1305,9 @@ class _HomeShellState extends State<HomeShell> {
         title: 'Défi compétition',
         subtitle: '60 questions pour grimper au classement',
         brand: brand,
-        onTap: _handleLaunchCompetition,
+        onTap: isGuest ? null : _handleLaunchCompetition,
+        locked: isGuest,
+        onLockedTap: () => _showGuestLockedMessage('le défi compétition'),
       ),
       _LiveQuizItem(
         icon: Icons.workspace_premium_rounded,
@@ -1260,7 +1324,9 @@ class _HomeShellState extends State<HomeShell> {
         title: 'Simulation officielle',
         subtitle: 'Sujet d’entraînement en conditions réelles',
         brand: brand,
-        onTap: _handleLaunchOfficialQuiz,
+        onTap: isGuest ? null : _handleLaunchOfficialQuiz,
+        locked: isGuest,
+        onLockedTap: () => _showGuestLockedMessage('la simulation officielle'),
       ),
     ];
 
@@ -1434,6 +1500,9 @@ class _HomeShellState extends State<HomeShell> {
                                 scale: scale,
                                 height: style.itemHeight ?? baseCardHeight,
                                 onTap: () => _navigate(context, section.category),
+                                locked: isGuest,
+                                onLockedTap: () =>
+                                    _showGuestLockedMessage(section.title),
                               ),
                             );
                           },
@@ -2126,7 +2195,7 @@ class _LiveQuizListState extends State<_LiveQuizList> {
           final item = widget.items[index];
           final isLoading = _loadingIndex == index;
           final hasAction = item.onTap != null;
-          return ListTile(
+          final listTile = ListTile(
             leading: Container(
               height: 48,
               width: 48,
@@ -2182,20 +2251,57 @@ class _LiveQuizListState extends State<_LiveQuizList> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            enabled: hasAction && !isLoading,
-            onTap: hasAction
-                ? () async {
-                    if (_loadingIndex != null) return;
-                    setState(() => _loadingIndex = index);
-                    try {
-                      await item.onTap?.call();
-                    } finally {
-                      if (mounted) {
-                        setState(() => _loadingIndex = null);
+            enabled: (hasAction && !item.locked && !isLoading) || item.locked,
+            onTap: item.locked
+                ? item.onLockedTap
+                : hasAction
+                    ? () async {
+                        if (_loadingIndex != null) return;
+                        setState(() => _loadingIndex = index);
+                        try {
+                          await item.onTap?.call();
+                        } finally {
+                          if (mounted) {
+                            setState(() => _loadingIndex = null);
+                          }
+                        }
                       }
-                    }
-                  }
-                : null,
+                    : null,
+          );
+          if (!item.locked) {
+            return listTile;
+          }
+          return Stack(
+            children: [
+              ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.white.withOpacity(0.6),
+                  BlendMode.saturation,
+                ),
+                child: listTile,
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: false,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.lock, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -2212,6 +2318,8 @@ class HomeCategoryTile extends StatelessWidget {
     required this.scale,
     required this.height,
     required this.onTap,
+    this.locked = false,
+    this.onLockedTap,
   });
 
   final CategoryDefinition definition;
@@ -2220,6 +2328,8 @@ class HomeCategoryTile extends StatelessWidget {
   final double scale;
   final double height;
   final VoidCallback onTap;
+  final bool locked;
+  final VoidCallback? onLockedTap;
 
   @override
   Widget build(BuildContext context) {
@@ -2250,13 +2360,13 @@ class HomeCategoryTile extends StatelessWidget {
               fontSize: 13,
             );
 
-    return SizedBox(
+    final card = SizedBox(
       height: height,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(26),
-          onTap: onTap,
+          onTap: locked ? onLockedTap : onTap,
           child: Ink(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -2332,6 +2442,42 @@ class HomeCategoryTile extends StatelessWidget {
         ),
       ),
     );
+
+    if (!locked) {
+      return card;
+    }
+
+    return Stack(
+      children: [
+        ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Colors.white.withOpacity(0.6),
+            BlendMode.saturation,
+          ),
+          child: card,
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: false,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(26),
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.45),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock, color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -2348,6 +2494,8 @@ class _LiveQuizItem {
     required this.subtitle,
     required this.brand,
     this.onTap,
+    this.locked = false,
+    this.onLockedTap,
   });
 
   final IconData icon;
@@ -2361,6 +2509,8 @@ class _LiveQuizItem {
   final String subtitle;
   final Color brand;
   final Future<void> Function()? onTap;
+  final bool locked;
+  final VoidCallback? onLockedTap;
 }
 
 /// Carrousel (si besoin ailleurs)
