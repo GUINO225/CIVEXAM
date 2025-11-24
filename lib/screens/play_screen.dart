@@ -1164,6 +1164,54 @@ class _HomeShellState extends State<HomeShell> {
                         ),
                       ),
                     ),
+                    IconButton(
+                      tooltip: 'Se déconnecter',
+                      icon: const Icon(Icons.logout),
+                      color: onBrand,
+                      onPressed: _handleSignOut,
+                    ),
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: overlayColor,
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor:
+                            rankStyle?.backgroundColor ?? Colors.white,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          transitionBuilder: (child, animation) {
+                            final fade =
+                                FadeTransition(opacity: animation, child: child);
+                            return RotationTransition(
+                              turns: animation
+                                  .drive(Tween<double>(begin: 0.98, end: 1.0)),
+                              child: fade,
+                            );
+                          },
+                          child: rank != null && rankStyle != null
+                              ? Text(
+                                  '$rank',
+                                  key: const ValueKey('rank'),
+                                  style: TextStyle(
+                                    color: rankStyle.foregroundColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : Text(
+                                  avatarLabel,
+                                  key: const ValueKey('initial'),
+                                  style: TextStyle(
+                                    color: brand,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],
