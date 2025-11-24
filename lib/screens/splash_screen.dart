@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 import 'play_screen.dart';
 import '../services/question_loader.dart';
+import '../services/guest_session_service.dart';
 
 /// Initial splash screen showing the app logo before navigating to login.
 class SplashScreen extends StatefulWidget {
@@ -29,12 +30,15 @@ class _SplashScreenState extends State<SplashScreen> {
           .authStateChanges()
           .first
           .timeout(const Duration(seconds: 5));
+      final guestFuture = GuestSessionService().loadSaved();
       await Future.wait([
         QuestionLoader.loadENA(),
         userFuture,
+        guestFuture,
       ]);
       if (!mounted) return;
       final user = await userFuture;
+      final guest = await guestFuture;
       if (user != null) {
         try {
           await auth.currentUser?.reload();
@@ -42,6 +46,12 @@ class _SplashScreenState extends State<SplashScreen> {
       }
       var refreshedUser = auth.currentUser;
       refreshedUser ??= user;
+      if (refreshedUser == null && guest != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const PlayScreen()),
+        );
+        return;
+      }
       if (refreshedUser != null && !refreshedUser.emailVerified) {
         final unverifiedUser = refreshedUser;
         try {

@@ -11,6 +11,7 @@ import '../models/design_config.dart';
 import '../models/exam_history_entry.dart';
 import '../models/leaderboard_entry.dart';
 import '../services/design_bus.dart';
+import '../services/guest_session_service.dart';
 import '../services/ongoing_quiz_store.dart';
 import '../services/question_loader.dart';
 import '../services/scoring.dart';
@@ -291,6 +292,7 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _loadProfileNickname() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    final guest = GuestSessionService.notifier.value;
     SharedPreferences? prefs;
     try {
       prefs = await SharedPreferences.getInstance();
@@ -307,6 +309,10 @@ class _HomeShellState extends State<HomeShell> {
     }
 
     String? resolvedNickname = cachedNickname;
+
+    if (resolvedNickname == null && guest != null) {
+      resolvedNickname = guest.macAddress;
+    }
 
     if (uid != null) {
       try {
@@ -612,8 +618,11 @@ class _HomeShellState extends State<HomeShell> {
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
         final user = FirebaseAuth.instance.currentUser;
-        final name = user?.displayName ?? user?.email;
+        final guest = GuestSessionService.notifier.value;
+        final name =
+            user?.displayName ?? user?.email ?? guest?.macAddress ?? guest?.id;
         final hasName = name != null && name.isNotEmpty;
+        final nickname = _profileNickname ?? guest?.macAddress;
 
         final textColor =
             textColorForPalette(cfg.bgPaletteName, darkMode: cfg.darkMode);
@@ -700,7 +709,7 @@ class _HomeShellState extends State<HomeShell> {
               topInset: topInset,
               hasName: hasName,
               name: name,
-              profileNickname: _profileNickname,
+              profileNickname: nickname,
               welcomeFontSize: welcomeFontSize,
               nameFontSize: nameFontSize,
               sections: sections,

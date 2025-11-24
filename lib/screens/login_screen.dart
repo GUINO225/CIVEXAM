@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/design_config.dart';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
+import '../services/guest_session_service.dart';
 import '../services/user_profile_service.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
@@ -30,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
   bool _isLoading = false;
   bool _isGoogleLoading = false;
+  bool _isGuestLoading = false;
   User? _unverifiedUser;
   static const Color _logoOrange = Color(0xFFFF7F00);
 
@@ -76,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context, cfg, _) {
         final theme = Theme.of(context);
         final errorStyle = TextStyle(color: theme.colorScheme.error);
-        final isBusy = _isLoading || _isGoogleLoading;
+        final isBusy = _isLoading || _isGoogleLoading || _isGuestLoading;
         final loginButtonTheme = ElevatedButtonThemeData(
           style: _loginButtonStyle(theme),
         );
@@ -213,6 +215,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         label: const Text('Se connecter avec Google'),
                       ),
                       const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: isBusy ? null : _useGuestDemo,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                        ),
+                        child: _isGuestLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Continuer en mode démo (Guest)'),
+                      ),
+                      const SizedBox(height: 8),
                       if (_unverifiedUser != null)
                         TextButton(
                           onPressed: _resendVerificationEmail,
@@ -268,6 +284,35 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() => _isGoogleLoading = false);
       }
+    }
+  }
+
+  Future<void> _useGuestDemo() async {
+    setState(() {
+      _error = null;
+      _isGuestLoading = true;
+      _unverifiedUser = null;
+    });
+    try {
+      final identity = await GuestSessionService().ensureGuest();
+      if (!mounted) return;
+      final macLabel = identity.macAddress.isEmpty
+          ? 'identifiant local'
+          : 'MAC : ${identity.macAddress}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Mode démo activé ($macLabel)')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PlayScreen()),
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() =>
+            _error = 'Impossible de créer une session démo sur cet appareil');
+      }
+    } finally {
+      if (mounted) setState(() => _isGuestLoading = false);
     }
   }
 
