@@ -9,6 +9,7 @@ import '../services/user_profile_service.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/primary_button.dart';
+import 'guest_preview_screen.dart';
 import 'play_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -212,6 +213,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                         label: const Text('Se connecter avec Google'),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ou essayez en mode invité (quiz uniquement)',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: textColor.withOpacity(0.85)),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: isBusy ? null : _continueAsGuest,
+                        icon: const Icon(Icons.quiz_outlined),
+                        label: const Text('Tester sans compte'),
+                      ),
                       const SizedBox(height: 12),
                       if (_unverifiedUser != null)
                         TextButton(
@@ -234,6 +247,20 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
         );
       },
+    );
+  }
+
+  void _continueAsGuest() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Mode invité : quiz de test uniquement. Connectez-vous pour le reste.',
+        ),
+      ),
+    );
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const GuestPreviewScreen()),
     );
   }
 
