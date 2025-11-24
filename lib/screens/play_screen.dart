@@ -336,7 +336,19 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _loadUserCount() async {
+    SharedPreferences? prefs;
+    int? cachedCount;
+    try {
+      prefs = await SharedPreferences.getInstance();
+      cachedCount = prefs.getInt('user_count_cache');
+    } catch (e, st) {
+      debugPrint('Failed to read user count cache: $e\n$st');
+    }
+
     setState(() {
+      if (cachedCount != null) {
+        _userCount = cachedCount;
+      }
       _userCountLoading = true;
       _userCountError = null;
     });
@@ -345,19 +357,24 @@ class _HomeShellState extends State<HomeShell> {
       final count = await _profileService.countUsers();
       if (!mounted) return;
       setState(() {
-        _userCount = count;
+        _userCount = count ?? cachedCount;
         _userCountLoading = false;
-        if (count == null) {
+        if (count == null && cachedCount == null) {
           _userCountError = 'Nombre de comptes indisponible.';
         }
       });
+      if (count != null && prefs != null) {
+        await prefs.setInt('user_count_cache', count);
+      }
     } catch (e, st) {
       debugPrint('Failed to load user count: $e\n$st');
       if (!mounted) return;
       setState(() {
-        _userCount = null;
+        _userCount = cachedCount;
         _userCountLoading = false;
-        _userCountError = 'Impossible de récupérer le nombre de comptes.';
+        _userCountError = cachedCount == null
+            ? 'Impossible de récupérer le nombre de comptes.'
+            : null;
       });
     }
   }
