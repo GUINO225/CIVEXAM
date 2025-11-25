@@ -1125,9 +1125,12 @@ class _HomeShellState extends State<HomeShell> {
                         color: onBrand,
                         onPressed: _handleSignOut,
                       ),
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: overlayColor,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: overlayColor,
+                        shape: BoxShape.circle,
+                      ),
                       child: CircleAvatar(
                         radius: 24,
                         backgroundColor:
@@ -1934,14 +1937,17 @@ class _LeaderboardHighlightCard extends StatelessWidget {
     final theme = Theme.of(context);
     final bool isLocked = locked;
     final Color cardBackground = backgroundColor;
-    final Color iconBackground =
-        Color.alphaBlend(onBrand.withOpacity(0.12), brand);
-    final Color titleColor = headlineColor;
-    final Color supportingTextColor = bodyColor;
+    final Color iconBackground = isLocked
+        ? Colors.grey.shade200
+        : Color.alphaBlend(onBrand.withOpacity(0.12), brand);
+    final Color titleColor =
+        isLocked ? Colors.grey.shade600 : headlineColor;
+    final Color supportingTextColor =
+        isLocked ? Colors.grey.shade500 : bodyColor;
     final Color buttonForeground =
-        isLocked ? chipTextColor.withOpacity(0.6) : chipTextColor;
+        isLocked ? Colors.grey.shade700 : chipTextColor;
     final Color buttonBackground =
-        isLocked ? chipColor.withOpacity(0.5) : chipColor;
+        isLocked ? Colors.grey.shade200 : chipColor;
 
     Widget body;
     if (isLoading) {
@@ -2015,7 +2021,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Icon(
               Icons.emoji_events_rounded,
-              color: onBrand,
+              color: isLocked ? Colors.grey.shade600 : onBrand,
               size: 34,
             ),
           ),
