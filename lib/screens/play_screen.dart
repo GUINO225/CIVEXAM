@@ -1164,54 +1164,6 @@ class _HomeShellState extends State<HomeShell> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Se déconnecter',
-                      icon: const Icon(Icons.logout),
-                      color: onBrand,
-                      onPressed: _handleSignOut,
-                    ),
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: overlayColor,
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundColor:
-                            rankStyle?.backgroundColor ?? Colors.white,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 350),
-                          switchInCurve: Curves.easeOut,
-                          switchOutCurve: Curves.easeIn,
-                          transitionBuilder: (child, animation) {
-                            final fade =
-                                FadeTransition(opacity: animation, child: child);
-                            return RotationTransition(
-                              turns: animation
-                                  .drive(Tween<double>(begin: 0.98, end: 1.0)),
-                              child: fade,
-                            );
-                          },
-                          child: rank != null && rankStyle != null
-                              ? Text(
-                                  '$rank',
-                                  key: const ValueKey('rank'),
-                                  style: TextStyle(
-                                    color: rankStyle.foregroundColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 20,
-                                  ),
-                                )
-                              : Text(
-                                  avatarLabel,
-                                  key: const ValueKey('initial'),
-                                  style: TextStyle(
-                                    color: brand,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -1519,6 +1471,9 @@ class _HomeShellState extends State<HomeShell> {
                             chipColor: leaderboardChipColor,
                             chipTextColor: leaderboardChipTextColor,
                             backgroundColor: leaderboardBackgroundColor,
+                            locked: isGuest,
+                            onLockedTap: () =>
+                                _showGuestLockedMessage('le classement'),
                           ),
                         ),
                       ),
@@ -1952,6 +1907,8 @@ class _LeaderboardHighlightCard extends StatelessWidget {
     required this.chipColor,
     required this.chipTextColor,
     required this.backgroundColor,
+    this.locked = false,
+    this.onLockedTap,
   });
 
   final List<LeaderboardEntry> entries;
@@ -1966,15 +1923,22 @@ class _LeaderboardHighlightCard extends StatelessWidget {
   final Color chipColor;
   final Color chipTextColor;
   final Color backgroundColor;
+  final bool locked;
+  final VoidCallback? onLockedTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isLocked = locked;
     final Color cardBackground = backgroundColor;
     final Color iconBackground =
         Color.alphaBlend(onBrand.withOpacity(0.12), brand);
     final Color titleColor = headlineColor;
     final Color supportingTextColor = bodyColor;
+    final Color buttonForeground =
+        isLocked ? chipTextColor.withOpacity(0.6) : chipTextColor;
+    final Color buttonBackground =
+        isLocked ? chipColor.withOpacity(0.5) : chipColor;
 
     Widget body;
     if (isLoading) {
@@ -2031,7 +1995,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
       );
     }
 
-    return Container(
+    Widget card = Container(
       decoration: BoxDecoration(
         color: cardBackground,
         borderRadius: BorderRadius.circular(26),
@@ -2057,12 +2021,26 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Top du classement',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                        color: titleColor,
-                        fontWeight: FontWeight.w800,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Top du classement',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                            color: titleColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    if (isLocked)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Icon(
+                          Icons.lock_rounded,
+                          color: supportingTextColor,
+                          size: 18,
+                        ),
                       ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 body,
@@ -2071,8 +2049,8 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: chipTextColor,
-                      backgroundColor: chipColor,
+                      foregroundColor: buttonForeground,
+                      backgroundColor: buttonBackground,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 12,
@@ -2081,15 +2059,16 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    onPressed: onSeeAll,
+                    onPressed:
+                        isLocked ? (onLockedTap ?? () {}) : onSeeAll,
                     child: Text(
                       'Voir tout le classement',
                       style: theme.textTheme.labelLarge?.copyWith(
-                            color: chipTextColor,
+                            color: buttonForeground,
                             fontWeight: FontWeight.w700,
                           ) ??
                           TextStyle(
-                            color: chipTextColor,
+                            color: buttonForeground,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
@@ -2101,6 +2080,36 @@ class _LeaderboardHighlightCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (isLocked) {
+      card = Stack(
+        children: [
+          ColorFiltered(
+            colorFilter:
+                const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+            child: card,
+          ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: IgnorePointer(
+              ignoring: true,
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey.shade200,
+                child: const Icon(
+                  Icons.lock,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return card;
   }
 }
 
@@ -2320,31 +2329,24 @@ class _LiveQuizListState extends State<_LiveQuizList> {
             return listTile;
           }
           return Stack(
+            alignment: Alignment.centerRight,
             children: [
               ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  Colors.white.withOpacity(0.6),
-                  BlendMode.saturation,
-                ),
+                colorFilter:
+                    const ColorFilter.mode(Colors.grey, BlendMode.saturation),
                 child: listTile,
               ),
-              Positioned.fill(
+              Positioned(
+                right: 16,
                 child: IgnorePointer(
-                  ignoring: false,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.35),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.lock, color: Colors.white),
+                  ignoring: true,
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey.shade200,
+                    child: const Icon(
+                      Icons.lock,
+                      color: Colors.grey,
+                      size: 18,
                     ),
                   ),
                 ),
@@ -2498,28 +2500,22 @@ class HomeCategoryTile extends StatelessWidget {
     return Stack(
       children: [
         ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            Colors.white.withOpacity(0.6),
-            BlendMode.saturation,
-          ),
+          colorFilter:
+              const ColorFilter.mode(Colors.grey, BlendMode.saturation),
           child: card,
         ),
-        Positioned.fill(
+        Positioned(
+          top: 12,
+          right: 12,
           child: IgnorePointer(
-            ignoring: false,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(26),
-              ),
-              alignment: Alignment.center,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.45),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.lock, color: Colors.white),
+            ignoring: true,
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: Colors.grey.shade200,
+              child: const Icon(
+                Icons.lock,
+                color: Colors.grey,
+                size: 20,
               ),
             ),
           ),
