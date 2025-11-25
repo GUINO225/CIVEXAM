@@ -27,6 +27,8 @@ class EnaOverviewScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const _IntroCard(),
+              const SizedBox(height: 16),
               _SectionCard(
                 title: '1. Les 3 cycles du concours',
                 subtitle: 'Chaque cycle correspond à un niveau d\'études et de responsabilité.',
@@ -123,17 +125,23 @@ class EnaOverviewScreen extends StatelessWidget {
                     _BulletRow(
                       icon: Icons.event_available_rounded,
                       text:
-                          'Les épreuves sont séparées : une matière = une épreuve dédiée, pas de mélange.',
+                          'Les épreuves sont séparées : une matière = une épreuve dédiée, pas un « bouillon de matières » dans une seule salle.',
                     ),
                     SizedBox(height: 8),
                     _BulletRow(
                       icon: Icons.schedule_rounded,
                       text:
-                          'Une matière se déroule sur un créneau précis (matin ou après-midi) avec durée fixe.',
+                          'Chaque matière se déroule sur un créneau précis (matin ou après-midi) avec une durée définie.',
+                    ),
+                    SizedBox(height: 8),
+                    _BulletRow(
+                      icon: Icons.calendar_today_rounded,
+                      text:
+                          'Les horaires varient selon les sessions, mais on reste sur un format écrit par matière.',
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'Durées écrites classiques :',
+                      'Durées écrites habituelles :',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     SizedBox(height: 6),
@@ -150,6 +158,76 @@ class EnaOverviewScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IntroCard extends StatelessWidget {
+  const _IntroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.12),
+              theme.colorScheme.primary.withOpacity(0.04),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  height: 44,
+                  width: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(Icons.school_rounded,
+                      color: theme.colorScheme.primary, size: 26),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "L'ENA forme les hauts cadres de l'État. Le concours est organisé en trois cycles : chacun associe un niveau d'études à un niveau de responsabilité.",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Découvre en un coup d’œil le cycle qui te correspond, les matières associées et comment se déroulent les épreuves.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.hintColor,
+                height: 1.35,
+              ),
+            ),
+          ],
         ),
       ),
     );
