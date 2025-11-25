@@ -786,6 +786,9 @@ class _HomeShellState extends State<HomeShell> {
               backgroundColor: brand,
               highlightColor: navHighlight,
               foregroundColor: onBrand,
+              lockedDestinations:
+                  guestMode ? {1, 2, 3, 4, 5} : const <int>{},
+              onLockedTap: () => _showGuestLockedMessage('cette section'),
             ),
             body: _buildShellBody(
               backgroundColor: bgColor,
