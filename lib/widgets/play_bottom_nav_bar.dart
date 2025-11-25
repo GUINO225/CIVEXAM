@@ -50,6 +50,8 @@ class PlayBottomNavBar extends StatelessWidget {
     this.addCenterFabSpacing = true,
     this.fabSpacingWidth = 68,
     this.foregroundColor,
+    this.lockedDestinations = const {},
+    this.onLockedTap,
   });
 
   final List<PlayNavDestination> destinations;
@@ -62,6 +64,8 @@ class PlayBottomNavBar extends StatelessWidget {
   final Color backgroundColor;
   final Color highlightColor;
   final Color? foregroundColor;
+  final Set<int> lockedDestinations;
+  final VoidCallback? onLockedTap;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +86,8 @@ class PlayBottomNavBar extends StatelessWidget {
             onSelected: onDestinationSelected,
             highlightColor: highlightColor,
             foregroundColor: foregroundColor,
+            locked: lockedDestinations.contains(i),
+            onLockedTap: onLockedTap,
           ),
         ),
       );
@@ -115,6 +121,8 @@ class _NavButton extends StatelessWidget {
     required this.onSelected,
     required this.highlightColor,
     this.foregroundColor,
+    this.locked = false,
+    this.onLockedTap,
   });
 
   final PlayNavDestination destination;
@@ -123,6 +131,8 @@ class _NavButton extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final Color highlightColor;
   final Color? foregroundColor;
+  final bool locked;
+  final VoidCallback? onLockedTap;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +140,27 @@ class _NavButton extends StatelessWidget {
         foregroundColor ?? Theme.of(context).colorScheme.onPrimary;
     final Color iconColor =
         isSelected ? baseForeground : baseForeground.withOpacity(0.72);
+
+    final Widget icon = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(destination.icon, color: iconColor, size: 24),
+        if (locked)
+          Positioned(
+            right: -6,
+            top: -6,
+            child: CircleAvatar(
+              radius: 10,
+              backgroundColor: baseForeground.withOpacity(0.12),
+              child: Icon(
+                Icons.lock,
+                size: 12,
+                color: baseForeground.withOpacity(0.8),
+              ),
+            ),
+          ),
+      ],
+    );
 
     return Center(
       child: Semantics(
@@ -141,7 +172,13 @@ class _NavButton extends StatelessWidget {
           child: Tooltip(
             message: destination.label,
             child: InkWell(
-              onTap: () => onSelected(index),
+              onTap: () {
+                if (locked) {
+                  onLockedTap?.call();
+                  return;
+                }
+                onSelected(index);
+              },
               borderRadius: BorderRadius.circular(18),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -150,7 +187,7 @@ class _NavButton extends StatelessWidget {
                   color: isSelected ? highlightColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(destination.icon, color: iconColor, size: 24),
+                child: icon,
               ),
             ),
           ),
