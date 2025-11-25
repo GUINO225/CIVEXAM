@@ -138,33 +138,11 @@ class _NavButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color baseForeground =
         foregroundColor ?? Theme.of(context).colorScheme.onPrimary;
-    final Color effectiveForeground =
-        locked ? Colors.grey.shade500 : baseForeground;
-    final Color iconColor = isSelected && !locked
-        ? effectiveForeground
-        : effectiveForeground.withOpacity(locked ? 1.0 : 0.72);
+    final Color iconColor = isSelected
+        ? baseForeground
+        : baseForeground.withOpacity(0.72);
 
-    final Widget icon = Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Icon(destination.icon, color: iconColor, size: 24),
-        if (locked)
-          Positioned(
-            right: -6,
-            top: -6,
-            child: CircleAvatar(
-              radius: 10,
-              backgroundColor:
-                  locked ? Colors.grey.shade200 : baseForeground.withOpacity(0.12),
-              child: Icon(
-                Icons.lock,
-                size: 12,
-                color: locked ? Colors.grey.shade600 : baseForeground.withOpacity(0.8),
-              ),
-            ),
-          ),
-      ],
-    );
+    final Widget icon = Icon(destination.icon, color: iconColor, size: 24);
 
     return Center(
       child: Semantics(
@@ -188,8 +166,7 @@ class _NavButton extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color:
-                      isSelected && !locked ? highlightColor : Colors.transparent,
+                  color: isSelected ? highlightColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: icon,

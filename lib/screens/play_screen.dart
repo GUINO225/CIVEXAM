@@ -1937,17 +1937,12 @@ class _LeaderboardHighlightCard extends StatelessWidget {
     final theme = Theme.of(context);
     final bool isLocked = locked;
     final Color cardBackground = backgroundColor;
-    final Color iconBackground = isLocked
-        ? Colors.grey.shade200
-        : Color.alphaBlend(onBrand.withOpacity(0.12), brand);
-    final Color titleColor =
-        isLocked ? Colors.grey.shade600 : headlineColor;
-    final Color supportingTextColor =
-        isLocked ? Colors.grey.shade500 : bodyColor;
-    final Color buttonForeground =
-        isLocked ? Colors.grey.shade700 : chipTextColor;
-    final Color buttonBackground =
-        isLocked ? Colors.grey.shade200 : chipColor;
+    final Color iconBackground =
+        Color.alphaBlend(onBrand.withOpacity(0.12), brand);
+    final Color titleColor = headlineColor;
+    final Color supportingTextColor = bodyColor;
+    final Color buttonForeground = chipTextColor;
+    final Color buttonBackground = chipColor;
 
     Widget body;
     if (isLoading) {
@@ -2021,7 +2016,7 @@ class _LeaderboardHighlightCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Icon(
               Icons.emoji_events_rounded,
-              color: isLocked ? Colors.grey.shade600 : onBrand,
+              color: onBrand,
               size: 34,
             ),
           ),
@@ -2040,15 +2035,6 @@ class _LeaderboardHighlightCard extends StatelessWidget {
                             fontWeight: FontWeight.w800,
                           ),
                     ),
-                    if (isLocked)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Icon(
-                          Icons.lock_rounded,
-                          color: supportingTextColor,
-                          size: 18,
-                        ),
-                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -2089,35 +2075,6 @@ class _LeaderboardHighlightCard extends StatelessWidget {
         ],
       ),
     );
-
-    if (isLocked) {
-      card = Stack(
-        children: [
-          ColorFiltered(
-            colorFilter:
-                const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-            child: card,
-          ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: IgnorePointer(
-              ignoring: true,
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.grey.shade200,
-                child: const Icon(
-                  Icons.lock,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
     return card;
   }
 }
@@ -2334,34 +2291,7 @@ class _LiveQuizListState extends State<_LiveQuizList> {
                       }
                     : null,
           );
-          if (!item.locked) {
-            return listTile;
-          }
-          return Stack(
-            alignment: Alignment.centerRight,
-            children: [
-              ColorFiltered(
-                colorFilter:
-                    const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-                child: listTile,
-              ),
-              Positioned(
-                right: 16,
-                child: IgnorePointer(
-                  ignoring: true,
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.grey.shade200,
-                    child: const Icon(
-                      Icons.lock,
-                      color: Colors.grey,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
+          return listTile;
         },
       ),
     );
@@ -2502,35 +2432,7 @@ class HomeCategoryTile extends StatelessWidget {
       ),
     );
 
-    if (!locked) {
-      return card;
-    }
-
-    return Stack(
-      children: [
-        ColorFiltered(
-          colorFilter:
-              const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-          child: card,
-        ),
-        Positioned(
-          top: 12,
-          right: 12,
-          child: IgnorePointer(
-            ignoring: true,
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey.shade200,
-              child: const Icon(
-                Icons.lock,
-                color: Colors.grey,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return card;
   }
 }
 
