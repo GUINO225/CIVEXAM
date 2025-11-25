@@ -51,6 +51,7 @@ const Color _amberAccent = Color(0xFFFFB300);
 const Color _orangeAccent = Color(0xFFFF7043);
 const Color _pinkAccent = Color(0xFFEC407A);
 const Color _aquaAccent = Color(0xFF00ACC1);
+const Color _navyAccent = Color(0xFF2D3D73);
 
 const List<CategoryMenuItem> kCategoryMenuItems = <CategoryMenuItem>[
   CategoryMenuItem(
@@ -188,6 +189,11 @@ const List<CategoryMenuItem> kCategoryMenuItems = <CategoryMenuItem>[
     icon: Icons.library_books_rounded,
     accentColor: _emeraldAccent,
   ),
+  CategoryMenuItem(
+    title: 'Guide concours ENA',
+    icon: Icons.school_outlined,
+    accentColor: _navyAccent,
+  ),
 ];
 
 const List<CategoryDefinition> kHomeCategories = <CategoryDefinition>[
@@ -249,8 +255,8 @@ const List<CategoryDefinition> kHomeCategories = <CategoryDefinition>[
     category: HomeCategory.help,
     keyName: 'help',
     title: 'Aide & thèmes',
-    description: 'Guides d’utilisation et futures thématiques.',
-    itemIndexes: [4],
+    description: 'Guide du concours ENA, aide et futures thématiques.',
+    itemIndexes: [27, 4],
     icon: Icons.help_outline_rounded,
     accentColor: _pinkAccent,
   ),

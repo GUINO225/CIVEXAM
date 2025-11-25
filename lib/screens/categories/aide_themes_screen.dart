@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'category_definitions.dart';
 import 'category_helpers.dart';
 import 'widgets/category_menu_list.dart';
+import 'ena_overview_screen.dart';
 
 class AideThemesScreen extends StatelessWidget {
   final CategoryDefinition definition;
@@ -14,6 +15,11 @@ class AideThemesScreen extends StatelessWidget {
 
   Future<void> _handleTap(BuildContext context, int itemIndex) {
     switch (itemIndex) {
+      case 27:
+        return Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EnaOverviewScreen()),
+        );
       case 4:
         return showComingSoonDialog(
           context,
