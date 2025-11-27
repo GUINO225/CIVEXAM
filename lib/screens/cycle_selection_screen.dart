@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+
+import '../models/cycle_info.dart';
+import '../services/cycle_store.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/play_bottom_nav_bar.dart';
@@ -133,6 +138,7 @@ class CycleSelectionScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        for (final cycle in enaCycles)
                         for (final cycle in _cycles)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -161,6 +167,41 @@ class CycleDetailScreen extends StatelessWidget {
   final CycleInfo cycle;
   final bool guestMode;
 
+  Future<void> _rememberCycle() {
+    return CycleStore().saveSelectedCycle(cycle.id);
+  }
+
+  Future<void> _startQuickQuiz(BuildContext context) async {
+    await _rememberCycle();
+    if (!context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TrainingQuickStartScreen(
+          cycleName: cycle.title,
+          subjectWhitelist: cycle.subjects,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSubjects(BuildContext context) async {
+    await _rememberCycle();
+    if (!context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SubjectListScreen(
+          allowedSubjects: cycle.subjects,
+          cycleName: cycle.title,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDashboard(BuildContext context) async {
+    await _rememberCycle();
+    if (!context.mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => PlayScreen(cycle: cycle, guestMode: guestMode)),
   void _startQuickQuiz(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),

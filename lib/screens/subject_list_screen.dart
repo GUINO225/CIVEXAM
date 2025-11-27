@@ -20,7 +20,10 @@ class _Brand {
 }
 
 class SubjectListScreen extends StatefulWidget {
-  const SubjectListScreen({super.key});
+  const SubjectListScreen({super.key, this.allowedSubjects, this.cycleName});
+
+  final List<String>? allowedSubjects;
+  final String? cycleName;
 
   @override
   State<SubjectListScreen> createState() => _SubjectListScreenState();
@@ -46,8 +49,16 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
     try {
       await QuestionLoader.loadENA();
       if (!mounted) return;
+      final allowed = widget.allowedSubjects;
+      final allowedSet =
+          allowed == null ? null : allowed.map((e) => e.toLowerCase()).toSet();
+      final loaded = allowedSet == null || allowedSet.isEmpty
+          ? subjectsENA
+          : subjectsENA
+              .where((s) => allowedSet.contains(s.name.toLowerCase()))
+              .toList();
       setState(() {
-        _subjects = subjectsENA;
+        _subjects = loaded;
         _loading = false;
       });
     } catch (e) {
@@ -103,6 +114,8 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return _buildError();
 
+    final hasCycleFilter = widget.cycleName != null && widget.cycleName!.trim().isNotEmpty;
+
     if (_subjects.isEmpty) {
       return Center(
         child: Padding(
@@ -113,7 +126,9 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
               const Icon(Icons.menu_book_outlined, size: 48, color: _Brand.secondary),
               const SizedBox(height: 12),
               Text(
-                'Aucune matière disponible pour le moment.',
+                hasCycleFilter
+                    ? 'Aucune matière disponible pour ce cycle pour le moment.'
+                    : 'Aucune matière disponible pour le moment.',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
@@ -134,10 +149,14 @@ class _SubjectListScreenState extends State<SubjectListScreen> {
       onRefresh: _loadSubjects,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        itemCount: _subjects.length,
+        itemCount: _subjects.length + (hasCycleFilter ? 1 : 0),
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          final subject = _subjects[index];
+          if (hasCycleFilter && index == 0) {
+            return _CycleHeader(cycleName: widget.cycleName!);
+          }
+
+          final subject = _subjects[index - (hasCycleFilter ? 1 : 0)];
           return _SubjectTile(
             subject: subject,
             onOpenChapter: (chapterName) =>
@@ -282,6 +301,54 @@ Color _colorForSubject(String name) {
     return const Color(0xFF00838F); // cyan dark
   }
   return _Brand.primary; // fallback cohérent
+}
+
+class _CycleHeader extends StatelessWidget {
+  const _CycleHeader({required this.cycleName});
+
+  final String cycleName;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _Brand.chipBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _Brand.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.flag_rounded, color: _Brand.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cycle sélectionné',
+                  style: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: _Brand.text,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  cycleName,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: _Brand.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Tuile “Live Quizzes” style (carte blanche bordée, arrondis)

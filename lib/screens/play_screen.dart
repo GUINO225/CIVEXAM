@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/design_config.dart';
 import '../models/exam_history_entry.dart';
 import '../models/leaderboard_entry.dart';
+import '../models/cycle_info.dart';
 import '../services/design_bus.dart';
 import '../services/ongoing_quiz_store.dart';
 import '../services/question_loader.dart';
@@ -20,6 +21,7 @@ import '../services/competition_quiz_launcher.dart';
 import '../services/arcade_progress_store.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
+import '../services/cycle_store.dart';
 import '../utils/palette_utils.dart';
 import '../utils/rank_display_helper.dart';
 import '../utils/responsive_utils.dart';
@@ -192,22 +194,38 @@ const CalendarOverlayConfig CAL = CalendarOverlayConfig();
 /// === ÉCRAN ==================================================================
 /// ============================================================================
 class PlayScreen extends StatelessWidget {
-  const PlayScreen({super.key, this.initialIndex = 0, this.guestMode = false});
+  const PlayScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.guestMode = false,
+    this.cycle,
+  });
 
   final int initialIndex;
   final bool guestMode;
+  final CycleInfo? cycle;
 
   @override
   Widget build(BuildContext context) {
-    return HomeShell(initialIndex: initialIndex, guestMode: guestMode);
+    return HomeShell(
+      initialIndex: initialIndex,
+      guestMode: guestMode,
+      cycle: cycle,
+    );
   }
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.initialIndex = 0, this.guestMode = false});
+  const HomeShell({
+    super.key,
+    this.initialIndex = 0,
+    this.guestMode = false,
+    this.cycle,
+  });
 
   final int initialIndex;
   final bool guestMode;
+  final CycleInfo? cycle;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -217,6 +235,7 @@ class _HomeShellState extends State<HomeShell> {
   late int _selectedNavIndex;
   late final List<PlayNavDestination> _navItems;
   bool get guestMode => widget.guestMode;
+  CycleInfo? _cycle;
 
   final CompetitionService _competitionService = CompetitionService();
   final AuthService _authService = AuthService();
@@ -263,6 +282,8 @@ class _HomeShellState extends State<HomeShell> {
   final ValueNotifier<DateTime> _now = ValueNotifier<DateTime>(DateTime.now());
   Timer? _clockTimer;
 
+  final CycleStore _cycleStore = CycleStore();
+
   @override
   void initState() {
     super.initState();
@@ -278,6 +299,7 @@ class _HomeShellState extends State<HomeShell> {
     _promoController = PageController(viewportFraction: 1.0);
     _startAutoPlay();
     _startClock();
+    _initCycle();
     if (!guestMode) {
       unawaited(OngoingQuickQuizStore.load());
       unawaited(HistoryStore.load());
@@ -303,6 +325,27 @@ class _HomeShellState extends State<HomeShell> {
         _selectedNavIndex = widget.initialIndex;
       });
     }
+
+    if (oldWidget.cycle?.id != widget.cycle?.id) {
+      final newCycle = widget.cycle;
+      if (newCycle != null) {
+        setState(() => _cycle = newCycle);
+        unawaited(_cycleStore.saveSelectedCycle(newCycle.id));
+      }
+    }
+  }
+
+  Future<void> _initCycle() async {
+    final incoming = widget.cycle;
+    if (incoming != null) {
+      setState(() => _cycle = incoming);
+      await _cycleStore.saveSelectedCycle(incoming.id);
+      return;
+    }
+
+    final stored = await _cycleStore.loadSelectedCycle();
+    if (!mounted) return;
+    setState(() => _cycle = stored);
   }
 
   Future<void> _loadProfileNickname() async {
@@ -513,8 +556,26 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _handleCreateQuickQuiz() async {
+    final cycle = _cycle;
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
+      MaterialPageRoute(
+        builder: (_) => TrainingQuickStartScreen(
+          cycleName: cycle?.title,
+          subjectWhitelist: cycle?.subjects,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCycleSubjects() async {
+    final cycle = _cycle;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SubjectListScreen(
+          allowedSubjects: cycle?.subjects,
+          cycleName: cycle?.title,
+        ),
+      ),
     );
   }
 
@@ -849,6 +910,7 @@ class _HomeShellState extends State<HomeShell> {
           onBrand: shellOnBrand,
           accent: accent,
           brandVariant: brandVariant,
+          cycle: _cycle,
         ),
       ),
       _buildSurfaceTab(
@@ -861,8 +923,10 @@ class _HomeShellState extends State<HomeShell> {
       _buildSurfaceTab(
         key: const ValueKey('subjects_tab'),
         backgroundColor: surfaceColor,
-        child: const SubjectListScreen(
-          key: PageStorageKey<String>('subject_list_tab'),
+        child: SubjectListScreen(
+          key: const PageStorageKey<String>('subject_list_tab'),
+          allowedSubjects: _cycle?.subjects,
+          cycleName: _cycle?.title,
         ),
       ),
       _buildSurfaceTab(
@@ -909,6 +973,7 @@ class _HomeShellState extends State<HomeShell> {
     required Color onBrand,
     required Color accent,
     required Color brandVariant,
+    required CycleInfo? cycle,
   }) {
     return Stack(
       fit: StackFit.expand,
@@ -933,6 +998,7 @@ class _HomeShellState extends State<HomeShell> {
           userCountError: _userCountError,
           brand: brand,
           onBrand: onBrand,
+          cycle: cycle,
         ),
         _buildSections(
           sections: sections,
@@ -942,6 +1008,7 @@ class _HomeShellState extends State<HomeShell> {
           onBrand: onBrand,
           accent: accent,
           brandVariant: brandVariant,
+          cycle: cycle,
         ),
       ],
     );
@@ -988,6 +1055,7 @@ class _HomeShellState extends State<HomeShell> {
     required String? userCountError,
     required Color brand,
     required Color onBrand,
+    required CycleInfo? cycle,
   }) {
     final trimmedProfileNickname = profileNickname?.trim();
     final entryName = _currentUserEntry?.name.trim();
@@ -1105,6 +1173,32 @@ class _HomeShellState extends State<HomeShell> {
                           ),
                         ],
                       ),
+                      if (cycle != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: overlayColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(cycle.icon, color: onBrand, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Cycle en cours : ${cycle.title}',
+                                style: TextStyle(
+                                  color: onBrand,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       _UserCountRow(
                         loading: userCountLoading,
@@ -1189,8 +1283,10 @@ class _HomeShellState extends State<HomeShell> {
     required Color onBrand,
     required Color accent,
     required Color brandVariant,
+    required CycleInfo? cycle,
   }) {
     final bool isGuest = guestMode;
+    final String? cycleName = cycle?.title;
     Color lighten(Color color, double amount) {
       final hsl = HSLColor.fromColor(color);
       final lightness = (hsl.lightness + amount).clamp(0.0, 1.0);
@@ -1273,7 +1369,9 @@ class _HomeShellState extends State<HomeShell> {
         badgeBorderColor: lighten(brand, 0.42),
         badgeForeground: darken(brand, 0.24),
         title: 'Quiz rapide',
-        subtitle: 'Démarre un entraînement instantané',
+        subtitle: cycleName != null
+            ? 'Entraînement instantané pour le $cycleName'
+            : 'Démarre un entraînement instantané',
         brand: brand,
         onTap: _handleCreateQuickQuiz,
       ),
@@ -1417,6 +1515,18 @@ class _HomeShellState extends State<HomeShell> {
                           ),
                         ),
                       ),
+
+                      if (cycle != null)
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _CycleSummaryCard(
+                              cycle: cycle,
+                              onOpenSubjects: _openCycleSubjects,
+                              onStartQuickQuiz: _handleCreateQuickQuiz,
+                            ),
+                          ),
+                        ),
 
                       // Carte "Reprendre le quiz"
                       SliverPadding(
@@ -1614,6 +1724,118 @@ class _HomeShellState extends State<HomeShell> {
         );
         break;
     }
+  }
+}
+
+class _CycleSummaryCard extends StatelessWidget {
+  const _CycleSummaryCard({
+    required this.cycle,
+    required this.onOpenSubjects,
+    required this.onStartQuickQuiz,
+  });
+
+  final CycleInfo cycle;
+  final VoidCallback onOpenSubjects;
+  final VoidCallback onStartQuickQuiz;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final onCard = theme.colorScheme.onSurface;
+    final subtle = onCard.withOpacity(0.72);
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      elevation: 6,
+      shadowColor: cycle.color.withOpacity(0.15),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: cycle.color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(cycle.icon, color: cycle.color, size: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cycle.title,
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: onCard,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Accès rapide aux matières et quiz de ton cycle.',
+                        style:
+                            textTheme.bodyMedium?.copyWith(color: subtle),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: cycle.subjects
+                  .map(
+                    (s) => Chip(
+                      backgroundColor: cycle.accent.withOpacity(0.12),
+                      labelStyle: textTheme.bodyMedium?.copyWith(
+                        color: onCard,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      label: Text(s),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cycle.color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: onStartQuickQuiz,
+                    label: const Text('Quiz rapide du cycle'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.menu_book_rounded),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: onOpenSubjects,
+                    label: const Text('Matières du cycle'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
