@@ -112,6 +112,8 @@ class EnaOverviewScreen extends StatelessWidget {
                         'Informatique de base (parfois)',
                       ],
                     ),
+                    SizedBox(height: 14),
+                    _SubjectsComparison(),
                   ],
                 ),
               ),
@@ -466,6 +468,227 @@ class _SubjectsBlock extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SubjectsComparison extends StatefulWidget {
+  const _SubjectsComparison();
+
+  @override
+  State<_SubjectsComparison> createState() => _SubjectsComparisonState();
+}
+
+class _SubjectsComparisonState extends State<_SubjectsComparison> {
+  static const _cycles = [
+    _CycleSubjectsData(
+      title: 'Cycle Supérieur',
+      color: Color(0xFF3748B4),
+      subjects: [
+        'Culture générale',
+        'Droit public',
+        'Administration publique',
+        'Analyse documentaire / Résumé',
+        'Étude de cas / Note administrative',
+        'Anglais',
+        'Économie',
+      ],
+    ),
+    _CycleSubjectsData(
+      title: 'Cycle Moyen Supérieur',
+      color: Color(0xFFF29F05),
+      subjects: [
+        'Culture générale',
+        'Droit (constitutionnel + administratif)',
+        'Économie',
+        'Note de synthèse',
+        'Anglais',
+        'Mathématiques financières / Analyse',
+        'Informatique de base (selon sessions)',
+      ],
+    ),
+    _CycleSubjectsData(
+      title: 'Cycle Moyen',
+      color: Color(0xFF20A86A),
+      subjects: [
+        'Culture générale',
+        'Français (compréhension, expression, orthographe)',
+        'Mathématiques / Logique',
+        'Connaissance du civisme et des institutions',
+        'Informatique de base (parfois)',
+      ],
+    ),
+  ];
+
+  late final Map<String, int> _frequency;
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _frequency = _buildFrequencyMap();
+  }
+
+  Map<String, int> _buildFrequencyMap() {
+    final map = <String, int>{};
+    for (final cycle in _cycles) {
+      for (final subject in cycle.subjects) {
+        map[subject] = (map[subject] ?? 0) + 1;
+      }
+    }
+    return map;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _cycles[_selectedIndex];
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.35)),
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.25),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Les matières sont adaptées au niveau du cycle : certaines reviennent d\'un cycle à l\'autre (communes), d\'autres sont spécifiques.',
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(
+              _cycles.length,
+              (index) {
+                final item = _cycles[index];
+                final isSelected = index == _selectedIndex;
+                return ChoiceChip(
+                  label: Text(item.title),
+                  selected: isSelected,
+                  onSelected: (_) => setState(() => _selectedIndex = index),
+                  selectedColor: item.color.withOpacity(0.18),
+                  backgroundColor: item.color.withOpacity(0.08),
+                  labelStyle: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? item.color.darken(0.15) : theme.colorScheme.onSurface,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: item.color.withOpacity(isSelected ? 0.6 : 0.35)),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 14),
+          ...selected.subjects.map(
+            (subject) {
+              final isCommon = (_frequency[subject] ?? 1) > 1;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _SubjectRow(
+                  subject: subject,
+                  color: selected.color,
+                  isCommon: isCommon,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubjectRow extends StatelessWidget {
+  final String subject;
+  final Color color;
+  final bool isCommon;
+
+  const _SubjectRow({
+    required this.subject,
+    required this.color,
+    required this.isCommon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 10,
+          width: 10,
+          margin: const EdgeInsets.only(top: 6),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            subject,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+        _SubjectBadge(isCommon: isCommon, color: color),
+      ],
+    );
+  }
+}
+
+class _SubjectBadge extends StatelessWidget {
+  final bool isCommon;
+  final Color color;
+
+  const _SubjectBadge({required this.isCommon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = isCommon ? 'Commune' : 'Spécifique';
+    final icon = isCommon ? Icons.link_rounded : Icons.push_pin_rounded;
+    return Container(
+      decoration: BoxDecoration(
+        color: isCommon ? color.withOpacity(0.16) : color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color.darken(0.15)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: color.darken(0.05),
+                ) ??
+                TextStyle(color: color.darken(0.05), fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CycleSubjectsData {
+  final String title;
+  final Color color;
+  final List<String> subjects;
+
+  const _CycleSubjectsData({
+    required this.title,
+    required this.color,
+    required this.subjects,
+  });
 }
 
 class _BulletRow extends StatelessWidget {
