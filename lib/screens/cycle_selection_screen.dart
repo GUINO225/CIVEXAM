@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/play_bottom_nav_bar.dart';
 import 'play_screen.dart';
 import 'subject_list_screen.dart';
 import 'training_quick_start.dart';
@@ -28,7 +29,8 @@ const _cycles = <CycleInfo>[
   CycleInfo(
     id: 'cs',
     title: 'Cycle Supérieur',
-    subtitle: 'Bac + 4 minimum • Missions stratégiques et décisions publiques',
+    subtitle:
+        'Bac + 4 minimum • Missions stratégiques et décisions publiques',
     color: Color(0xFF3748B4),
     accent: Color(0xFF4E64E8),
     subjects: [
@@ -91,34 +93,63 @@ class CycleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final brand = theme.colorScheme.primary;
+    final onBrand = theme.colorScheme.onPrimary;
+    final navHighlight = Color.alphaBlend(onBrand.withOpacity(0.14), brand);
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Choisis ton cycle ENA'),
+        toolbarHeight: 0,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colorScheme.surface,
-              colorScheme.surfaceVariant.withOpacity(0.35),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      bottomNavigationBar: PlayBottomNavBar(
+        destinations: playNavDestinations,
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          if (index == 0) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => PlayScreen(initialIndex: index)),
+          );
+        },
+        backgroundColor: brand,
+        highlightColor: navHighlight,
+        foregroundColor: onBrand,
+      ),
+      body: Column(
+        children: [
+          _PlayHeader(brand: brand, onBrand: onBrand),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final cycle in _cycles)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: _CycleCard(
+                              cycle: cycle,
+                              onTap: () => _openCycle(context, cycle),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          itemBuilder: (context, index) {
-            final cycle = _cycles[index];
-            return _CycleCard(
-              cycle: cycle,
-              onTap: () => _openCycle(context, cycle),
-            );
-          },
-          separatorBuilder: (_, __) => const SizedBox(height: 14),
-          itemCount: _cycles.length,
-        ),
+        ],
       ),
     );
   }
@@ -334,36 +365,29 @@ class CycleDetailScreen extends StatelessWidget {
   }
 }
 
-class _CycleCard extends StatelessWidget {
-  const _CycleCard({required this.cycle, this.onTap});
+class _PlayHeader extends StatelessWidget {
+  const _PlayHeader({required this.brand, required this.onBrand});
 
-  final CycleInfo cycle;
-  final VoidCallback? onTap;
-
-  Color _lighten(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    final lightness = (hsl.lightness + amount).clamp(0.0, 1.0);
-    return hsl.withLightness(lightness).toColor();
-  }
+  final Color brand;
+  final Color onBrand;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final subtitleColor = theme.colorScheme.onSurface.withOpacity(0.7);
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _lighten(cycle.color, 0.3).withOpacity(0.3)),
-          boxShadow: const [
-            BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 8)),
-          ],
+    final now = DateTime.now();
+    final greeting = now.hour < 18 ? 'Bienvenue' : 'Bonsoir';
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: brand,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
+      ),
+      child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -372,46 +396,86 @@ class _CycleCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: cycle.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: onBrand.withOpacity(0.16),
+                      shape: BoxShape.circle,
                     ),
-                    child: Icon(cycle.icon, color: cycle.color),
+                    child: const Icon(Icons.school_rounded, color: Colors.white),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      cycle.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                  Text(
+                    'Sélection du cycle ENA',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: onBrand,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
-                  const Icon(Icons.chevron_right_rounded),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                cycle.subtitle,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: subtitleColor,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: cycle.subjects.take(4).map((s) {
-                  return Chip(
-                    label: Text(s),
-                    backgroundColor: cycle.accent.withOpacity(0.12),
-                    labelStyle: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                greeting,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: onBrand.withOpacity(0.9),
+                      fontWeight: FontWeight.w900,
                     ),
-                  );
-                }).toList(),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Choisis ton cycle pour continuer',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: onBrand.withOpacity(0.8),
+                    ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CycleCard extends StatelessWidget {
+  const _CycleCard({required this.cycle, this.onTap});
+
+  final CycleInfo cycle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Color(0x12000000), blurRadius: 14, offset: Offset(0, 10)),
+          ],
+          border: Border.all(color: cycle.color.withOpacity(0.14)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cycle.color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(cycle.icon, color: cycle.color, size: 30),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              cycle.title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
       ),
     );
