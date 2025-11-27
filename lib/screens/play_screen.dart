@@ -536,6 +536,12 @@ class _HomeShellState extends State<HomeShell> {
     await CompetitionQuizLauncher.launch(context);
   }
 
+  void _handleCycleSelected(String cycleLabel) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Cycle sélectionné : $cycleLabel')),
+    );
+  }
+
   Future<void> _handleSignOut() async {
     try {
       await _authService.signOut();
@@ -1484,6 +1490,19 @@ class _HomeShellState extends State<HomeShell> {
                         ),
                       ),
 
+                      // Carte "Sélection du Cycle"
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _CycleSelectionCard(
+                            brand: brand,
+                            accent: accent,
+                            onBrand: onBrand,
+                            onCycleSelected: _handleCycleSelected,
+                          ),
+                        ),
+                      ),
+
                       // Liste “Live Quiz”
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
@@ -2175,6 +2194,256 @@ class _LeaderboardEntryRow extends StatelessWidget {
       return '${minutes}m ${secs.toString().padLeft(2, '0')}s';
     }
     return '${secs}s';
+  }
+}
+
+class _CycleSelectionCard extends StatelessWidget {
+  const _CycleSelectionCard({
+    required this.brand,
+    required this.accent,
+    required this.onBrand,
+    this.onCycleSelected,
+  });
+
+  final Color brand;
+  final Color accent;
+  final Color onBrand;
+  final ValueChanged<String>? onCycleSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subtitleColor = theme.colorScheme.onSurface.withOpacity(0.72);
+    final baseBackground =
+        Color.alphaBlend(Colors.white.withOpacity(0.82), brand.withOpacity(0.05));
+    final borderColor =
+        Color.alphaBlend(brand.withOpacity(0.2), accent.withOpacity(0.3));
+    final ribbonColor = Color.alphaBlend(accent.withOpacity(0.2), brand);
+
+    const cycles = [
+      {'title': 'Cycle Moyen', 'acronym': 'CM'},
+      {'title': 'Cycle Moyen Supérieur', 'acronym': 'CMS'},
+      {'title': 'Cycle Supérieur', 'acronym': 'CS'},
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: baseBackground,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: borderColor),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 18,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: ribbonColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'PLAY SCREEN – Tableau de bord de révision',
+              style: theme.textTheme.labelMedium?.copyWith(
+                    color: onBrand,
+                    fontWeight: FontWeight.w700,
+                  ) ??
+                  TextStyle(
+                    color: onBrand,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Color.alphaBlend(onBrand.withOpacity(0.12), brand),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '1️⃣',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Sélection du Cycle',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                        color: _titleColor,
+                        fontWeight: FontWeight.w800,
+                      ) ??
+                      const TextStyle(
+                        color: _titleColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Choisis le cycle qui correspond à ta progression.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+                  color: subtitleColor,
+                  fontWeight: FontWeight.w600,
+                ) ??
+                TextStyle(
+                  color: subtitleColor,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (final cycle in cycles)
+                _CycleButton(
+                  title: cycle['title']!,
+                  acronym: cycle['acronym']!,
+                  brand: brand,
+                  accent: accent,
+                  onBrand: onBrand,
+                  onTap: () => onCycleSelected?.call(cycle['title']!),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CycleButton extends StatelessWidget {
+  const _CycleButton({
+    required this.title,
+    required this.acronym,
+    required this.brand,
+    required this.accent,
+    required this.onBrand,
+    this.onTap,
+  });
+
+  final String title;
+  final String acronym;
+  final Color brand;
+  final Color accent;
+  final Color onBrand;
+  final VoidCallback? onTap;
+
+  Color _lighten(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = (hsl.lightness + amount).clamp(0.0, 1.0);
+    return hsl.withLightness(lightness).toColor();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final shadowColor = brand.withOpacity(0.12);
+    final background = Color.alphaBlend(
+      _lighten(brand, 0.3).withOpacity(0.18),
+      Colors.white,
+    );
+    final borderColor = Color.alphaBlend(brand.withOpacity(0.22), accent);
+    final pillColor = Color.alphaBlend(onBrand.withOpacity(0.14), accent);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 220),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 14,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: pillColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  acronym,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                        color: onBrand,
+                        fontWeight: FontWeight.w800,
+                      ) ??
+                      TextStyle(
+                        color: onBrand,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          color: _titleColor,
+                          fontWeight: FontWeight.w800,
+                        ) ??
+                        const TextStyle(
+                          color: _titleColor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Cycle $acronym',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.64),
+                          fontWeight: FontWeight.w600,
+                        ) ??
+                        TextStyle(
+                          color: theme.colorScheme.onSurface.withOpacity(0.64),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 18,
+                color: _titleColor.withOpacity(0.7),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
