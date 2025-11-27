@@ -10,7 +10,7 @@ import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
 import '../widgets/primary_button.dart';
 import 'guest_preview_screen.dart';
-import 'play_screen.dart';
+import 'cycle_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, this.initialUnverifiedUser});
@@ -283,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const PlayScreen()),
+        MaterialPageRoute(builder: (_) => const CycleSelectionScreen()),
       );
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -339,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const PlayScreen()),
+        MaterialPageRoute(builder: (_) => const CycleSelectionScreen()),
       );
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);

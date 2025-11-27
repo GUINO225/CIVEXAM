@@ -16,7 +16,14 @@ import '../widgets/chip_selector.dart';
 import 'exam_full_screen.dart';
 
 class TrainingQuickStartScreen extends StatefulWidget {
-  const TrainingQuickStartScreen({super.key});
+  const TrainingQuickStartScreen({
+    super.key,
+    this.subjectWhitelist,
+    this.cycleName,
+  });
+
+  final List<String>? subjectWhitelist;
+  final String? cycleName;
 
   @override
   State<TrainingQuickStartScreen> createState() => _TrainingQuickStartScreenState();
@@ -36,17 +43,33 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
       final List<Question> all = await QuestionLoader.loadENA();
       if (!mounted) return;
 
+      final whitelist = widget.subjectWhitelist;
+      final whitelistSet =
+          whitelist == null ? null : whitelist.map((e) => e.toLowerCase()).toSet();
+      final List<Question> pool =
+          whitelistSet == null || whitelistSet.isEmpty
+              ? all
+              : all
+                  .where((q) => whitelistSet.contains(q.subject.toLowerCase()))
+                  .toList();
+
+      if (pool.isEmpty) {
+        final label = widget.cycleName ?? 'ce cycle';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Aucune question trouvée pour $label.')),
+        );
+        setState(() => _loading = false);
+        return;
+      }
+
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      final List<Question> selected = await pickAndShuffle(
-        all,
-        _questionCount,
-        dedupeByQuestion: true,
-      );
+      final List<Question> selected =
+          await pickAndShuffle(pool, _questionCount, dedupeByQuestion: true);
 
       if (mounted) Navigator.pop(context);
 
@@ -64,7 +87,11 @@ class _TrainingQuickStartScreenState extends State<TrainingQuickStartScreen> {
 
       final totalSeconds = _perQuestionSeconds * selected.length;
       final scoring = const ExamScoring(correct: 1, wrong: -1, blank: 0, coefficient: 1);
-      final title = 'Entraînement (${_perQuestionSeconds}s/question)';
+      final cycleLabel = widget.cycleName?.trim();
+      final baseTitle = cycleLabel != null && cycleLabel.isNotEmpty
+          ? 'Entraînement $cycleLabel'
+          : 'Entraînement';
+      final title = '$baseTitle (${_perQuestionSeconds}s/question)';
 
       final quickState = OngoingQuickQuizState(
         title: title,
