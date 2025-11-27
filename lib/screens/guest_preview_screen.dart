@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'play_screen.dart';
+import 'cycle_selection_screen.dart';
 import '../models/design_config.dart';
 import '../services/design_bus.dart';
 import '../utils/palette_utils.dart';
@@ -27,7 +27,7 @@ class GuestPreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const PlayScreen(guestMode: true);
+    return const CycleSelectionScreen(guestMode: true);
     return ValueListenableBuilder<DesignConfig>(
       valueListenable: DesignBus.notifier,
       builder: (context, cfg, _) {
