@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'login_screen.dart';
-import 'play_screen.dart';
+import 'cycle_selection_screen.dart';
 import '../services/question_loader.dart';
 
 /// Initial splash screen showing the app logo before navigating to login.
@@ -51,8 +51,9 @@ class _SplashScreenState extends State<SplashScreen> {
             unverifiedUser: unverifiedUser);
         return;
       }
-      final next =
-          refreshedUser == null ? const LoginScreen() : const PlayScreen();
+      final next = refreshedUser == null
+          ? const LoginScreen()
+          : const CycleSelectionScreen();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => next),
       );
