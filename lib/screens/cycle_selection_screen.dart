@@ -3,85 +3,10 @@ import 'package:flutter/material.dart';
 
 import '../models/cycle_info.dart';
 import '../services/cycle_store.dart';
-import 'package:flutter/material.dart';
-
 import '../widgets/play_bottom_nav_bar.dart';
 import 'play_screen.dart';
 import 'subject_list_screen.dart';
 import 'training_quick_start.dart';
-
-class CycleInfo {
-  final String id;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final Color accent;
-  final List<String> subjects;
-  final IconData icon;
-
-  const CycleInfo({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.accent,
-    required this.subjects,
-    required this.icon,
-  });
-}
-
-const _cycles = <CycleInfo>[
-  CycleInfo(
-    id: 'cs',
-    title: 'Cycle Supérieur',
-    subtitle:
-        'Bac + 4 minimum • Missions stratégiques et décisions publiques',
-    color: Color(0xFF3748B4),
-    accent: Color(0xFF4E64E8),
-    subjects: [
-      'Culture générale',
-      'Droit public',
-      'Administration publique',
-      'Analyse documentaire / Résumé',
-      'Étude de cas / Note administrative',
-      'Anglais',
-      'Économie',
-    ],
-    icon: Icons.workspace_premium_rounded,
-  ),
-  CycleInfo(
-    id: 'cms',
-    title: 'Cycle Moyen Supérieur',
-    subtitle: 'Bac + 2 • Coordination et suivi opérationnel',
-    color: Color(0xFFF29F05),
-    accent: Color(0xFFFFB74D),
-    subjects: [
-      'Culture générale',
-      'Droit (constitutionnel + administratif)',
-      'Économie',
-      'Note de synthèse',
-      'Anglais',
-      'Mathématiques financières / Analyse',
-      'Informatique de base (selon sessions)',
-    ],
-    icon: Icons.account_tree_rounded,
-  ),
-  CycleInfo(
-    id: 'cm',
-    title: 'Cycle Moyen',
-    subtitle: 'Baccalauréat • Accès le plus large mais concours très sélectif',
-    color: Color(0xFF20A86A),
-    accent: Color(0xFF2EC88A),
-    subjects: [
-      'Culture générale',
-      'Français (compréhension, expression, orthographe)',
-      'Mathématiques / Logique',
-      'Connaissance du civisme et des institutions',
-      'Informatique de base (parfois)',
-    ],
-    icon: Icons.handyman_rounded,
-  ),
-];
 
 class CycleSelectionScreen extends StatelessWidget {
   const CycleSelectionScreen({super.key, this.guestMode = false});
@@ -139,7 +64,6 @@ class CycleSelectionScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         for (final cycle in enaCycles)
-                        for (final cycle in _cycles)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             child: _CycleCard(
@@ -202,21 +126,6 @@ class CycleDetailScreen extends StatelessWidget {
     if (!context.mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => PlayScreen(cycle: cycle, guestMode: guestMode)),
-  void _startQuickQuiz(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TrainingQuickStartScreen()),
-    );
-  }
-
-  void _openSubjects(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SubjectListScreen()),
-    );
-  }
-
-  void _openDashboard(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => PlayScreen(guestMode: guestMode)),
     );
   }
 
@@ -267,9 +176,9 @@ class CycleDetailScreen extends StatelessWidget {
                         child: Text(
                           cycle.title,
                           style: textTheme.headlineSmall?.copyWith(
-                                color: onColor,
-                                fontWeight: FontWeight.w900,
-                              ) ??
+                            color: onColor,
+                            fontWeight: FontWeight.w900,
+                          ) ??
                               TextStyle(
                                 color: onColor,
                                 fontWeight: FontWeight.w900,
@@ -283,8 +192,8 @@ class CycleDetailScreen extends StatelessWidget {
                   Text(
                     cycle.subtitle,
                     style: textTheme.bodyMedium?.copyWith(
-                          color: onColor.withOpacity(0.9),
-                        ) ??
+                      color: onColor.withOpacity(0.9),
+                    ) ??
                         TextStyle(
                           color: onColor.withOpacity(0.9),
                         ),
@@ -309,14 +218,14 @@ class CycleDetailScreen extends StatelessWidget {
               children: cycle.subjects
                   .map(
                     (s) => Chip(
-                      label: Text(s),
-                      backgroundColor: cycle.accent.withOpacity(0.12),
-                      labelStyle: textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  )
+                  label: Text(s),
+                  backgroundColor: cycle.accent.withOpacity(0.12),
+                  labelStyle: textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              )
                   .toList(),
             ),
             const SizedBox(height: 16),
@@ -446,9 +355,9 @@ class _PlayHeader extends StatelessWidget {
                   Text(
                     'Sélection du cycle ENA',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: onBrand,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: onBrand,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
@@ -456,16 +365,16 @@ class _PlayHeader extends StatelessWidget {
               Text(
                 greeting,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: onBrand.withOpacity(0.9),
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: onBrand.withOpacity(0.9),
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Choisis ton cycle pour continuer',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: onBrand.withOpacity(0.8),
-                    ),
+                  color: onBrand.withOpacity(0.8),
+                ),
               ),
             ],
           ),
