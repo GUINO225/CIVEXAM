@@ -16,6 +16,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _requiresEmailVerification(User user) {
+    return user.providerData.any((p) => p.providerId == 'password');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +46,9 @@ class _SplashScreenState extends State<SplashScreen> {
       }
       var refreshedUser = auth.currentUser;
       refreshedUser ??= user;
-      if (refreshedUser != null && !refreshedUser.emailVerified) {
+      if (refreshedUser != null &&
+          _requiresEmailVerification(refreshedUser) &&
+          !refreshedUser.emailVerified) {
         final unverifiedUser = refreshedUser;
         try {
           await auth.signOut();
