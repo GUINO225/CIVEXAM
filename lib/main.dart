@@ -43,13 +43,34 @@ class _CivExamAppState extends State<CivExamApp> {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      FirebaseFirestore.instance.settings =
-          const Settings(persistenceEnabled: true);
+      await _configureFirestore();
       final cfg = await DesignPrefs.load();
       DesignBus.push(cfg);
     } catch (error, stackTrace) {
       debugPrint('App initialization failed: $error\n$stackTrace');
       rethrow;
+    }
+  }
+
+  Future<void> _configureFirestore() async {
+    try {
+      FirebaseFirestore.instance.settings =
+          const Settings(persistenceEnabled: true);
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Firestore persistence unavailable, fallback to default settings: '
+        '$error\n$stackTrace',
+      );
+      try {
+        FirebaseFirestore.instance.settings = const Settings(
+          persistenceEnabled: false,
+        );
+      } catch (fallbackError, fallbackStackTrace) {
+        debugPrint(
+          'Firestore fallback settings failed: '
+          '$fallbackError\n$fallbackStackTrace',
+        );
+      }
     }
   }
 
