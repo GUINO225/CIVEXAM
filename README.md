@@ -69,3 +69,16 @@ un index composite pour ce type de requête :
 
 > ℹ️ L'index doit être créé dans chaque projet Firebase utilisé par
 > l'application (dev, staging, prod, …).
+
+
+### Déployer l'index avec Firebase CLI (recommandé)
+
+Pour éviter l'erreur `cloud_firestore/failed-precondition` ("The query requires an index"),
+le dépôt inclut maintenant `firestore.indexes.json`. Vous pouvez publier l'index avec :
+
+```bash
+firebase deploy --only firestore:indexes
+```
+
+Assurez-vous d'être connecté au bon projet Firebase (`firebase use <project-id>`).
+

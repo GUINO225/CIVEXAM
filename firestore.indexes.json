@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "competition_scores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "mode",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "percent",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "durationSec",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
